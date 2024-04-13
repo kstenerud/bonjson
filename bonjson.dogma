@@ -1,0 +1,62 @@
+dogma_v1 utf-8
+- identifier  = bonjson
+- description = Binary Object Notation for JSON
+- reference   = https://bonjson.org
+- dogma       = https://github.com/kstenerud/dogma/blob/master/v1/dogma_v1.0.md
+
+document          = byte_order(lsb, ordered_document);
+ordered_document  = value;
+
+value             = string | number | array | object | boolean | null;
+
+# Types
+
+string            = string_short | string_long;
+string_short      = u8(var(count, 0x70~0x8f)) & sized((count-0x70)*8, char_string*);
+string_long       = u8(0x90) & string_chunk;
+string_chunk      = var(header, chunk_header)
+                  & sized(header.count*8, char_string*)
+                  & [header.continuation = 1: string_chunk;]
+                  ;
+chunk_header      = uleb128(uany(var(count, ~)) & u1(var(continuation, ~)));
+
+number            = int_small | int_16 | float_32 | float_64 | big_number;
+int_small         = s8(-106~105);
+int_16            = u8(0x6b) & s16(~);
+float_32          = u8(0x6c) & f32(~);
+float_64          = u8(0x6d) & f64(~);
+big_number        = big_number_pos | big_number_neg;
+big_number_pos    = u8(0x6e) & big_number_value;
+big_number_neg    = u8(0x6f) & big_number_value;
+big_number_value  = var(header, big_number_header)
+                  & ordered(uint(header.sig_length*8, ~))
+                  & ordered(zigzag(uint(header.exp_length*8, ~)))
+                  ;
+big_number_header = uleb128(uany(var(sig_length, ~)) & u2(var(exp_length, ~)));
+
+array             = u8(0x91) & value* & end_container;
+object            = u8(0x92) & (name & value)* & end_container;
+end_container     = u8(0x93);
+name              = string_chunk;
+
+boolean           = true | false;
+false             = u8(0x94);
+true              = u8(0x95);
+
+null              = u8(0x6a);
+
+# Primitives & Functions
+
+s8(v)             = sint(8, v);
+s16(v)            = ordered(sint(16, v));
+u1(v)             = uint(1, v);
+u2(v)             = uint(2, v);
+u8(v)             = uint(8, v);
+uany(v)           = uint(~,v);
+f32(v)            = ordered(float(32, v));
+f64(v)            = ordered(float(64, v));
+
+char_string       = '\[0]' ~ '\[10ffff]'; # JSON technically supports unassigned and invalid codepoints
+
+uleb128(v: bits): bits = """https://en.wikipedia.org/wiki/LEB128#Unsigned_LEB128""";
+zigzag(v: bits): bits  = """https://en.wikipedia.org/wiki/Variable-length_quantity#Zigzag_encoding"""
