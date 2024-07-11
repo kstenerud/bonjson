@@ -241,15 +241,15 @@ Alternatively:
 
 #### Chunk Header Example
 
-In this example, we decode the chunk header encoded into the 2-byte LEB128 sequence: `0xa1 0x1f`
+In this example, we decode a chunk header that has been encoded into the 2-byte ULEB128 sequence: `0xa1 0x1f`
 
-First, extract the 14 bit payload from its 16 bit LEB128 envelope (every 8 bits of LEB128 data contains 7 bits of payload):
+First, extract the 14 bit payload from its 16 bit ULEB128 envelope (every 8 bits of ULEB128 data contains 7 bits of payload):
 
     hex: 0xa1       0x1f
     bin: 1 0100001  0 0011111
            payload    payload
 
-LEB128 is little endian ordered, so the 7-bit payload segments are actually swapped.
+ULEB128 is little endian ordered, so the 7-bit payload segments are actually swapped.
 
     0011111 0100001
 
