@@ -320,7 +320,7 @@ This allows for an unlimited significand size, and a ludicrous exponent range of
 **Examples**:
 
     6e 20 ff ff ff ff ff ff ff ff    // 0xffffffffffffffff (8 bytes significand, no exponent)
-    6e 05 0f 01                      // 1.5 (1 byte significand, 1 byte exponent)
+    6e 05 0f 01                      // 1.5 (15 x 10⁻¹) (1 byte significand, 1 byte exponent)
     6f 00                            // -0 (no significand, no exponent)
     6f 46 97 EB F2 0E C3 98 06 C1 47
        71 5E 65 4F 58 5F AA 28 4f 46 // -13837758495464977165497261864967377972119 x 10⁻⁹⁰⁰⁰
