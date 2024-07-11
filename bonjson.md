@@ -70,7 +70,7 @@ Contents
   - [Boolean Encoding](#boolean-encoding)
   - [Null Encoding](#null-encoding)
   - [Full Example](#full-example)
-  - [Interoperability Consiterations](#interoperability-consiterations)
+  - [Interoperability Considerations](#interoperability-considerations)
   - [Security Considerations](#security-considerations)
   - [Convenience Considerations](#convenience-considerations)
   - [JSON Standards](#json-standards)
@@ -437,7 +437,7 @@ Full Example
 
 
 
-Interoperability Consiterations
+Interoperability Considerations
 -------------------------------
 
 Because [JSON](#json-standards) is so weakly specified, there are numerous ways in which one implementation can become incompatible with another. [RFC 8259](https://www.rfc-editor.org/info/rfc8259) discusses many of these issues and how to mitigate them. It is recommended that any BONJSON implementation also follow their advice.
