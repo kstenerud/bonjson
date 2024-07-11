@@ -451,7 +451,7 @@ Any format that includes unbounded length fields is by definition open to abuse.
 
  * User-configurable maximum byte lengths for numbers and for strings (with sane defaults).
  * Sanity check: Does the length field contain a value greater than the total document length (if known)?
-``
+
 
 
 Convenience Considerations
