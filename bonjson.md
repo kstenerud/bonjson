@@ -515,7 +515,7 @@ big_number_header = uleb128(uany(var(sig_length, ~)) & u2(var(exp_length, ~)));
 array             = u8(0x91) & value* & end_container;
 object            = u8(0x92) & (name & value)* & end_container;
 end_container     = u8(0x93);
-name              = string_chunk;
+name              = string;
 
 boolean           = true | false;
 false             = u8(0x94);
