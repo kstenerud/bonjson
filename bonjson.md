@@ -174,7 +174,7 @@ Every value is composed of an 8-bit type code and in some cases a payload:
 | 6d        | 64-bit ieee754 binary float | Number  | [64-bit float](#64-bit-float)              |
 | 6e        | Big Number                  | Number  | [Big Number (positive)](#big-number)       |
 | 6f        | Big Number                  | Number  | [Big Number (negative)](#big-number)       |
-| 70 - 8f   | 0-31 bytes                  | String  | [String (short form)](#short-form)         |
+| 70 - 8f   | 0-31 bytes of UTF-8 data    | String  | [String (short form)](#short-form)         |
 | 90        | String chunk list           | String  | [String (long form)](#long-form)           |
 | 91        |                             | Array   | [Array start](#array-encoding)             |
 | 92        |                             | Object  | [Object start](#object-encoding)           |
