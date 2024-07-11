@@ -67,7 +67,6 @@ Contents
   - [Container Encoding](#container-encoding)
     - [Array Encoding](#array-encoding)
     - [Object Encoding](#object-encoding)
-      - [Object Member Names](#object-member-names)
   - [Boolean Encoding](#boolean-encoding)
   - [Null Encoding](#null-encoding)
   - [Full Example](#full-example)
@@ -207,6 +206,22 @@ Long form strings are stored in chunks, where sequences of string data are prece
 
 Most commonly, you'd store the entire string in a single chunk.
 
+#### Chunk Header
+
+Each string chunk is preceded by a chunk header, which contains a `length` and a `continuation bit`. When the `continuation bit` is 1, there's at least one more chunk to decode for the current string.
+
+    --+--[length+continuation]--[string bytes]--+--
+      |                                         |
+      +<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<+
+
+The `continuation bit` is the **lowest** bit in the chunk header. The upper bits of the header contain the `length` field.
+
+    L L L L L L L L L ... C
+
+The combined `chunk header` is then encoded as [unsigned LEB128](https://en.wikipedia.org/wiki/LEB128).
+
+**Note**: You can terminate any unterminated chunked string by encoding the chunk header `0x00` (length 0, continuation 0).
+
 The benefit of chunked encoding is that strings can be encoded progressively, for example if the final string length wasn't yet known when encoding started:
 
     [length 500, continuation 1] [500 bytes of string data]  // Initial available data from some buffer
@@ -223,23 +238,6 @@ Alternatively:
     [length 0, continuation 0]                               // Oh! We're actually at the end of the string.
     -------------------------------------------------------
     String of length 934 bytes, encoded in 4 chunks
-
-
-#### Chunk Header
-
-Each string chunk is preceded by a chunk header, which contains a `length` and a `continuation bit`. When the `continuation bit` is 1, there's at least one more chunk to decode for the current string.
-
-    --+--[length+continuation]--[string bytes]--+--
-      |                                         |
-      +<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<+
-
-The `continuation bit` is the **lowest** bit in the chunk header. The upper bits of the header contain the `length` field.
-
-    L L L L L L L L L ... C
-
-The combined `chunk header` is then encoded as [unsigned LEB128](https://en.wikipedia.org/wiki/LEB128).
-
-**Note**: You can terminate any unterminated chunked string by encoding the chunk header `0x00` (length 0, continuation 0).
 
 #### Chunk Header Example
 
@@ -342,6 +340,13 @@ An array consists of an `array start`, an optional collection of values, and fin
     [array start] (value ...) [container end]
          0x91         ...          0x93
 
+**Example**:
+
+    91                  // [
+        71 61           //     "a",
+        01              //     1
+    93                  // ]
+
 ### Object Encoding
 
 An object consists of an `object start`, an optional collection of name-value pairs, and finally a `container end`:
@@ -349,27 +354,16 @@ An object consists of an `object start`, an optional collection of name-value pa
     [object start] (name+value ...) [container end]
          0x92            ...            0x93
 
-#### Object Member Names
-
-As a special case, object member names **MUST** be encoded as _implied_ [long form strings](#long-form)! This means that the [type code](#type-codes) is _omitted_ when encoding an object member name (because we already know that it can only be a string).
+**Note**: Names **MUST** be strings and **MUST NOT** be null.
 
 **Example**:
 
-JSON:
-
-    {
-        "a": 1,
-        "test": "x"
-    }
-
-BONJSON:
-
-    92
-        02 61           // "a"    (name  - notice there is no type code)
-        01              // 1      (value - 01 is both the type code AND value)
-        08 74 65 73 74  // "test" (name  - no type code)
-        71 78           // "x"    (value - this requires a type code)
-    93
+    92                  // {
+        71 62           //     "b":
+        00              //     0,
+        74 74 65 73 74  //     "test":
+        71 78           //     "x"
+    93                  // }
 
 
 
@@ -412,31 +406,31 @@ Full Example
 
 **BONJSON**:
 
-    92                                     // start object
-        10 61 20 6e 75 6d 62 65 72         //     "a number"
-        01                                 //     1
-        10 61 6e 20 61 72 72 61 79         //     "an array"
-        91                                 //     start array
-            71 78                          //         "x"
-            6b e8 03                       //         1000
+    92                                     // {
+        78 61 20 6e 75 6d 62 65 72         //     "a number":
+        01                                 //     1,
+        78 61 6e 20 61 72 72 61 79         //     "an array":
+        91                                 //     [
+            71 78                          //         "x",
+            6b e8 03                       //         1000,
             6f 05 0f 01                    //         1.5
-        93                                 //     end container
-        0c 61 20 6e 75 6c 6c               //     "a null"
-        6a                                 //     null
-        12 61 20 62 6f 6f 6c 65 61 6e      //     "a boolean"
-        95                                 //     true
-        12 61 6e 20 6f 62 6a 65 63 74      //     "an object"
-        92                                 //     start object
-            02 61                          //         "a"
-            9c                             //         -100
-            02 62                          //         "b"
+        93                                 //     ],
+        76 61 20 6e 75 6c 6c               //     "a null":
+        6a                                 //     null,
+        79 61 20 62 6f 6f 6c 65 61 6e      //     "a boolean":
+        95                                 //     true,
+        79 61 6e 20 6f 62 6a 65 63 74      //     "an object":
+        92                                 //     [
+            71 61                          //         "a":
+            9c                             //         -100,
+            71 62                          //         "b":
             90 50 2e 2e 2e 2e 2e 2e 2e 2e
                   2e 2e 2e 2e 2e 2e 2e 2e
                   2e 2e 2e 2e 2e 2e 2e 2e
                   2e 2e 2e 2e 2e 2e 2e 2e
                   2e 2e 2e 2e 2e 2e 2e 2e  //         "........................................"
-        93                                 //     end container
-    93                                     // end container
+        93                                 //     ]
+    93                                     // }
 
     Size:    110 bytes
     GZipped:  99 bytes
