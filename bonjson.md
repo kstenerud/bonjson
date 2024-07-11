@@ -163,7 +163,7 @@ BONJSON is a byte-oriented format. All values begin and end on an 8-bit boundary
 
 ### Type Codes
 
-Every value is prefixed with an 8-bit type code (with the sole exception of [object member names](#object-member-names)):
+Every value is prefixed with an 8-bit type code:
 
 | Type Code | Payload                     | Type    | Description                                |
 | --------- | --------------------------- | ------- | ------------------------------------------ |
