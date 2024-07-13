@@ -48,7 +48,7 @@ _This_ is what BONJSON is.
 
 ### Implementations
 
- * [⚙️ Go Implementation](https://github.com/kstenerud/go-bonjson) (reference implementation)
+ * [⚙️ C Implementation](https://github.com/kstenerud/bonjson-c) (reference implementation)
 
 -------------------------------------------------------------------------------
 

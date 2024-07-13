@@ -440,7 +440,7 @@ Full Example
 Interoperability Considerations
 -------------------------------
 
-Because [JSON](#json-standards) is so weakly specified, there are numerous ways in which one implementation can become incompatible with another. [RFC 8259](https://www.rfc-editor.org/info/rfc8259) discusses many of these issues and how to mitigate them. It is recommended that any BONJSON implementation also follow their advice.
+Because [JSON](#json-standards) is so weakly specified, there are numerous ways in which one implementation can become incompatible with another. [RFC 8259](https://www.rfc-editor.org/info/rfc8259) discusses many of these issues and how to mitigate them. BONJSON implementations **SHOULD** follow their advice.
 
 
 
