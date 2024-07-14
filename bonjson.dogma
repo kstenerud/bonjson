@@ -20,14 +20,17 @@ string_chunk      = var(header, chunk_header)
                   ;
 chunk_header      = uleb128(uany(var(count, ~)) & u1(var(continuation, ~)));
 
-number            = int_small | int_16 | float_32 | float_64 | big_number;
-int_small         = s8(-106~105);
-int_16            = u8(0x6b) & s16(~);
-float_32          = u8(0x6c) & f32(~);
-float_64          = u8(0x6d) & f64(~);
+number            = int_small | int_16 | int_32 | int_64 | uint_64 | float_32 | float_64 | big_number;
+int_small         = s8(-104~104);
+int_16            = u8(0x6a) & s16(~);
+int_32            = u8(0x6b) & s32(~);
+int_64            = u8(0x6c) & s64(~);
+uint_64           = u8(0x6d) & u64(~);
+float_32          = u8(0x6e) & f32(~);
+float_64          = u8(0x6f) & f64(~);
 big_number        = big_number_pos | big_number_neg;
-big_number_pos    = u8(0x6e) & big_number_value;
-big_number_neg    = u8(0x6f) & big_number_value;
+big_number_pos    = u8(0x96) & big_number_value;
+big_number_neg    = u8(0x97) & big_number_value;
 big_number_value  = var(header, big_number_header)
                   & ordered(uint(header.sig_length*8, ~))
                   & ordered(zigzag(uint(header.exp_length*8, ~)))
@@ -43,12 +46,15 @@ boolean           = true | false;
 false             = u8(0x94);
 true              = u8(0x95);
 
-null              = u8(0x6a);
+null              = u8(0x69);
 
 # Primitives & Functions
 
 s8(v)             = sint(8, v);
 s16(v)            = ordered(sint(16, v));
+s32(v)            = ordered(sint(32, v));
+s64(v)            = ordered(sint(64, v));
+u64(v)            = ordered(uint(64, v));
 u1(v)             = uint(1, v);
 u2(v)             = uint(2, v);
 u8(v)             = uint(8, v);
