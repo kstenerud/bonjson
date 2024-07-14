@@ -20,12 +20,13 @@ string_chunk      = var(header, chunk_header)
                   ;
 chunk_header      = uleb128(uany(var(count, ~)) & u1(var(continuation, ~)));
 
-number            = int_small | int_16 | int_32 | int_64 | uint_64 | float_32 | float_64 | big_number;
-int_small         = s8(-104~104);
-int_16            = u8(0x6a) & s16(~);
-int_32            = u8(0x6b) & s32(~);
-int_64            = u8(0x6c) & s64(~);
-uint_64           = u8(0x6d) & u64(~);
+number            = int_small | int_16 | int_32 | int_64 | uint_64 | float_16 | float_32 | float_64 | big_number;
+int_small         = s8(-103~104);
+int_16            = u8(0x69) & s16(~);
+int_32            = u8(0x6a) & s32(~);
+int_64            = u8(0x6b) & s64(~);
+uint_64           = u8(0x6c) & u64(~);
+float_16          = u8(0x6d) & f16(~);
 float_32          = u8(0x6e) & f32(~);
 float_64          = u8(0x6f) & f64(~);
 big_number        = big_number_pos | big_number_neg;
@@ -46,7 +47,7 @@ boolean           = true | false;
 false             = u8(0x94);
 true              = u8(0x95);
 
-null              = u8(0x69);
+null              = u8(0x68);
 
 # Primitives & Functions
 
@@ -59,10 +60,12 @@ u1(v)             = uint(1, v);
 u2(v)             = uint(2, v);
 u8(v)             = uint(8, v);
 uany(v)           = uint(~,v);
+f16(v)            = ordered(bfloat16(v));
 f32(v)            = ordered(float(32, v));
 f64(v)            = ordered(float(64, v));
 
 char_string       = '\[0]' ~ '\[10ffff]'; # JSON technically supports unassigned and invalid codepoints
 
+bfloat16(v: bits): bits = """https://en.wikipedia.org/wiki/Bfloat16_floating-point_format""";
 uleb128(v: bits): bits = """https://en.wikipedia.org/wiki/LEB128#Unsigned_LEB128""";
-zigzag(v: bits): bits  = """https://en.wikipedia.org/wiki/Variable-length_quantity#Zigzag_encoding"""
+zigzag(v: bits): bits = """https://en.wikipedia.org/wiki/Variable-length_quantity#Zigzag_encoding""";

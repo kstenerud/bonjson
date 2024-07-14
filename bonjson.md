@@ -64,6 +64,7 @@ Contents
     - [32-bit Signed Integer](#32-bit-signed-integer)
     - [64-bit Signed Integer](#64-bit-signed-integer)
     - [64-bit Unsigned Integer](#64-bit-unsigned-integer)
+    - [16-bit Float](#16-bit-float)
     - [32-bit Float](#32-bit-float)
     - [64-bit Float](#64-bit-float)
     - [Big Number](#big-number)
@@ -168,26 +169,27 @@ BONJSON is a byte-oriented format. All values begin and end on an 8-bit boundary
 
 Every value is composed of an 8-bit type code and in some cases a payload:
 
-| Type Code | Payload                     | Type    | Description                                         |
-| --------- | --------------------------- | ------- | --------------------------------------------------- |
-| 00 - 68   |                             | Number  | [Integers 0 through 104](#small-integer)            |
-| 69        |                             | Null    | [Null](#null-encoding)                              |
-| 6a        | 16-bit signed integer       | Number  | [16-bit signed integer](#16-bit-signed-integer)     |
-| 6b        | 32-bit signed integer       | Number  | [32-bit signed integer](#32-bit-signed-integer)     |
-| 6c        | 64-bit signed integer       | Number  | [64-bit signed integer](#64-bit-signed-integer)     |
-| 6d        | 64-bit unsigned integer     | Number  | [64-bit unsigned integer](#64-bit-unsigned-integer) |
-| 6e        | 32-bit ieee754 binary float | Number  | [32-bit float](#32-bit-float)                       |
-| 6f        | 64-bit ieee754 binary float | Number  | [64-bit float](#64-bit-float)                       |
-| 70 - 8f   | 0-31 bytes of UTF-8 data    | String  | [String (short form)](#short-form)                  |
-| 90        | String chunk list           | String  | [String (long form)](#long-form)                    |
-| 91        |                             | Array   | [Array start](#array-encoding)                      |
-| 92        |                             | Object  | [Object start](#object-encoding)                    |
-| 93        |                             |         | [Container end](#container-encoding)                |
-| 94        |                             | Boolean | [False](#boolean-encoding)                          |
-| 95        |                             | Boolean | [True](#boolean-encoding)                           |
-| 96        | Big Number                  | Number  | [Big Number (positive)](#big-number)                |
-| 97        | Big Number                  | Number  | [Big Number (negative)](#big-number)                |
-| 98 - ff   |                             | Number  | [Integers -104 through -1](#small-integer)          |
+| Type Code | Payload                      | Type    | Description                                         |
+| --------- | ---------------------------- | ------- | --------------------------------------------------- |
+| 00 - 67   |                              | Number  | [Integers 0 through 103](#small-integer)            |
+| 68        |                              | Null    | [Null](#null-encoding)                              |
+| 69        | 16-bit signed integer        | Number  | [16-bit signed integer](#16-bit-signed-integer)     |
+| 6a        | 32-bit signed integer        | Number  | [32-bit signed integer](#32-bit-signed-integer)     |
+| 6b        | 64-bit signed integer        | Number  | [64-bit signed integer](#64-bit-signed-integer)     |
+| 6c        | 64-bit unsigned integer      | Number  | [64-bit unsigned integer](#64-bit-unsigned-integer) |
+| 6d        | 16-bit bfloat16 binary float | Number  | [16-bit float](#16-bit-float)                       |
+| 6e        | 32-bit ieee754 binary float  | Number  | [32-bit float](#32-bit-float)                       |
+| 6f        | 64-bit ieee754 binary float  | Number  | [64-bit float](#64-bit-float)                       |
+| 70 - 8f   | 0-31 bytes of UTF-8 data     | String  | [String (short form)](#short-form)                  |
+| 90        | String chunk list            | String  | [String (long form)](#long-form)                    |
+| 91        |                              | Array   | [Array start](#array-encoding)                      |
+| 92        |                              | Object  | [Object start](#object-encoding)                    |
+| 93        |                              |         | [Container end](#container-encoding)                |
+| 94        |                              | Boolean | [False](#boolean-encoding)                          |
+| 95        |                              | Boolean | [True](#boolean-encoding)                           |
+| 96        | Big Number                   | Number  | [Big Number (positive)](#big-number)                |
+| 97        | Big Number                   | Number  | [Big Number (negative)](#big-number)                |
+| 98 - ff   |                              | Number  | [Integers -104 through -1](#small-integer)          |
 
 
 
@@ -283,7 +285,7 @@ Numbers can be encoded using various integer and floating point forms. Encoders 
 
 Small integers are encoded into the [type code](#type-codes) itself for maximum compactness in the most commonly used integer range. The [type code](#type-codes) can be directly cast to a signed 8-bit integer to produce the correct signed integer value.
 
-[Type codes](#type-codes) 0x00 to 0x68 encode values from 0 to 104, and [type codes](#type-codes) 0x98 to 0xff encode values from -104 to -1.
+[Type codes](#type-codes) 0x00 to 0x67 encode values from 0 to 103, and [type codes](#type-codes) 0x98 to 0xff encode values from -104 to -1.
 
 ### 16-bit Signed Integer
 
@@ -301,17 +303,21 @@ The value is encoded as a little-endian 64-bit signed integer following the [typ
 
 The value is encoded as a little-endian 64-bit unsigned integer following the [type code](#type-codes). This is a convenience encoding for a commonly used integer type.
 
+### 16-bit Float
+
+The value is encoded as a little-endian 16-bit [bfloat16](https://en.wikipedia.org/wiki/Bfloat16_floating-point_format) following the [type code](#type-codes). This is a convenience encoding for a commonly used float type (often used in AI).
+
 ### 32-bit Float
 
-The value is encoded as a little-endian 32-bit ieee754 binary float following the [type code](#type-codes). This is a convenience encoding for a commonly used float type.
+The value is encoded as a little-endian [32-bit ieee754 binary float](https://en.wikipedia.org/wiki/Single-precision_floating-point_format) following the [type code](#type-codes). This is a convenience encoding for a commonly used float type.
 
 ### 64-bit Float
 
-The value is encoded as a little-endian 64-bit ieee754 binary float following the [type code](#type-codes). This is a convenience encoding for a commonly used float type.
+The value is encoded as a little-endian [64-bit ieee754 binary float](https://en.wikipedia.org/wiki/Double-precision_floating-point_format) following the [type code](#type-codes). This is a convenience encoding for a commonly used float type.
 
 ### Big Number
 
-The Big Number type allows for encoding an effectively unlimited range of numbers. It can encode small floats (up to 2 significant digits and in some cases 3) in even less space than a float32.
+The Big Number type allows for encoding an effectively unlimited range of numbers.
 
 The general, logical form of a big number is as follows:
 
@@ -432,7 +438,7 @@ Full Example
         91                                 //     [
             71 78                          //         "x",
             6a e8 03                       //         1000,
-            6e 00 00 c0 3f                 //         1.5
+            6d c0 3f                       //         1.5
         93                                 //     ],
         76 61 20 6e 75 6c 6c               //     "a null":
         69                                 //     null,
@@ -451,8 +457,8 @@ Full Example
         93                                 //     }
     93                                     // }
 
-    Size:    110 bytes
-    GZipped:  99 bytes
+    Size:    109 bytes
+    GZipped: 106 bytes
 
 
 
@@ -517,12 +523,13 @@ string_chunk      = var(header, chunk_header)
                   ;
 chunk_header      = uleb128(uany(var(count, ~)) & u1(var(continuation, ~)));
 
-number            = int_small | int_16 | int_32 | int_64 | uint_64 | float_32 | float_64 | big_number;
-int_small         = s8(-104~104);
-int_16            = u8(0x6a) & s16(~);
-int_32            = u8(0x6b) & s32(~);
-int_64            = u8(0x6c) & s64(~);
-uint_64           = u8(0x6d) & u64(~);
+number            = int_small | int_16 | int_32 | int_64 | uint_64 | float_16 | float_32 | float_64 | big_number;
+int_small         = s8(-103~104);
+int_16            = u8(0x69) & s16(~);
+int_32            = u8(0x6a) & s32(~);
+int_64            = u8(0x6b) & s64(~);
+uint_64           = u8(0x6c) & u64(~);
+float_16          = u8(0x6d) & f16(~);
 float_32          = u8(0x6e) & f32(~);
 float_64          = u8(0x6f) & f64(~);
 big_number        = big_number_pos | big_number_neg;
@@ -543,7 +550,7 @@ boolean           = true | false;
 false             = u8(0x94);
 true              = u8(0x95);
 
-null              = u8(0x69);
+null              = u8(0x68);
 
 # Primitives & Functions
 
@@ -556,13 +563,15 @@ u1(v)             = uint(1, v);
 u2(v)             = uint(2, v);
 u8(v)             = uint(8, v);
 uany(v)           = uint(~,v);
+f16(v)            = ordered(bfloat16(v));
 f32(v)            = ordered(float(32, v));
 f64(v)            = ordered(float(64, v));
 
 char_string       = '\[0]' ~ '\[10ffff]'; # JSON technically supports unassigned and invalid codepoints
 
+bfloat16(v: bits): bits = """https://en.wikipedia.org/wiki/Bfloat16_floating-point_format""";
 uleb128(v: bits): bits = """https://en.wikipedia.org/wiki/LEB128#Unsigned_LEB128""";
-zigzag(v: bits): bits  = """https://en.wikipedia.org/wiki/Variable-length_quantity#Zigzag_encoding"""
+zigzag(v: bits): bits = """https://en.wikipedia.org/wiki/Variable-length_quantity#Zigzag_encoding""";
 ```
 
 
