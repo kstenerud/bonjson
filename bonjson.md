@@ -8,51 +8,12 @@ BONJSON is a **1:1 compatible** binary serialization format for [JSON](#json-sta
 
 It's a drop-in replacement that works in the same way and has the same capabilities and limitations as [JSON](#json-standards) (no more, no less), except in binary rather than text.
 
-
-### Why build this?
-
-[JSON](#json-standards) isn't going away, so let's at least be more efficient where we can! BONJSON documents are quicker and more energy efficent to process, and are generally smaller and compress better than [JSON](#json-standards). Machine-to-machine transmission is better done in binary, with conversion to human-readable JSON only at endpoints where a human is actually involved (or via debugging tools along the path).
-
-_The world has settled on JSON, so here we are._
-
-
-### Why not BSON or anther existing binary JSON format?
-
-Because they _all_ add extra features that make them **NOT** 1:1 compatible.
-
-**Wherever there's a compatibility mismatch, breakage will eventually occur** - it's only a matter of time before your complex data pipelines trigger it. Having confidence in your data pipeline is paramount.
-
-**1:1 compatible means that**:
-
- * Any valid document in the binary format **MUST** be 100% convertible to [JSON](#json-standards) format without data loss or schema requirement.
- * Any valid document in [JSON](#json-standards) format **MUST** be 100% convertible to the binary format without data loss or schema requirement.
- * Any valid document **MUST** be round-trip convertible between [JSON](#json-standards) and the binary format (in either direction) without data loss or schema requirement.
- * The binary format **MUST** support the same feature set as [JSON](#json-standards) does. For example, [JSON](#json-standards) supports progressive encoding.
-
-A "binary" version of [JSON](#json-standards) **MUST** behave in exactly the same way as [JSON](#json-standards). The _only_ difference should be in the encoding mechanism.
-
-_This_ is what BONJSON is.
-
-
-### Why use binary at all?
-
-A simple binary format is orders of magnitude faster to produce and consume compared to a text format. It also offers much smaller sizes for number-heavy data (text-heavy data will be about on-par with JSON in terms of size).
-
-**The average progression is**:
-
- * **When starting something new:** JSON, because it's simple and ubiquitous.
- * **As your costs begin to rise:** BONJSON, because it's a drop-in replacement for JSON with lower processing and transmission costs.
- * **As your needs expand beyond basic data:** A more advanced format specific to your use case.
-
 -------------------------------------------------------------------------------
 
 Contents
 --------
 
 - [BONJSON: Binary Object Notation for JSON](#bonjson-binary-object-notation-for-json)
-    - [Why build this?](#why-build-this)
-    - [Why not BSON or anther existing binary JSON format?](#why-not-bson-or-anther-existing-binary-json-format)
-    - [Why use binary at all?](#why-use-binary-at-all)
   - [Contents](#contents)
   - [Terms and Conventions](#terms-and-conventions)
   - [Types](#types)
