@@ -3,16 +3,17 @@ BONJSON: Binary Object Notation for JSON
 
 BONJSON is a **1:1 compatible** binary serialization format for [JSON](#json-standards).
 
-It's a drop-in replacement that works in the same way and has the same capabilities and limitations as [JSON](#json-standards) (no more, no less), except in binary rather than text.
+It's a drop-in replacement that works in the same way and has the same capabilities and limitations as JSON (no more, no less), except in a binary format rather than text.
 
 
-### Why build this?
+Why make a binary JSON?
+-----------------------
 
-[JSON](#json-standards) isn't going away, so let's at least be more efficient where we can!
+[JSON](#json-standards) isn't going anywhere, so let's at least be more efficient where we can!
 
-BONJSON documents are quicker and more energy efficent to process, and are generally smaller and compress better than [JSON](#json-standards).
+BONJSON documents are quicker and more energy efficent to process, and are generally smaller and compress better than JSON.
 
-Machine-to-machine transmission is better done in binary, with conversion to human-readable JSON only at endpoints where a human is actually involved.
+Machine-to-machine transmission is better done in binary, with conversion to human-readable JSON only where a human actually needs to be involved.
 
 
 ### Why not BSON or anther existing binary JSON format?
@@ -37,9 +38,9 @@ Because they _all_ add extra things that make them **NOT** 1:1 compatible.
 **1:1 compatible means that**:
 
  * Any valid document **MUST** be round-trip convertible between [JSON](#json-standards) and the binary format (in either direction) without data loss or schema requirement.
- * The binary format **MUST** support the same feature set as [JSON](#json-standards) does. For example, [JSON](#json-standards) supports progressive encoding.
+ * The binary format **MUST** support the same feature set as [JSON](#json-standards) does. For example, JSON supports progressive encoding.
 
-A binary version of [JSON](#json-standards) **MUST** behave in exactly the same way as [JSON](#json-standards). The _only_ difference should be in the encoding mechanism.
+A binary version of JSON **MUST** behave in exactly the same way as [JSON](#json-standards). The _only_ difference should be in the encoding mechanism.
 
 **_This_ is what BONJSON is.**
 
@@ -55,13 +56,16 @@ A simple binary format is orders of magnitude faster to produce and consume comp
  * **As your needs expand beyond basic data:** A more advanced format specific to your use case.
 
 
-### BONJSON is Small, Simple, and Efficient
 
-BONJSON's format is designed to be simple (the reference implementation is less than 1000 LOC), and compact where it makes sense to do so. This means:
+BONJSON is Small, Simple, and Efficient
+---------------------------------------
 
-* No built-in compression (dictionaries, lookups, etc). Leave that to professional compression algorithms.
-* The most likely data uses the smallest encoding overhead.
-* The encoding is designed to be computationally simple for 99.99% of real-world data.
+BONJSON's format is designed to be simple (the C reference implementation is less than 500 LOC each for the encoder and decoder), and compact where it makes sense to do so. This means:
+
+ * No built-in compression (dictionaries, lookups, etc). Leave that to the real compression algorithms.
+ * Prefer existing, ubiquitous encodings as much as possible.
+ * Encode the most likely data using the smallest encoding overhead.
+ * Be computationally simple for 99.99% of real-world data.
 
 -------------------------------------------------------------------------------
 

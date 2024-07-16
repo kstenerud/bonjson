@@ -7,11 +7,13 @@ dogma_v1 utf-8
 document          = byte_order(lsb, ordered_document);
 ordered_document  = value;
 
-value             = string | number | array | object | boolean | null;
+value             = array | object | number | boolean | string | null;
 
 # Types
 
-string            = u8(0xff) & char_string* & u8(0xff);
+array             = u8(0xeb) & value* & end_container;
+object            = u8(0xec) & (string & value)* & end_container;
+end_container     = u8(0xed);
 
 number            = int_small | int_8 | int_16 | int_24 | int_32 | int_40 | int_48 | int_56
                   | int_64 | uint_64 | float_16 | float_32 | float_64 | big_number;
@@ -37,14 +39,11 @@ big_number_value  = var(header, big_number_header)
                   ;
 big_number_header = uleb128(uany(var(sig_length, ~)) & u2(var(exp_length, ~)));
 
-array             = u8(0xeb) & value* & end_container;
-object            = u8(0xec) & (string & value)* & end_container;
-end_container     = u8(0xed);
-
 boolean           = true | false;
 false             = u8(0xee);
 true              = u8(0xef);
 
+string            = u8(0xff) & char_string* & u8(0xff);
 null              = u8(0xf0);
 
 # Primitives & Functions

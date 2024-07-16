@@ -6,7 +6,7 @@ BONJSON: Binary Object Notation for JSON
 
 BONJSON is a **1:1 compatible** binary serialization format for [JSON](#json-standards).
 
-It's a drop-in replacement that works in the same way and has the same capabilities and limitations as [JSON](#json-standards) (no more, no less), except in binary rather than text.
+It's a drop-in replacement that works in the same way and has the same capabilities and limitations as [JSON](#json-standards) (no more, no less), except in a binary format rather than text.
 
 -------------------------------------------------------------------------------
 
@@ -18,10 +18,6 @@ Contents
   - [Terms and Conventions](#terms-and-conventions)
   - [Types](#types)
   - [Structure](#structure)
-    - [Document](#document)
-    - [Value](#value)
-    - [Object](#object)
-    - [Array](#array)
   - [Encoding](#encoding)
     - [Type Codes](#type-codes)
   - [String Encoding](#string-encoding)
@@ -82,13 +78,13 @@ BONJSON has the exact same types as [JSON](#json-standards) (and no more):
 Structure
 ---------
 
-BONJSON follows the same structural rules as [JSON](#json-standards), as per the following railroad diagrams:
+BONJSON follows the same structural rules as [JSON](#json-standards), as per these railroad diagrams:
 
-### Document
+**Document**:
 
     --[value]--
 
-### Value
+**Value**:
 
     --+--[string]---+--
       |             |
@@ -102,7 +98,7 @@ BONJSON follows the same structural rules as [JSON](#json-standards), as per the
       |             |
       +--[null]-----+
 
-### Object
+**Object**:
 
     --[begin object]--+---------------------+--[end container]--
                       |                     |
@@ -110,7 +106,7 @@ BONJSON follows the same structural rules as [JSON](#json-standards), as per the
                       |                     |
                       +<<<<<<<<<<<<<<<<<<<<<+
 
-### Array
+**Array**:
 
     --[begin array]--+-----------+--[end container]--
                      |           |
@@ -133,7 +129,7 @@ BONJSON is a byte-oriented format. All values begin and end on an 8-bit boundary
 
 ### Type Codes
 
-Every value is composed of an 8-bit type code and in some cases a payload:
+Every value is composed of an 8-bit type code, and in some cases also a payload:
 
 | Type Code | Payload                      | Type    | Description                                         |
 | --------- | ---------------------------- | ------- | --------------------------------------------------- |
@@ -159,9 +155,11 @@ Every value is composed of an 8-bit type code and in some cases a payload:
 String Encoding
 ---------------
 
-Strings are sequences of UTF-8 characters delimited on both ends by the byte `0xff`. Since `0xff` is never a valid byte within a UTF-8 sequence (and never will be until we surpass 68 _billion_ codepoints), there is technically no need to interpret the UTF-8 characters themselves at the early decoding stage while scanning for the end of the string (A C/C++ implementation could use `memccpy()`, for example).
+Strings are sequences of UTF-8 characters delimited on both ends by the byte `0xff`.
 
 Strings **MUST** be encoded in UTF-8. BONJSON supports the same UTF-8 codepoints as [JSON](#json-standards) does, but does not implement escape sequences (which are unnecessary in a binary format).
+
+**Discussion**: Since the delimiter `0xff` is never a valid byte within a UTF-8 sequence (and never will be until we surpass 68 _billion_ codepoints), there is technically no need to interpret the UTF-8 characters themselves in the early decoding stage while scanning for the end of the string. A C/C++ implementation for example could use [`memccpy()`](https://www.man7.org/linux/man-pages/man3/memccpy.3.html), or it could overwrite the closing `0xff` delimiter with `0x00` to make a zero-copy null-terminated string using the original document buffer as a backing store.
 
 **Example**:
 
@@ -181,7 +179,7 @@ Numbers can be encoded using various integer and floating point forms. Encoders 
 
 ### Small Integer
 
-Small integers (-117 to 117) are encoded into the [type code](#type-codes) itself for maximum compactness in the most commonly used integer range. Subtracting the bias value 117 from the [type code](#type-codes) gives the actual value it represents.
+Small integers (-117 to 117) are encoded into the [type code](#type-codes) itself for maximum compactness in the most commonly used integer range. Subtracting the bias value 117 from the [type code](#type-codes) produces the actual value it represents.
 
 **Examples**:
 
@@ -199,13 +197,14 @@ The 8 bit signed integer encoding is another special case, taking over where [sm
 
 **Encoding**:
 
- * Integers from 118 to 245 have 118 subtracted from them.
- * Integers from -118 to -245 have 117 added to them.
+ * Integers from 118 to 245 have 118 subtracted from them to produce the encoded value.
+ * Integers from -118 to -245 have 117 added to them to produce the encoded value.
+ * No other values can be represented by this type (only 256 discrete values can be represented by a single byte).
 
 **Decoding**:
 
- * Encoded values >= 0 have 118 added to them.
- * Encoded values < 0 have 117 subtracted from them.
+ * Encoded values >= 0 have 118 added to them to produce the original value.
+ * Encoded values < 0 have 117 subtracted from them to produce the original value.
 
 **Examples**:
 
@@ -223,7 +222,7 @@ The value is encoded as a little-endian signed integer following the [type code]
     f2 e8 03                   //  1000
     f2 18 fc                   // -1000
     f3 00 80 00                //  0x8000
-    f6 bc 7a 67 56 34 12       //  0x123456789abc
+    f6 bc 9a 78 56 34 12       //  0x123456789abc
     f8 00 00 00 00 00 00 00 80 // -0x8000000000000000
 
 ### 64-bit Unsigned Integer
@@ -263,8 +262,6 @@ The value is encoded as a little-endian [64-bit ieee754 binary float](https://en
 
 The Big Number type allows for encoding an effectively unlimited range of numbers.
 
-It's by far the most complex encoding in BONJSON, but it's also the least likely to actually be used in real-world data (mostly, it exists to bring parity with JSON's unlimited number range).
-
 The general, logical form of a big number is as follows:
 
     [sign] [length header] [significand bytes] [exponent bytes]
@@ -272,7 +269,7 @@ The general, logical form of a big number is as follows:
  * The `sign` is encoded into the [type code](#type-codes) itself.
  * The `length header` field is encoded as an [unsigned LEB128](https://en.wikipedia.org/wiki/LEB128).
  * The `significand` is encoded as an unsigned integer in little endian byte order.
- * The `exponent` is encoded as a 0-3 byte little endian signed integer.
+ * The `exponent` is encoded as a signed integer little endian byte order.
  * The exponent is a power-of-10, just like in [JSON](#json-standards) text notation.
 
 The length header consists of two fields:
@@ -288,7 +285,9 @@ This allows for an unlimited significand size, and a ludicrous exponent range of
 **Notes**:
 
  * A field length of 0 represents a value of 0 for that field.
- * A Big Number with a significand value of 0 is equal to 0 with the sign from the [type code](#type-codes), regardless of exponent contents.
+ * A Big Number with a significand value of 0 is equal to 0 with the sign from the [type code](#type-codes), regardless of exponent contents (which are superfluous in such a case).
+
+**Discussion**: Big Number has the most complex encoding of all BONJSON types, but it's also the least likely to actually be used in real-world data (it exists to bring parity with JSON's unlimited number range).
 
 **Examples**:
 
@@ -418,13 +417,13 @@ Interoperability Considerations
 
 Because [JSON](#json-standards) is so weakly specified, there are numerous ways in which one implementation can become incompatible with another. [RFC 8259](https://www.rfc-editor.org/info/rfc8259) discusses many of these issues and how to mitigate them. BONJSON implementations **SHOULD** follow their advice.
 
-It's expected that your decoder will eventually encounter disallowed data due to the [GIGO effect](https://en.wikipedia.org/wiki/Garbage_in,_garbage_out) (for example float values containing NaN or infinity, numbers that are too large, etc). Decoders **SHOULD** offer the user options for what to do when that happens:
+It's expected that your decoder will eventually encounter disallowed data due to the [GIGO effect](https://en.wikipedia.org/wiki/Garbage_in,_garbage_out) (for example float values containing NaN or infinity, numbers that are too large for your system, etc). Decoders **SHOULD** offer the user options for what to do when that happens:
 
  * Abort processing
  * Stringify the value
  * Replace the value with `null`
 
-If a decoder provides such optional behavior, it **MUST** default to aborting. If a decoder provides no such optional behavior, it **MUST** abort on invalid/disallowed data.
+If a decoder provides such optional behavior, it **MUST** default to aborting. If a decoder provides no such optional behavior, it **MUST** abort processing.
 
 
 
@@ -434,14 +433,16 @@ Security Considerations
 Any format that includes unbounded length fields is by definition open to abuse. BONJSON decoders **MUST** provide ways to protect against this. For example:
 
  * User-configurable maximum byte lengths for [big numbers](#big-number) (with sane defaults).
- * Sanity check: Does the length field contain a value greater than the total document length (if known)?
+ * Sanity check: Does the length field contain a value greater than the remaining document length (if known)?
 
 
 
 Convenience Considerations
 --------------------------
 
-Decoders **SHOULD** offer an option to allow for partial data to be recovered (along with an error condition) when decoding fails partway through. This would involve discarding any partially decoded value (and its associated member name - if any), and then artificially terminating all open arrays and objects to produce a well-formed tree.
+Decoders **SHOULD** offer an option to allow for partial data to be recovered (along with an error condition) when decoding fails partway through.
+
+This would involve discarding any partially decoded value (and its associated member name - if any), and then artificially terminating all open arrays and objects to produce a well-formed tree.
 
 
 
@@ -469,11 +470,13 @@ dogma_v1 utf-8
 document          = byte_order(lsb, ordered_document);
 ordered_document  = value;
 
-value             = string | number | array | object | boolean | null;
+value             = array | object | number | boolean | string | null;
 
 # Types
 
-string            = u8(0xff) & char_string* & u8(0xff);
+array             = u8(0xeb) & value* & end_container;
+object            = u8(0xec) & (string & value)* & end_container;
+end_container     = u8(0xed);
 
 number            = int_small | int_8 | int_16 | int_24 | int_32 | int_40 | int_48 | int_56
                   | int_64 | uint_64 | float_16 | float_32 | float_64 | big_number;
@@ -499,14 +502,11 @@ big_number_value  = var(header, big_number_header)
                   ;
 big_number_header = uleb128(uany(var(sig_length, ~)) & u2(var(exp_length, ~)));
 
-array             = u8(0xeb) & value* & end_container;
-object            = u8(0xec) & (string & value)* & end_container;
-end_container     = u8(0xed);
-
 boolean           = true | false;
 false             = u8(0xee);
 true              = u8(0xef);
 
+string            = u8(0xff) & char_string* & u8(0xff);
 null              = u8(0xf0);
 
 # Primitives & Functions
