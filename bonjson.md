@@ -6,12 +6,12 @@ BONJSON: Binary Object Notation for JSON
 
 BONJSON is a **1:1 compatible** binary serialization format for [JSON](#json-standards).
 
-It works in the same way and has the same capabilities and limitations as [JSON](#json-standards), except in binary rather than text.
+It works in the same way and has the same capabilities and limitations as [JSON](#json-standards) (no more, no less), except in binary rather than text.
 
 
 ### Why build this?
 
-[JSON](#json-standards) isn't going away for a **loooooooong** time, so let's at least make it less wasteful where we can! BONJSON documents are quicker and more energy efficent to process, and are generally smaller and compress better than [JSON](#json-standards). Machine-to-machine transmission is better done in binary, with conversion to human-readable JSON only at endpoints where a human is actually involved (or via debugging tools along the path).
+[JSON](#json-standards) isn't going away for a **loooooooong** time, so let's at least make it more efficient to use where we can! BONJSON documents are quicker and more energy efficent to process, and are generally smaller and compress better than [JSON](#json-standards). Machine-to-machine transmission is better done in binary, with conversion to human-readable JSON only at endpoints where a human is actually involved (or via debugging tools along the path).
 
 BONJSON is a drop-in replacement for [JSON](#json-standards), not an actually better format (if you want better, you might consider [Concise Encoding](https://concise-encoding.org/)). Structurally and logically, BONJSON works in exactly the same way as [JSON](#json-standards), suffering from all of the same problems (lack of types, weak specification, undefined edge cases, etc), **but** it can also benefit from the existing JSON ecosystem.
 
@@ -43,7 +43,7 @@ A simple binary format is orders of magnitude faster to produce and consume comp
 **The average progression is**:
 
  * **When starting something new:** JSON, because it's simple and ubiquitous.
- * **As your costs begin to rise:** BONJSON, because it's a drop-in replacement for JSON that's less expensive in processing and transmission.
+ * **As your costs begin to rise:** BONJSON, because it's a drop-in replacement for JSON with lower processing and transmission costs.
  * **As your needs expand beyond basic data:** A more advanced format specific to your use case.
 
 -------------------------------------------------------------------------------
@@ -200,7 +200,7 @@ Every value is composed of an 8-bit type code and in some cases a payload:
 String Encoding
 ---------------
 
-Strings are sequences of UTF-8 characters delimited on both ends by the byte `0xff`. Since `0xff` is never a valid byte within a UTF-8 sequence, there is no need to interpret the UTF-8 characters themselves while scanning for the end of the string (A C/C++ implementation could use `memccpy()`, for example).
+Strings are sequences of UTF-8 characters delimited on both ends by the byte `0xff`. Since `0xff` is never a valid byte within a UTF-8 sequence (and never will be until we surpass 68 BILLION codepoints), there is no need to interpret the UTF-8 characters themselves while scanning for the end of the string (A C/C++ implementation could use `memccpy()`, for example).
 
 Strings **MUST** be encoded in UTF-8. BONJSON supports the same UTF-8 codepoints as [JSON](#json-standards) does, but does not implement escape sequences (which are unnecessary in a binary format).
 
@@ -215,7 +215,7 @@ Number Encoding
 
 Numbers can be encoded using various integer and floating point forms. Encoders **SHOULD** use the most compact representation that stores each value without data loss.
 
-[Small integer](#small-integer) and [8-bit integer](#8-bit-signed-integer) have special encodings. All other numeric types are encoded exactly as the numbers they represent.
+[Small integer](#small-integer) and [8-bit integer](#8-bit-signed-integer) have special encodings. All other numeric types are encoded exactly as the (little endian) numbers they represent.
 
 **Note**: Floating point `NaN` and `infinity` values **MUST NOT** be present in a document!
 
@@ -235,7 +235,7 @@ Small integers (-117 to 117) are encoded into the [type code](#type-codes) itsel
 
 ### 8-bit Signed Integer
 
-The 8 bit signed integer takes over where [small integer](#small-integer) leaves off, covering integer ranges from 118 to 245, and from -118 to -245 within a single byte value.
+The 8 bit signed integer encoding takes over where [small integer](#small-integer) leaves off, covering integer ranges from 118 to 245, and from -118 to -245 within a single encoded payload byte following the [type code](#type-codes).
 
 **Encoding**:
 
@@ -272,7 +272,7 @@ The value is encoded as a little-endian 64-bit unsigned integer following the [t
 
 **Example**:
 
-    f9 ff ff ff ff ff ff ff ff // 0xffffffffffffffff
+    f9 da da da de d0 d0 d0 de // 0xded0d0d0dedadada (they're meaningless and all that's true)
 
 ### 16-bit Float
 
@@ -302,7 +302,7 @@ The value is encoded as a little-endian [64-bit ieee754 binary float](https://en
 
 The Big Number type allows for encoding an effectively unlimited range of numbers.
 
-It's the most complicated encoding, but it's also the least likely to actually be used in real-world data (mostly, it exists to bring parity with JSON's unlimited number range).
+It's by far the most complex encoding in BONJSON, but it's also the least likely to actually be used in real-world data (mostly, it exists to bring parity with JSON's unlimited number range).
 
 The general, logical form of a big number is as follows:
 
