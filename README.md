@@ -12,7 +12,7 @@ It's a drop-in replacement that works in the same way and has the same capabilit
 
 BONJSON documents are quicker and more energy efficent to process, and are generally smaller and compress better than [JSON](#json-standards).
 
-Machine-to-machine transmission is better done in binary, with conversion to human-readable JSON only at endpoints where a human is actually involved (or via debugging tools along the path).
+Machine-to-machine transmission is better done in binary, with conversion to human-readable JSON only at endpoints where a human is actually involved.
 
 
 ### Why not BSON or anther existing binary JSON format?
@@ -21,7 +21,7 @@ Because they _all_ add extra features that make them **NOT** 1:1 compatible.
 
 | Encoding | Type Parity | Value Parity | Feature Parity | Endianness |
 | -------- | ----------- | ------------ | -------------- | ---------- |
-| BONSON   |      ✔️      |      ✔️       |        ✔️       |   Little   |
+| BONJSON  |      ✔️      |      ✔️       |        ✔️       |   Little   |
 | BSON     |      ❌     |      ❌      |        ❌      |   Little   |
 | UBJSON   |      ✔️      |      ❌      |        ❌      |   Big      |
 | BJData   |      ✔️      |      ❌      |        ❌      |   Little   |
@@ -39,9 +39,9 @@ Because they _all_ add extra features that make them **NOT** 1:1 compatible.
  * Any valid document **MUST** be round-trip convertible between [JSON](#json-standards) and the binary format (in either direction) without data loss or schema requirement.
  * The binary format **MUST** support the same feature set as [JSON](#json-standards) does. For example, [JSON](#json-standards) supports progressive encoding.
 
-A "binary" version of [JSON](#json-standards) **MUST** behave in exactly the same way as [JSON](#json-standards). The _only_ difference should be in the encoding mechanism.
+A binary version of [JSON](#json-standards) **MUST** behave in exactly the same way as [JSON](#json-standards). The _only_ difference should be in the encoding mechanism.
 
-_This_ is what BONJSON is.
+**_This_ is what BONJSON is.**
 
 
 ### Why use binary at all?
