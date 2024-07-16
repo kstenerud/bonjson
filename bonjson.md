@@ -311,7 +311,7 @@ The general, logical form of a big number is as follows:
  * The `sign` is encoded into the [type code](#type-codes) itself.
  * The `length header` field is encoded as an [unsigned LEB128](https://en.wikipedia.org/wiki/LEB128).
  * The `significand` is encoded as an unsigned integer in little endian byte order.
- * The `exponent` (if present) is encoded as a 1, 2, or 3 byte [zigzag integer](https://en.wikipedia.org/wiki/Variable-length_quantity#Zigzag_encoding) in little endian byte order.
+ * The `exponent` is encoded as a 0-3 byte little endian signed integer.
  * The exponent is a power-of-10, just like in [JSON](#json-standards) text notation.
 
 The length header consists of two fields:
@@ -328,11 +328,11 @@ This allows for an unlimited significand size, and a ludicrous exponent range of
 
 **Examples**:
 
-    fa 20 ff ff ff ff ff ff ff ff    // 0xffffffffffffffff (8 bytes significand, no exponent)
-    fa 05 0f 01                      // 1.5 (15 x 10⁻¹) (1 byte significand, 1 byte exponent)
+    fa 24 00 10 32 54 76 98 ba dc fe // 0xfedcba987654321000 (9 bytes significand, no exponent)
+    fa 05 0f ff                      // 1.5 (15 x 10⁻¹) (1 byte significand, 1 byte exponent)
     fb 00                            // -0 (no significand, no exponent)
     fb 46 97 EB F2 0E C3 98 06 C1 47
-       71 5E 65 4F 58 5F AA 28 4f 46 // -13837758495464977165497261864967377972119 x 10⁻⁹⁰⁰⁰
+       71 5E 65 4F 58 5F AA 28 d8 dc // -13837758495464977165497261864967377972119 x 10⁻⁹⁰⁰⁰
                                      // (17 bytes significand, 2 bytes exponent)
 
 
@@ -531,7 +531,7 @@ big_number_pos    = u8(0xfa) & big_number_value;
 big_number_neg    = u8(0xfb) & big_number_value;
 big_number_value  = var(header, big_number_header)
                   & ordered(uint(header.sig_length*8, ~))
-                  & ordered(zigzag(uint(header.exp_length*8, ~)))
+                  & ordered(sint(header.exp_length*8, ~))
                   ;
 big_number_header = uleb128(uany(var(sig_length, ~)) & u2(var(exp_length, ~)));
 
@@ -567,7 +567,6 @@ char_string       = '\[0]' ~ '\[10ffff]'; # JSON technically supports unassigned
 
 bfloat16(v: bits): bits = """https://en.wikipedia.org/wiki/Bfloat16_floating-point_format""";
 uleb128(v: bits): bits = """https://en.wikipedia.org/wiki/LEB128#Unsigned_LEB128""";
-zigzag(v: bits): bits = """https://en.wikipedia.org/wiki/Variable-length_quantity#Zigzag_encoding""";
 ```
 
 
