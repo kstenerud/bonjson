@@ -185,8 +185,8 @@ Every value is composed of an 8-bit type code and in some cases a payload:
 | ee        |                              | Boolean | [False](#boolean-encoding)                          |
 | ef        |                              | Boolean | [True](#boolean-encoding)                           |
 | f0        |                              | Null    | [Null](#null-encoding)                              |
-| f1        | signed integer               | Number  | [8-bit signed integer](#8-bit-signed-integer)       |
-| f2 - f8   | 16 to 64 bit signed integer  | Number  | [signed integer](#signed-integer)                   |
+| f1        | Biased signed integer        | Number  | [8-bit signed integer](#8-bit-signed-integer)       |
+| f2 - f8   | 16 to 64 bit signed integer  | Number  | [Signed integer](#signed-integer)                   |
 | f9        | 64-bit unsigned integer      | Number  | [64-bit unsigned integer](#64-bit-unsigned-integer) |
 | fa        | Big Number                   | Number  | [Positive Big Number](#big-number)                  |
 | fb        | Big Number                   | Number  | [Negative Big Number](#big-number)                  |
@@ -200,7 +200,7 @@ Every value is composed of an 8-bit type code and in some cases a payload:
 String Encoding
 ---------------
 
-Strings are sequences of UTF-8 characters delimited on both ends by the byte `0xff`. Since `0xff` is never a valid byte within a UTF-8 sequence (and never will be until we surpass 68 BILLION codepoints), there is no need to interpret the UTF-8 characters themselves while scanning for the end of the string (A C/C++ implementation could use `memccpy()`, for example).
+Strings are sequences of UTF-8 characters delimited on both ends by the byte `0xff`. Since `0xff` is never a valid byte within a UTF-8 sequence (and never will be until we surpass 68 _billion_ codepoints), there is technically no need to interpret the UTF-8 characters themselves at the early decoding stage while scanning for the end of the string (A C/C++ implementation could use `memccpy()`, for example).
 
 Strings **MUST** be encoded in UTF-8. BONJSON supports the same UTF-8 codepoints as [JSON](#json-standards) does, but does not implement escape sequences (which are unnecessary in a binary format).
 
@@ -217,7 +217,7 @@ Numbers can be encoded using various integer and floating point forms. Encoders 
 
 [Small integer](#small-integer) and [8-bit integer](#8-bit-signed-integer) have special encodings. All other numeric types are encoded exactly as the (little endian) numbers they represent.
 
-**Note**: Floating point `NaN` and `infinity` values **MUST NOT** be present in a document!
+**Note**: Floating point `NaN` and `infinity` values **MUST NOT** be present in a document since they are not allowed in [JSON](#json-standards).
 
 ### Small Integer
 
@@ -235,7 +235,7 @@ Small integers (-117 to 117) are encoded into the [type code](#type-codes) itsel
 
 ### 8-bit Signed Integer
 
-The 8 bit signed integer encoding takes over where [small integer](#small-integer) leaves off, covering integer ranges from 118 to 245, and from -118 to -245 within a single encoded payload byte following the [type code](#type-codes).
+The 8 bit signed integer encoding is another special case, taking over where [small integer](#small-integer) leaves off, covering integer ranges from 118 to 245, and from -118 to -245 within a single encoded payload byte following the [type code](#type-codes).
 
 **Encoding**:
 
@@ -272,7 +272,8 @@ The value is encoded as a little-endian 64-bit unsigned integer following the [t
 
 **Example**:
 
-    f9 da da da de d0 d0 d0 de // 0xded0d0d0dedadada (they're meaningless and all that's true)
+    f9 da da da de d0 d0 d0 de // 0xded0d0d0dedadada
+                               // (They're meaningless and all that's true)
 
 ### 16-bit Float
 
@@ -324,7 +325,10 @@ The lower 2 bits of the length header represents the `exponent length` (0-3 byte
 
 This allows for an unlimited significand size, and a ludicrous exponent range of ± 8 million.
 
-**Note**: A Big Number with a significand length of 0 or value 0 is equal to 0 with the sign from the [type code](#type-codes), regardless of exponent contents.
+**Notes**:
+
+ * A field length of 0 represents a value of 0 for that field.
+ * A Big Number with a significand value of 0 is equal to 0 with the sign from the [type code](#type-codes), regardless of exponent contents.
 
 **Examples**:
 
