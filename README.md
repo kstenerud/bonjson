@@ -17,7 +17,7 @@ Machine-to-machine transmission is better done in binary, with conversion to hum
 
 ### Why not BSON or anther existing binary JSON format?
 
-Because they _all_ add extra features that make them **NOT** 1:1 compatible.
+Because they _all_ add extra things that make them **NOT** 1:1 compatible.
 
 | Encoding | Type Parity | Value Parity | Feature Parity | Endianness |
 | -------- | ----------- | ------------ | -------------- | ---------- |
