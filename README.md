@@ -29,8 +29,8 @@ Because they _all_ add extra features that make them **NOT** 1:1 compatible.
 | Smile    |      ❌     |      ❌      |        ❌      |   Big      |
 
 * **Type Parity**: The format has no extra data types that aren't present in JSON
-* **Value Parity**: The format allows only the same value ranges as JSON (for example infinities and NaN)
-* **Feature Parity**: The formats support the same features as JSON (for example progressive document construction)
+* **Value Parity**: The format allows only the same value ranges as JSON (for example: infinities and NaN are disallowed)
+* **Feature Parity**: The formats support the same features as JSON (for example: progressive document construction)
 
 **Wherever there's a compatibility mismatch, breakage will eventually occur** - it's only a matter of time before your complex data pipelines trigger it. Having confidence in your data pipeline is paramount.
 
