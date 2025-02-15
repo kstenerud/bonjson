@@ -3,7 +3,8 @@ BONJSON: Binary Object Notation for JSON
 
 BONJSON is a **1:1 compatible** binary serialization format for [JSON](#json-standards).
 
-It's a drop-in replacement that works in the same way and has the same capabilities and limitations as JSON (no more, no less), except in a binary format rather than text.
+It's a drop-in replacement that works in the same way and has the same capabilities and limitations as [JSON](#json-standards) (no more, no less), except in a compact and simple-to-process binary format rather than text.
+
 
 
 Why make a binary JSON?
