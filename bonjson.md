@@ -340,7 +340,7 @@ The value of the big number is derived as: `significand` × `sign` × 10^`expone
 Containers
 ----------
 
-Containers (objects and arrays) are encoded beginning with a container start code, and ending with a container end code. Both `object` and `array` share the same `container end` [type code](#type-codes) (`0x94`).
+Containers (objects and arrays) are encoded beginning with a container start code, and ending with a container end code. Both [object](#object) and [array](#array) share the same `container end` [type code](#type-codes) (`0x94`).
 
 
 ### Array
@@ -462,6 +462,8 @@ Because [JSON](#json-standards) is so weakly specified, there are numerous ways 
 
 Although JSON allows an unlimited range for most values, it's important to take into consideration the limitations of the systems that will be trying to ingest your data, and how they're likely to deal with out-of-range values.
 
+Encoders **SHOULD** always use the smallest encoding for the value being encoded in order to ensure maximum compatibility.
+
 A decoder **MAY** choose its own value range restrictions, but **SHOULD** stick with reasonable industry-standard ranges for maximum interoperability.
 
 Most systems can handle:
@@ -473,8 +475,6 @@ Javascript in particular can handle:
 
  * Up to 64 bit floating point values
  * Up to 53 bit integer values (plus the sign)
-
-Encoders **SHOULD** always use the smallest encoding for the value being encoded in order to ensure maximum compatibility.
 
 
 ### Invalid or Out Of Range Data
@@ -491,7 +491,7 @@ Codecs **SHOULD** offer the user options for what to do when these situations oc
  * Stringify the value (for example to a decimal or hexadecimal string)
  * Replace the value with `null`
 
-Codec documentation **MUST** explain what behaviors they offer, and what are the defaults. For safety reasons, aborting **SHOULD** be the default behavior.
+Codec documentation **MUST** explain what behaviors they offer, and what are the defaults. For safety and security reasons, the default behavior **SHOULD** be to abort processing.
 
 
 
