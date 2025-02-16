@@ -290,18 +290,18 @@ Big Number ([type code](#type-codes) `0x91`) allows for encoding an effectively 
 
 **Note**: This is an **OPTIONAL** type that only exists for 100% compatibility with the theoretical limits of the JSON format, and is unlikely to see much use in the real world (except in closed systems that are prepared to deal with large numbers). A codec **MAY** [reject](#invalid-or-out-of-range-data) this type regardless of its contents.
 
-The general, logical form of a big number is as follows:
+The structure of a big number is as follows:
 
     [header] [significand bytes] [exponent bytes]
 
  * The `header` is encoded as an [unsigned LEB128](https://en.wikipedia.org/wiki/LEB128).
  * The `significand` is encoded as an unsigned integer in little endian byte order.
- * The `exponent` is encoded as a signed integer little endian byte order.
+ * The `exponent` is encoded as a signed integer in little endian byte order.
  * The exponent is a power-of-10, just like in [JSON](#json-standards) text notation.
 
-The header consists of two fields:
+The `header` consists of 3 fields:
 
-    [sign] [significand length] [exponent length]
+    [significand length] [exponent length] [sign]
 
  * The lowest bit is the "negative" bit (0 = positive significand, 1 = negative significand).
  * The next 2 bits represent the `exponent length` (0-3 bytes).
@@ -311,12 +311,12 @@ The header consists of two fields:
 
 This allows for an unlimited significand size, and a ludicrous exponent range of ± 8 million.
 
+The value of the big number is derived as: `significand` × `sign` × 10^`exponent`
+
 **Notes**:
 
  * A field length of 0 represents a value of 0 for that field.
  * A Big Number with a significand value of 0 is equal to 0 with the corresponding sign, regardless of exponent contents (which are superfluous in such a case).
-
-**Discussion**: Big Number has the most complex encoding of all BONJSON types, but it's also the least likely to actually be used in real-world data (it exists to bring parity with JSON's unlimited number range).
 
 **Examples**:
 
