@@ -307,7 +307,15 @@ The `header` consists of 3 fields:
  * The next 2 bits represent the `exponent length` (0-3 bytes).
  * The rest of the header represents the `significand length` in bytes.
 
-    S S S S S S S ... E E N
+```
+Big Number Header
+-----------------------
+S S S S S S S ... E E N
+ \             /  |/  |
+   signigicand    |   negative
+     length       exponent
+                  length
+```
 
 This allows for an unlimited significand size, and a ludicrous exponent range of ± 8 million.
 
