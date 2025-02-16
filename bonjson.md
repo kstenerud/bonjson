@@ -235,11 +235,11 @@ Integers are encoded in little-endian byte order following the [type code](#type
             |   Length
             Signed?
 
-Signed: 0 = unsigned, 1 = signed
+**Signed**: 0 = unsigned, 1 = signed
 
-Length: Add 1 to this value to give the integer's length in bytes (1-8)
+**Length**: Add 1 to this value to give the integer's length in bytes (1-8)
 
-Encoders **SHOULD** favor signed over unsigned when both types would encode a value into the same number of bytes.
+Encoders **SHOULD** favor _signed_ over _unsigned_ when both types would encode a value into the same number of bytes.
 
 **Examples**:
 
