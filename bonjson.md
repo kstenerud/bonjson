@@ -311,10 +311,10 @@ The `header` consists of 3 fields:
 Big Number Header
 -----------------------
 S S S S S S S ... E E N
-\               / | / |
-   signigicand    |/  negative
-     length       exponent
-                  length
+\               / | |  \
+ \             /  |/    negative
+   significand    exponent
+     length       length
 ```
 
 This allows for an unlimited significand size, and a ludicrous exponent range of ± 8 million.
