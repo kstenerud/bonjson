@@ -340,7 +340,7 @@ The value of the big number is derived as: `significand` × `sign` × 10^`expone
 Containers
 ----------
 
-Containers (objects and arrays) are encoded beginning with a container start code, and ending with a container end code. Both [object](#object) and [array](#array) share the same `container end` [type code](#type-codes) (`0x94`).
+Containers (objects and arrays) are encoded beginning with a `container start` code, and ending with a `container end` code. Both [object](#object) and [array](#array) share the same `container end` [type code](#type-codes) (`0x94`).
 
 
 ### Array
