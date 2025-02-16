@@ -168,6 +168,12 @@ Strings can be encoded in two ways:
 
 Short strings have their byte length (up to 15) encoded directly into the lower nybble of the type code, and have no terminator byte.
 
+    Type Code
+    ---------
+    1000 LLLL
+         |
+         Length (bytes)
+
 **Example**:
 
     80                                               // ""
@@ -178,7 +184,7 @@ Short strings have their byte length (up to 15) encoded directly into the lower 
 
 ### Long String
 
-Long strings begin after the [type code](#type-codes), and are terminated by the byte `0xff`.
+Long strings begin after the [type code](#type-codes) (`0x90`), and are terminated by the byte `0xff`.
 
 #### About the Termination Delimiter
 
@@ -247,7 +253,7 @@ Encoders **SHOULD** favor signed over unsigned when both types would encode a va
 
 ### 16-bit Float
 
-16-bit float is encoded as a little-endian 16-bit [bfloat16](https://en.wikipedia.org/wiki/Bfloat16_floating-point_format) following the [type code](#type-codes). This is a convenience encoding for a commonly used float type (often used in AI).
+16-bit float is encoded as a little-endian 16-bit [bfloat16](https://en.wikipedia.org/wiki/Bfloat16_floating-point_format) following the [type code](#type-codes) (`0x6b`). This is a convenience encoding for a commonly used float type (often used in AI).
 
 **Note**: NaN and infinity values **MUST NOT** be encoded into a BONJSON document.
 
@@ -258,7 +264,7 @@ Encoders **SHOULD** favor signed over unsigned when both types would encode a va
 
 ### 32-bit Float
 
-32-bit float is encoded as a little-endian [32-bit ieee754 binary float](https://en.wikipedia.org/wiki/Single-precision_floating-point_format) following the [type code](#type-codes). This is a convenience encoding for a commonly used float type.
+32-bit float is encoded as a little-endian [32-bit ieee754 binary float](https://en.wikipedia.org/wiki/Single-precision_floating-point_format) following the [type code](#type-codes) (`0x6c`). This is a convenience encoding for a commonly used float type.
 
 **Note**: NaN and infinity values **MUST NOT** be encoded into a BONJSON document.
 
@@ -269,7 +275,7 @@ Encoders **SHOULD** favor signed over unsigned when both types would encode a va
 
 ### 64-bit Float
 
-64-bit float is encoded as a little-endian [64-bit ieee754 binary float](https://en.wikipedia.org/wiki/Double-precision_floating-point_format) following the [type code](#type-codes). This is a convenience encoding for a commonly used float type.
+64-bit float is encoded as a little-endian [64-bit ieee754 binary float](https://en.wikipedia.org/wiki/Double-precision_floating-point_format) following the [type code](#type-codes) (`0x6d`). This is a convenience encoding for a commonly used float type.
 
 **Note**: NaN and infinity values **MUST NOT** be encoded into a BONJSON document.
 
@@ -280,7 +286,7 @@ Encoders **SHOULD** favor signed over unsigned when both types would encode a va
 
 ### Big Number
 
-The Big Number type allows for encoding an effectively unlimited range of numbers.
+Big Number ([type code](#type-codes) `0x91`) allows for encoding an effectively unlimited range of numbers.
 
 **Note**: This is an **OPTIONAL** type that only exists for 100% compatibility with the theoretical limits of the JSON format, and is unlikely to see much use in the real world (except in closed systems that are prepared to deal with large numbers). A codec **MAY** [reject](#invalid-or-out-of-range-data) this type regardless of its contents.
 
@@ -326,12 +332,12 @@ This allows for an unlimited significand size, and a ludicrous exponent range of
 Containers
 ----------
 
-Containers (objects and arrays) are encoded beginning with a container start code, and ending with a container end code. Both `object` and `array` share the same `container end` [type code](#type-codes) (0xed).
+Containers (objects and arrays) are encoded beginning with a container start code, and ending with a container end code. Both `object` and `array` share the same `container end` [type code](#type-codes) (`0x94`).
 
 
 ### Array
 
-An array consists of an `array start`, an optional collection of values, and finally a `container end`:
+An array consists of an `array start` (`0x92`), an optional collection of values, and finally a `container end` (`0x94`):
 
     [array start] (value ...) [container end]
          0x92         ...          0x94
@@ -347,7 +353,7 @@ An array consists of an `array start`, an optional collection of values, and fin
 
 ### Object
 
-An object consists of an `object start`, an optional collection of name-value pairs, and finally a `container end`:
+An object consists of an `object start` (`0x93`), an optional collection of name-value pairs, and finally a `container end` (`0x94`):
 
     [object start] (name+value ...) [container end]
          0x93            ...            0x94
@@ -370,15 +376,15 @@ Boolean
 
 Boolean values are encoded into the [type codes](#type-codes) themselves:
 
- * False is type code `0x6e`
- * True is type code `0x6f`
+ * False has type code `0x6e`
+ * True has type code `0x6f`
 
 
 
 Null
 ----
 
-Null is encoded into the [type code](#type-codes) `0x95`.
+Null has [type code](#type-codes) `0x95`.
 
 
 
