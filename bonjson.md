@@ -311,8 +311,8 @@ The `header` consists of 3 fields:
 Big Number Header
 -----------------------
 S S S S S S S ... E E N
- \             /  |/  |
-   signigicand    |   negative
+\               / | / |
+   signigicand    |/  negative
      length       exponent
                   length
 ```
