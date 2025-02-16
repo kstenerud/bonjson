@@ -52,14 +52,14 @@ Terms and Conventions
 
 **The following bolded, capitalized terms have specific meanings in this document**:
 
-| Term             | Meaning                                                                                                               |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------- |
-| **MUST (NOT)**   | If this directive is not adhered to, the document or implementation is invalid.                                       |
-| **SHOULD (NOT)** | Every effort should be made to follow this directive, but the document/implementation is still valid if not followed. |
-| **MAY (NOT)**    | It is up to the implementation to decide whether to do something or not.                                              |
-| **CAN**          | Refers to a possibility which **MUST** be accommodated by the implementation.                                         |
-| **CANNOT**       | Refers to a situation which **MUST NOT** be allowed by the implementation.                                            |
-| **OPTIONAL**     | An implementation **MAY** choose to implement this, or not.                                                           |
+| Term             | Meaning                                                                                          |
+| ---------------- | ------------------------------------------------------------------------------------------------ |
+| **MUST (NOT)**   | If this directive is not adhered to, the document or implementation is invalid.                  |
+| **SHOULD (NOT)** | Every effort should be made to follow this directive, but it's still conformant if not followed. |
+| **MAY (NOT)**    | It is up to the implementation to decide whether to do something or not.                         |
+| **CAN**          | Refers to a possibility which **MUST** be accommodated by the implementation.                    |
+| **CANNOT**       | Refers to a situation which **MUST NOT** be allowed by the implementation.                       |
+| **OPTIONAL**     | An implementation **MAY** choose to implement this, or not.                                      |
 
 -------------------------------------------------------------------------------
 
