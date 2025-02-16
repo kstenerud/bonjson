@@ -20,22 +20,22 @@ Contents
   - [Structure](#structure)
   - [Encoding](#encoding)
     - [Type Codes](#type-codes)
-  - [String Encoding](#string-encoding)
+  - [Strings](#strings)
     - [Short String](#short-string)
     - [Long String](#long-string)
       - [About the Termination Delimiter](#about-the-termination-delimiter)
-  - [Number Encoding](#number-encoding)
+  - [Numbers](#numbers)
     - [Small Integer](#small-integer)
     - [Integer](#integer)
     - [16-bit Float](#16-bit-float)
     - [32-bit Float](#32-bit-float)
     - [64-bit Float](#64-bit-float)
     - [Big Number](#big-number)
-  - [Container Encoding](#container-encoding)
-    - [Array Encoding](#array-encoding)
-    - [Object Encoding](#object-encoding)
-  - [Boolean Encoding](#boolean-encoding)
-  - [Null Encoding](#null-encoding)
+  - [Containers](#containers)
+    - [Array](#array)
+    - [Object](#object)
+  - [Boolean](#boolean)
+  - [Null](#null)
   - [Full Example](#full-example)
   - [Interoperability Considerations](#interoperability-considerations)
     - [Value Ranges](#value-ranges)
@@ -141,24 +141,23 @@ Every value is composed of an 8-bit type code, and in some cases also a payload:
 | 6b        | 16-bit bfloat16 binary float | Number  | [16-bit float](#16-bit-float)                       |
 | 6c        | 32-bit ieee754 binary float  | Number  | [32-bit float](#32-bit-float)                       |
 | 6d        | 64-bit ieee754 binary float  | Number  | [64-bit float](#64-bit-float)                       |
-| 6e        | Arbitrary length number      | Number  | [Positive Big Number](#big-number)                  |
-| 6f        | Arbitrary length number      | Number  | [Negative Big Number](#big-number)                  |
+| 6e        |                              | Boolean | [False](#boolean-encoding)                          |
+| 6f        |                              | Boolean | [True](#boolean-encoding)                           |
 | 70 - 77   | Unsigned integer of n bytes  | Number  | [Unsigned Integer](#integer)                        |
 | 78 - 7f   | Signed integer of n bytes    | Number  | [Signed Integer](#integer)                          |
 | 80 - 8f   | String of n bytes            | String  | [Short String](#short-string)                       |
 | 90        | Arbitrary length string      | String  | [Long String](#long-string)                         |
-| 91        |                              | Array   | [Array start](#array-encoding)                      |
-| 92        |                              | Object  | [Object start](#object-encoding)                    |
-| 93        |                              |         | [Container end](#container-encoding)                |
-| 94        |                              | Boolean | [False](#boolean-encoding)                          |
-| 95        |                              | Boolean | [True](#boolean-encoding)                           |
-| 96        |                              | Null    | [Null](#null-encoding)                              |
-| 97 - ff   |                              | Number  | [Integers -105 through -1](#small-integer)          |
+| 91        | Arbitrary length number      | Number  | [Big Number](#big-number)                           |
+| 92        |                              | Array   | [Array start](#array-encoding)                      |
+| 93        |                              | Object  | [Object start](#object-encoding)                    |
+| 94        |                              |         | [Container end](#container-encoding)                |
+| 95        |                              | Null    | [Null](#null-encoding)                              |
+| 96 - ff   |                              | Number  | [Integers -106 through -1](#small-integer)          |
 
 
 
-String Encoding
----------------
+Strings
+-------
 
 Strings **MUST** be encoded in UTF-8. BONJSON supports the same UTF-8 codepoints as [JSON](#json-standards) does, but does not implement escape sequences (which are unnecessary in a binary format).
 
@@ -194,8 +193,8 @@ A C implementation for example could use [`memccpy()`](https://www.man7.org/linu
 
 
 
-Number Encoding
----------------
+Numbers
+-------
 
 Numbers can be encoded using various integer and floating point forms. Encoders **SHOULD** use the most compact representation that stores each value without data loss.
 
@@ -203,9 +202,10 @@ With the exception of [Big Number](#big-number), all numeric types are encoded e
 
 **Note**: Floating point `NaN` and `infinity` values **MUST NOT** be present in a document since they are not allowed in [JSON](#json-standards).
 
+
 ### Small Integer
 
-Small integers (-105 to 106) are encoded into the [type code](#type-codes) itself for maximum compactness in the most commonly used integer range. Casting the [type code](#type-codes) to an 8-bit signed integer yields its value.
+Small integers (-106 to 106) are encoded into the [type code](#type-codes) itself for maximum compactness in the most commonly used integer range. Casting the [type code](#type-codes) to an 8-bit signed integer yields its value.
 
 **Examples**:
 
@@ -214,7 +214,7 @@ Small integers (-105 to 106) are encoded into the [type code](#type-codes) itsel
     00 //    0
     c4 //  -60
     9c // -100
-    97 // -105
+    96 // -106
 
 
 ### Integer
@@ -242,11 +242,12 @@ Encoders **SHOULD** favor signed over unsigned when both types would encode a va
     72 00 80                   //  0x8000
     75 bc 9a 78 56 34 12       //  0x123456789abc
     7f 00 00 00 00 00 00 00 80 // -0x8000000000000000
-    77 da da da de d0 d0 d0 de // 0xded0d0d0dedadada (That's all I want to say to you)
+    77 da da da de d0 d0 d0 de // 0xded0d0d0dedadada (is all I want to say to you)
+
 
 ### 16-bit Float
 
-The value is encoded as a little-endian 16-bit [bfloat16](https://en.wikipedia.org/wiki/Bfloat16_floating-point_format) following the [type code](#type-codes). This is a convenience encoding for a commonly used float type (often used in AI).
+16-bit float is encoded as a little-endian 16-bit [bfloat16](https://en.wikipedia.org/wiki/Bfloat16_floating-point_format) following the [type code](#type-codes). This is a convenience encoding for a commonly used float type (often used in AI).
 
 **Note**: NaN and infinity values **MUST NOT** be encoded into a BONJSON document.
 
@@ -254,9 +255,10 @@ The value is encoded as a little-endian 16-bit [bfloat16](https://en.wikipedia.o
 
     6b 90 3f // 1.125
 
+
 ### 32-bit Float
 
-The value is encoded as a little-endian [32-bit ieee754 binary float](https://en.wikipedia.org/wiki/Single-precision_floating-point_format) following the [type code](#type-codes). This is a convenience encoding for a commonly used float type.
+32-bit float is encoded as a little-endian [32-bit ieee754 binary float](https://en.wikipedia.org/wiki/Single-precision_floating-point_format) following the [type code](#type-codes). This is a convenience encoding for a commonly used float type.
 
 **Note**: NaN and infinity values **MUST NOT** be encoded into a BONJSON document.
 
@@ -264,15 +266,17 @@ The value is encoded as a little-endian [32-bit ieee754 binary float](https://en
 
     6c 00 b8 1f 42 // 0x1.3f7p5
 
+
 ### 64-bit Float
 
-The value is encoded as a little-endian [64-bit ieee754 binary float](https://en.wikipedia.org/wiki/Double-precision_floating-point_format) following the [type code](#type-codes). This is a convenience encoding for a commonly used float type.
+64-bit float is encoded as a little-endian [64-bit ieee754 binary float](https://en.wikipedia.org/wiki/Double-precision_floating-point_format) following the [type code](#type-codes). This is a convenience encoding for a commonly used float type.
 
 **Note**: NaN and infinity values **MUST NOT** be encoded into a BONJSON document.
 
 **Example**:
 
     6d 58 39 b4 c8 76 be f3 3f // 1.234
+
 
 ### Big Number
 
@@ -282,96 +286,99 @@ The Big Number type allows for encoding an effectively unlimited range of number
 
 The general, logical form of a big number is as follows:
 
-    [sign] [length header] [significand bytes] [exponent bytes]
+    [header] [significand bytes] [exponent bytes]
 
- * The `sign` is encoded into the [type code](#type-codes) itself.
- * The `length header` field is encoded as an [unsigned LEB128](https://en.wikipedia.org/wiki/LEB128).
+ * The `header` is encoded as an [unsigned LEB128](https://en.wikipedia.org/wiki/LEB128).
  * The `significand` is encoded as an unsigned integer in little endian byte order.
  * The `exponent` is encoded as a signed integer little endian byte order.
  * The exponent is a power-of-10, just like in [JSON](#json-standards) text notation.
 
-The length header consists of two fields:
+The header consists of two fields:
 
-    [significand length] [exponent length]
+    [sign] [significand length] [exponent length]
 
-The lower 2 bits of the length header represents the `exponent length` (0-3 bytes). The rest of the length header is the `significand length` in bytes.
+ * The lowest bit is the "negative" bit (0 = positive significand, 1 = negative significand).
+ * The next 2 bits represent the `exponent length` (0-3 bytes).
+ * The rest of the header represents the `significand length` in bytes.
 
-    S S S S S S S ... E E
+    S S S S S S S ... E E N
 
 This allows for an unlimited significand size, and a ludicrous exponent range of ± 8 million.
 
 **Notes**:
 
  * A field length of 0 represents a value of 0 for that field.
- * A Big Number with a significand value of 0 is equal to 0 with the sign from the [type code](#type-codes), regardless of exponent contents (which are superfluous in such a case).
+ * A Big Number with a significand value of 0 is equal to 0 with the corresponding sign, regardless of exponent contents (which are superfluous in such a case).
 
 **Discussion**: Big Number has the most complex encoding of all BONJSON types, but it's also the least likely to actually be used in real-world data (it exists to bring parity with JSON's unlimited number range).
 
 **Examples**:
 
-    6e 24 00 10 32 54 76 98 ba dc fe // 0xfedcba987654321000 (9 bytes significand, no exponent)
-    6e 05 0f ff                      // 1.5 (15 x 10⁻¹) (1 byte significand, 1 byte exponent)
-    6f 00                            // -0 (no significand, no exponent)
-    6f 46 97 EB F2 0E C3 98 06 C1 47
-       71 5E 65 4F 58 5F AA 28 d8 dc // -13837758495464977165497261864967377972119 x 10⁻⁹⁰⁰⁰
-                                     // (17 bytes significand, 2 bytes exponent)
+    91 48 00 10 32 54 76 98 ba dc fe     // 0xfedcba987654321000 (9 bytes significand, no exponent, positive)
+    91 0a 0f ff                          // 1.5 (15 x 10⁻¹) (1 byte significand, 1 byte exponent, positive)
+    91 01                                // -0 (no significand, no exponent, negative)
+    91 8d 01 97 EB F2 0E C3 98 06 C1 47
+       71 5E 65 4F 58 5F AA 28 d8 dc     // -13837758495464977165497261864967377972119 x 10⁻⁹⁰⁰⁰
+                                         // (17 bytes significand, 2 bytes exponent, negative)
 
 
 
-Container Encoding
-------------------
+Containers
+----------
 
 Containers (objects and arrays) are encoded beginning with a container start code, and ending with a container end code. Both `object` and `array` share the same `container end` [type code](#type-codes) (0xed).
 
-### Array Encoding
+
+### Array
 
 An array consists of an `array start`, an optional collection of values, and finally a `container end`:
 
     [array start] (value ...) [container end]
-         0x91         ...          0x93
+         0x92         ...          0x94
 
 **Example**:
 
-    91        // [
+    92        // [
         81 61 //     "a",
         01    //     1
         96    //     null
-    93        // ]
+    94        // ]
 
-### Object Encoding
+
+### Object
 
 An object consists of an `object start`, an optional collection of name-value pairs, and finally a `container end`:
 
     [object start] (name+value ...) [container end]
-         0x92            ...            0x93
+         0x93            ...            0x94
 
 **Note**: Names **MUST** be strings and **MUST NOT** be null.
 
 **Example**:
 
-    92                  // {
+    93                  // {
         81 62           //     "b":
         00              //     0,
         84 74 65 73 74  //     "test":
         81 78           //     "x"
-    93                  // }
+    94                  // }
 
 
 
-Boolean Encoding
-----------------
+Boolean
+-------
 
 Boolean values are encoded into the [type codes](#type-codes) themselves:
 
- * False is type code `0x94`
- * True is type code `0x95`
+ * False is type code `0x6e`
+ * True is type code `0x6f`
 
 
 
-Null Encoding
--------------
+Null
+----
 
-Null is encoded into the [type code](#type-codes) `0x96`.
+Null is encoded into the [type code](#type-codes) `0x95`.
 
 
 
@@ -381,52 +388,53 @@ Full Example
 **JSON**:
 
     {
-        "a number": 1,
-        "an array": ["x", 1000, 1.5],
-        "a null": null,
-        "a boolean": true,
-        "an object": {
-            "a": -100,
-            "b": "........................................"
-        }
+      "number":1,
+      "null":null,
+      "boolean":true,
+      "array":[
+        "x",
+        1000,
+        1.5
+      ],
+      "object":{
+        "negative number":-100,
+        "long string":"1234567890123456789012345678901234567890"
+      }
     }
 
     Size:     200 bytes
-    Minified: 141 bytes
-    GZipped:  121 bytes
-
+    Minified: 153 bytes
 
 **BONJSON**:
 
-    92                                  // {
-        88 61 20 6e 75 6d 62 65 72      //     "a number":
-        01                              //     1,
-        88 61 6e 20 61 72 72 61 79      //     "an array":
-        91                              //     [
-            81 78                       //         "x",
-            79 e8 03                    //         1000,
-            6b c0 3f                    //         1.5
-        93                              //     ],
-        86 61 20 6e 75 6c 6c            //     "a null":
-        96                              //     null,
-        89 61 20 62 6f 6f 6c 65 61 6e   //     "a boolean":
-        95                              //     true,
-        89 61 6e 20 6f 62 6a 65 63 74   //     "an object":
-        92                              //     {
-            81 61                       //         "a":
-            9c                          //         -100,
-            81 62                       //         "b":
-            90 2e 2e 2e 2e 2e 2e 2e 2e  //         "........................................"
-               2e 2e 2e 2e 2e 2e 2e 2e  //         
-               2e 2e 2e 2e 2e 2e 2e 2e  //         
-               2e 2e 2e 2e 2e 2e 2e 2e  //         
-               2e 2e 2e 2e 2e 2e 2e 2e  //         
-            ff                          //         
-        93                              //     }
-    93                                  // }
+    93                                                       // {
+        86 6e 75 6d 62 65 72                                 //     "number":
+        01                                                   //     1,
+        84 6e 75 6c 6c                                       //     "null":
+        95                                                   //     null,
+        87 62 6f 6f 6c 65 61 6e                              //     "boolean":
+        6f                                                   //     true,
+        85 61 72 72 61 79                                    //     "array"
+        92                                                   //     [
+            81 78                                            //         "x",
+            79 e8 03                                         //         1000,
+            6b c0 3f                                         //         1.5
+        94                                                   //     ],
+        86 6f 62 6a 65 63 74                                 //     "object":
+        93                                                   //     {
+            8f 6e 65 67 61 74 69 76 65 20 6e 75 6d 62 65 72  //         "negative number":
+            9c                                               //         -100,
+            8b 6c 6f 6e 67 20 73 74 72 69 6e 67              //         "long string":
+            90                                               //         "1234567890123456789012345678901234567890"
+                31 32 33 34 35 36 37 38 39 30                //
+                31 32 33 34 35 36 37 38 39 30                //
+                31 32 33 34 35 36 37 38 39 30                //
+                31 32 33 34 35 36 37 38 39 30                //
+            ff                                               //
+        94                                                   //     }
+    94                                                       // }
 
-    Size:    109 bytes
-    GZipped:  99 bytes
+    Size:    121 bytes
 
 
 
@@ -520,35 +528,33 @@ value             = array | object | number | boolean | string | null;
 
 # Types
 
-array             = u8(0x91) & value* & end_container;
-object            = u8(0x92) & (string & value)* & end_container;
-end_container     = u8(0x93);
+array             = u8(0x92) & value* & end_container;
+object            = u8(0x93) & (string & value)* & end_container;
+end_container     = u8(0x94);
 
 number            = int_small | uint | sint | float_16 | float_32 | float_64 | big_number;
-int_small         = u8(0x00~0x6a) | u8(0x97~0xff);
+int_small         = u8(0x00~0x6a) | u8(0x96~0xff);
 uint              = u4(7) & u1(0) & u3(var(count, ~)) & ordered(uint((count+1)*8, ~));
 sint              = u4(7) & u1(1) & u3(var(count, ~)) & ordered(sint((count+1)*8, ~));
 float_16          = u8(0x6b) & ordered(f16(~));
 float_32          = u8(0x6c) & ordered(f32(~));
 float_64          = u8(0x6d) & ordered(f64(~));
-big_number        = big_number_pos | big_number_neg;
-big_number_pos    = u8(0x6e) & big_number_value;
-big_number_neg    = u8(0x6f) & big_number_value;
-big_number_value  = var(header, big_number_header)
+big_number        = u8(0x91)
+                  & var(header, big_number_header)
                   & ordered(uint(header.sig_length*8, ~))
                   & ordered(sint(header.exp_length*8, ~))
                   ;
-big_number_header = uleb128(uany(var(sig_length, ~)) & u2(var(exp_length, ~)));
+big_number_header = uleb128(uany(var(sig_length, ~)) & u2(var(exp_length, ~) & u1(var(sig_negative, ~)));
 
 boolean           = true | false;
-false             = u8(0x94);
-true              = u8(0x95);
+false             = u8(0x6e);
+true              = u8(0x6f);
 
 string            = string_short | string_long;
 string_short      = u4(8) & u4(var(count, ~)) & sized(count*8, char_string*);
 string_long       = u8(0x90) & char_string* & u8(0xff);
 
-null              = u8(0x96);
+null              = u8(0x95);
 
 # Primitives & Functions
 

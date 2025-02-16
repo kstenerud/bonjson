@@ -11,35 +11,33 @@ value             = array | object | number | boolean | string | null;
 
 # Types
 
-array             = u8(0x91) & value* & end_container;
-object            = u8(0x92) & (string & value)* & end_container;
-end_container     = u8(0x93);
+array             = u8(0x92) & value* & end_container;
+object            = u8(0x93) & (string & value)* & end_container;
+end_container     = u8(0x94);
 
 number            = int_small | uint | sint | float_16 | float_32 | float_64 | big_number;
-int_small         = u8(0x00~0x6a) | u8(0x97~0xff);
+int_small         = u8(0x00~0x6a) | u8(0x96~0xff);
 uint              = u4(7) & u1(0) & u3(var(count, ~)) & ordered(uint((count+1)*8, ~));
 sint              = u4(7) & u1(1) & u3(var(count, ~)) & ordered(sint((count+1)*8, ~));
 float_16          = u8(0x6b) & ordered(f16(~));
 float_32          = u8(0x6c) & ordered(f32(~));
 float_64          = u8(0x6d) & ordered(f64(~));
-big_number        = big_number_pos | big_number_neg;
-big_number_pos    = u8(0x6e) & big_number_value;
-big_number_neg    = u8(0x6f) & big_number_value;
-big_number_value  = var(header, big_number_header)
+big_number        = u8(0x91)
+                  & var(header, big_number_header)
                   & ordered(uint(header.sig_length*8, ~))
                   & ordered(sint(header.exp_length*8, ~))
                   ;
-big_number_header = uleb128(uany(var(sig_length, ~)) & u2(var(exp_length, ~)));
+big_number_header = uleb128(uany(var(sig_length, ~)) & u2(var(exp_length, ~) & u1(var(sig_negative, ~)));
 
 boolean           = true | false;
-false             = u8(0x94);
-true              = u8(0x95);
+false             = u8(0x6e);
+true              = u8(0x6f);
 
 string            = string_short | string_long;
 string_short      = u4(8) & u4(var(count, ~)) & sized(count*8, char_string*);
 string_long       = u8(0x90) & char_string* & u8(0xff);
 
-null              = u8(0x96);
+null              = u8(0x95);
 
 # Primitives & Functions
 
