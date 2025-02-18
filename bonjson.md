@@ -412,26 +412,29 @@ Full Example
 
 **JSON**:
 
-    {
-      "number":1,
-      "null":null,
-      "boolean":true,
-      "array":[
+```json
+{
+    "number": 1,
+    "null": null,
+    "boolean": true,
+    "array": [
         "x",
         1000,
         1.5
-      ],
-      "object":{
-        "negative number":-100,
-        "long string":"1234567890123456789012345678901234567890"
-      }
+    ],
+    "object": {
+        "negative number": -100,
+        "long string": "1234567890123456789012345678901234567890"
     }
+}
+```
 
     Size:     242 bytes
     Minified: 153 bytes
 
 **BONJSON**:
 
+```
     93                                                       // {
         86 6e 75 6d 62 65 72                                 //     "number":
         01                                                   //     1,
@@ -458,6 +461,7 @@ Full Example
             ff                                               //
         94                                                   //     }
     94                                                       // }
+```
 
     Size:    121 bytes
 
