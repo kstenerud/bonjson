@@ -36,13 +36,13 @@ Contents
     - [Object](#object)
   - [Boolean](#boolean)
   - [Null](#null)
+  - [Filename Extensions](#filename-extensions)
   - [Full Example](#full-example)
   - [Interoperability Considerations](#interoperability-considerations)
     - [Value Ranges](#value-ranges)
     - [Invalid or Out Of Range Data](#invalid-or-out-of-range-data)
   - [Security Considerations](#security-considerations)
   - [Convenience Considerations](#convenience-considerations)
-  - [Filename Extensions](#filename-extensions)
   - [JSON Standards](#json-standards)
   - [Formal BONJSON Grammar](#formal-bonjson-grammar)
   - [License](#license)
@@ -397,6 +397,16 @@ Null has [type code](#type-codes) `0x95`.
 
 
 
+Filename Extensions
+-------------------
+
+BONJSON files can use the filename extension `bonjson`, or the shorter `bjn`.
+
+    example.bjn
+    example.bonjson
+
+
+
 Full Example
 ------------
 
@@ -512,16 +522,6 @@ Convenience Considerations
 Decoders **SHOULD** offer an option to allow for partial data to be recovered (along with an error condition) when decoding fails partway through.
 
 This would involve discarding any partially decoded value (and its associated member name - if any), and then artificially terminating all open arrays and objects to produce a well-formed tree.
-
-
-
-Filename Extensions
--------------------
-
-BONJSON files can use the filename extension `bonjson`, or the shorter `bjn`.
-
-    example.bjn
-    example.bonjson
 
 
 
