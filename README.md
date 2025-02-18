@@ -52,9 +52,11 @@ A simple binary format is orders of magnitude faster to produce and consume comp
 
 **Most systems follow a similar progression of data needs**:
 
- * **When starting something new:** JSON, because it's simple and ubiquitous and piss simple to debug.
- * **As your costs begin to rise:** A JSON-compatible binary format, because it's (hopefully) a drop-in replacement for JSON, with lower processing and transmission costs (such as BONJSON).
- * **As your needs expand beyond basic data:** A more advanced binary format specific to your use case (such as Protobufs).
+| Stage                               | Data Choice                                                        |
+| ----------------------------------- | ------------------------------------------------------------------ |
+| New project                         | JSON, because it's simple and ubiquitous and piss simple to debug. |
+| Your costs begin to rise            | JSON-compatible binary format, because it's (hopefully) a drop-in replacement for JSON, with lower processing and transmission costs (such as BONJSON). |
+| Your needs expand beyond basic data | A more advanced binary format specific to your use case (such as Protobufs). |
 
 
 
