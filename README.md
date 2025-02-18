@@ -30,11 +30,11 @@ Because they _all_ add extra things that make them **NOT** 1:1 compatible.
 | PSON     |      ❌     |      ❌      |        ❌      |   Unclear  |
 | Smile    |      ❌     |      ❌      |        ❌      |   Big      |
 
-* **Type Parity**: The format has no extra data types that aren't present in JSON
-* **Value Parity**: The format allows only the same value ranges as JSON (for example: infinities and NaN are disallowed)
-* **Feature Parity**: The formats support the same features as JSON (for example: progressive document construction)
+* **Type Parity**: Meaning the format has no extra data types that aren't present in JSON
+* **Value Parity**: Meaning the format allows only the same value ranges as JSON (for example: infinities and NaN are disallowed)
+* **Feature Parity**: Meaning the format supports the same features as JSON (for example: progressive document construction)
 
-**Wherever there's a compatibility mismatch, breakage will eventually occur** - it's only a matter of time before your complex data pipelines trigger it. Having confidence in your data pipeline is paramount.
+**Wherever there's a compatibility mismatch, breakage will eventually occur** - it's only a matter of time before your complex data pipelines trigger it. Having confidence in your data plumbing is paramount.
 
 **1:1 compatible means that**:
 
@@ -48,13 +48,13 @@ A binary version of JSON **MUST** behave in exactly the same way as [JSON](#json
 
 ### Why use binary at all?
 
-A simple binary format is orders of magnitude faster to produce and consume compared to a text format. It also offers _much_ smaller sizes for number-heavy data.
+A simple binary format is orders of magnitude faster to produce and consume compared to a text format, and has a smaller data footprint.
 
-**The average progression is**:
+**Most systems follow a similar progression of data needs**:
 
- * **When starting something new:** JSON, because it's simple and ubiquitous.
- * **As your costs begin to rise:** BONJSON, because it's a drop-in replacement for JSON with lower processing and transmission costs.
- * **As your needs expand beyond basic data:** A more advanced format specific to your use case.
+ * **When starting something new:** JSON, because it's simple and ubiquitous and piss simple to debug.
+ * **As your costs begin to rise:** A JSON-compatible binary format, because it's (hopefully) a drop-in replacement for JSON, with lower processing and transmission costs (such as BONJSON).
+ * **As your needs expand beyond basic data:** A more advanced binary format specific to your use case (such as Protobufs).
 
 
 
@@ -63,7 +63,7 @@ BONJSON is Small, Simple, and Efficient
 
 BONJSON's format is designed to be simple (the C reference implementation is less than 500 LOC each for the encoder and decoder), and compact where it makes sense to do so. This means:
 
- * No built-in compression (dictionaries, lookups, etc). Leave that to the real compression algorithms.
+ * No built-in compression (dictionaries, lookups, etc). Leave that to the _real_ compression algorithms.
  * Prefer existing, ubiquitous encodings as much as possible.
  * Encode the most likely data using the smallest encoding overhead.
  * Be computationally simple for 99.99% of real-world data.
