@@ -87,37 +87,37 @@ BONJSON follows the same structural rules as [JSON](#json-standards), as illustr
 
 **Document**:
 
-    ──[value]──
+    ──[value]──>
 
 **Value**:
 
-    ──┬─[string]──┬──
-      │           │
-      ├─[number]──┤
-      │           │
-      ├─[object]──┤
-      │           │
-      ├─[array]───┤
-      │           │
-      ├─[boolean]─┤
-      │           │
-      ╰─[null]────╯
+    ──┬─>─[string]──┬─>
+      │             │
+      ├─>─[number]──┤
+      │             │
+      ├─>─[object]──┤
+      │             │
+      ├─>─[array]───┤
+      │             │
+      ├─>─[boolean]─┤
+      │             │
+      ╰─>─[null]────╯
 
 **Object**:
 
-    ──[begin object]─┬───────────────────┬─[end container]──
-                     │                   │
-                     ├─[string]──[value]─┤
-                     │                   │
-                     ╰─<─<─<─<─<─<─<─<─<─╯
+    ──[begin object]─┬─>───────────────────┬─[end container]──>
+                     │                     │
+                     ├─>─[string]──[value]─┤
+                     │                     │
+                     ╰─<─<─<─<─<─<─<─<─<─<─╯
 
 **Array**:
 
-    ──[begin array]─┬─────────┬─[end container]──
-                    │         │
-                    ├─[value]─┤
-                    │         │
-                    ╰─<─<─<─<─╯
+    ──[begin array]─┬─>─────────┬─[end container]──>
+                    │           │
+                    ├─>─[value]─┤
+                    │           │
+                    ╰─<─<─<─<─<─╯
 
 
 
