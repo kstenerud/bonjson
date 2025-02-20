@@ -305,8 +305,9 @@ The `header` consists of 3 fields:
     [significand length] [exponent length] [significand sign]
 
  * The lowest bit is the `significand`'s sign bit (0 = positive, 1 = negative).
- * The next 2 bits represent the `exponent length` (0-3 bytes).
- * The remaining upper bits of the header represent the `significand length` in bytes.
+ * The next 2 bits represent the `exponent`'s length (0-3 bytes).
+ * The remaining upper bits of the header represent the `significand`'s length in bytes.
+ * A field length of 0 implies a value of 0 for the field whose length it defines.
 
 ```
 Big Number Header
