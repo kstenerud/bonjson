@@ -31,6 +31,7 @@ Contents
     - [32-bit Float](#32-bit-float)
     - [64-bit Float](#64-bit-float)
     - [Big Number](#big-number)
+      - [Special Values](#special-values)
   - [Containers](#containers)
     - [Array](#array)
     - [Object](#object)
@@ -105,19 +106,19 @@ BONJSON follows the same structural rules as [JSON](#json-standards), as illustr
 
 **Object**:
 
-    ──[begin object]─┬─>───────────────────┬─[end container]──>
-                     │                     │
-                     ├─>─[string]──[value]─┤
-                     │                     │
-                     ╰─<─<─<─<─<─<─<─<─<─<─╯
+    ──[begin object]─┬─>────────────────────┬─[end container]──>
+                     │                      │
+                     ├─>─[string]──[value]──┤
+                     │                      │
+                     ╰─<─<─<─<─<─<─<─<─<─<──╯
 
 **Array**:
 
-    ──[begin array]─┬─>─────────┬─[end container]──>
-                    │           │
-                    ├─>─[value]─┤
-                    │           │
-                    ╰─<─<─<─<─<─╯
+    ──[begin array]─┬─>──────────┬─[end container]──>
+                    │            │
+                    ├─>─[value]──┤
+                    │            │
+                    ╰─<─<─<─<─<──╯
 
 
 
@@ -287,26 +288,25 @@ Encoders **SHOULD** favor _signed_ over _unsigned_ when both types would encode 
 
 ### Big Number
 
-Big Number ([type code](#type-codes) `0x91`) allows for encoding an effectively unlimited range of numbers.
+Big Number ([type code](#type-codes) `0x91`) allows for encoding an effectively unlimited range of base-10 numbers.
 
-**Note**: This is an **OPTIONAL** type that only exists for 100% compatibility with the theoretical limits of the JSON format, and is unlikely to see much use in the real world (except in closed systems that are prepared to deal with large numbers). A codec **MAY** [reject](#invalid-or-out-of-range-data) this type regardless of its contents.
+**Note**: This is an **OPTIONAL** type that mainly exists to box-tick full compatibility with the theoretical limits of the JSON format, and is unlikely to see much use in the real world (except maybe in closed systems that are prepared to deal with large numbers). A codec **MAY** [reject](#invalid-or-out-of-range-data) this type regardless of its contents, and **MUST** declare its support (or lack thereof) in its documentation.
 
 The structure of a big number is as follows:
 
     [header] [significand bytes] [exponent bytes]
 
- * The `header` is encoded as an [unsigned LEB128](https://en.wikipedia.org/wiki/LEB128).
- * The `significand` is encoded as an unsigned integer in little endian byte order.
- * The `exponent` is encoded as a signed integer in little endian byte order.
- * The exponent is a power-of-10, just like in [JSON](#json-standards) text notation.
+ * The `header` contains sign and field-length information, and is encoded as an [unsigned LEB128](https://en.wikipedia.org/wiki/LEB128).
+ * The `significand` is encoded as an unsigned integer in little endian byte order. The `header` contains the significand's sign.
+ * The `exponent` represents a base-10 exponent, and is encoded as a signed integer in little endian byte order.
 
 The `header` consists of 3 fields:
 
-    [significand length] [exponent length] [sign]
+    [significand length] [exponent length] [significand sign]
 
- * The lowest bit is the "negative" bit (0 = positive significand, 1 = negative significand).
+ * The lowest bit is the `significand`'s sign bit (0 = positive, 1 = negative).
  * The next 2 bits represent the `exponent length` (0-3 bytes).
- * The rest of the header represents the `significand length` in bytes.
+ * The remaining upper bits of the header represent the `significand length` in bytes.
 
 ```
 Big Number Header
@@ -318,14 +318,22 @@ S S S S S S S ... E E N
      length       length
 ```
 
-This allows for an unlimited significand size, and a ludicrous exponent range of ± 8 million.
+This encoding allows for an unlimited significand size, and a ludicrous exponent range of ± 8 million.
 
-The value of the big number is derived as: `significand` × `sign` × 10^`exponent`
+The value is derived as: `sign` × `significand` × 10^`exponent`
 
-**Notes**:
+#### Special Values
 
- * A field length of 0 represents a value of 0 for that field.
- * A Big Number with a significand value of 0 is equal to 0 with the corresponding sign, regardless of exponent contents (which are superfluous in such a case).
+When the `significand length` field is 0 (regardless of the contents of the `exponent length` field), then there are never any `significand` or `exponent` bytes (the entire encoded value occupies a single byte). In this case, the `exponent length` bits represent the following special values (with the `negative` bit representing the sign):
+
+| Exponent Length Bits | Meaning            | Valid in BONJSON |
+| -------------------- | ------------------ | ---------------- |
+| `0 0`                | `0`                | ✔️                |
+| `0 1`                | `infinity`         | ❌                |
+| `1 0`                | `NaN` (quiet)      | ❌                |
+| `1 1`                | `NaN` (signaling)  | ❌                |
+
+**Note**: Most of these special values are invalid in BONJSON due to [JSON](#json-standards)'s value restrictions against infinity and NaN. If JSON is ever updated to support such values, this is how they would be encoded.
 
 **Examples**:
 
