@@ -63,7 +63,7 @@ A simple binary format is orders of magnitude faster to produce and consume comp
 BONJSON is Small, Simple, and Efficient
 ---------------------------------------
 
-BONJSON's format is designed to be simple (the C reference implementation is less than 500 LOC each for the encoder and decoder), and compact where it makes sense to do so. This means:
+BONJSON's format is designed to be simple (the [C reference implementation](#implementations) is less than 500 LOC each for the encoder and decoder), and compact where it makes sense to do so. This means:
 
  * No built-in compression (dictionaries, lookups, etc). Leave that to the _real_ compression algorithms.
  * Prefer existing, ubiquitous encodings as much as possible.
@@ -85,7 +85,7 @@ BONJSON's format is designed to be simple (the C reference implementation is les
 
 ### Implementations
 
- * [⚙️ C Implementation](https://github.com/kstenerud/ksbonjson) (reference implementation)
+ * [⚙️ C Reference Implementation](https://github.com/kstenerud/ksbonjson) (reference implementation)
 
 -------------------------------------------------------------------------------
 
