@@ -579,8 +579,11 @@ float_32          = u8(0x6c) & ordered(f32(~));
 float_64          = u8(0x6d) & ordered(f64(~));
 big_number        = u8(0x91)
                   & var(header, big_number_header)
-                  & ordered(uint(header.sig_length*8, ~))
-                  & ordered(sint(header.exp_length*8, ~))
+                  & [
+                        header.sig_length > 0: ordered(uint(header.sig_length*8, ~))
+                                             & ordered(sint(header.exp_length*8, ~))
+                                             ;
+                    ]
                   ;
 big_number_header = uleb128(uany(var(sig_length, ~)) & u2(var(exp_length, ~) & u1(var(sig_negative, ~)));
 
