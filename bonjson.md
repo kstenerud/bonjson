@@ -490,12 +490,12 @@ Encoders **SHOULD** always use the smallest encoding for the value being encoded
 
 A decoder **MAY** choose its own value range restrictions, but **SHOULD** stick with reasonable industry-standard ranges for maximum interoperability.
 
-Most systems can handle:
+Most systems can natively handle:
 
  * Up to 64 bit floating point values
  * Up to 64 bit integer values (signed or unsigned)
 
-Javascript in particular can handle:
+Javascript in particular can natively handle:
 
  * Up to 64 bit floating point values
  * Up to 53 bit integer values (plus the sign)
