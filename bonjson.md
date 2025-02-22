@@ -350,7 +350,7 @@ When the `significand length` field is 0 (regardless of the contents of the `exp
 Containers
 ----------
 
-Containers (objects and arrays) are encoded beginning with a `container start` code, and ending with a `container end` code. Both [object](#object) and [array](#array) share the same `container end` [type code](#type-codes) (`0x94`).
+Containers (objects and arrays) are encoded beginning with a `container start` [type code](#type-codes), and ending with a `container end` [type code](#type-codes). Both [object](#object) and [array](#array) share the same `container end` [type code](#type-codes) (`0x94`).
 
 
 ### Array
