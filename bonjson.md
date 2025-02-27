@@ -294,11 +294,11 @@ Big Number ([type code](#type-codes) `0x91`) allows for encoding an effectively 
 
 The structure of a big number is as follows:
 
-    [header] [significand bytes] [exponent bytes]
+    [header] [exponent bytes] [significand bytes]
 
  * The `header` contains sign and field-length information, and is encoded as an [unsigned LEB128](https://en.wikipedia.org/wiki/LEB128).
- * The `significand` is encoded as an unsigned integer in little endian byte order. The `header` contains the significand's sign.
  * The `exponent` represents a base-10 exponent, and is encoded as a signed integer in little endian byte order.
+ * The `significand` is encoded as an unsigned integer in little endian byte order. The `header` contains the significand's sign.
 
 The `header` consists of 3 fields:
 
@@ -339,11 +339,10 @@ When the `significand length` field is 0 (regardless of the contents of the `exp
 **Examples**:
 
     91 48 00 10 32 54 76 98 ba dc fe     // 0xfedcba987654321000 (9 bytes significand, no exponent, positive)
-    91 0a 0f ff                          // 1.5 (15 x 10⁻¹) (1 byte significand, 1 byte exponent, positive)
+    91 0a ff 0f                          // 1.5 (15 x 10⁻¹) (1 byte significand, 1 byte exponent, positive)
     91 01                                // -0 (no significand, no exponent, negative)
-    91 8d 01 97 EB F2 0E C3 98 06 C1 47
-       71 5E 65 4F 58 5F AA 28 d8 dc     // -13837758495464977165497261864967377972119 x 10⁻⁹⁰⁰⁰
-                                         // (17 bytes significand, 2 bytes exponent, negative)
+    91 d8 dc 8d 01 97 EB F2 0E C3 98 06  // -13837758495464977165497261864967377972119 x 10⁻⁹⁰⁰⁰
+       C1 47 71 5E 65 4F 58 5F AA 28     // (17 bytes significand, 2 bytes exponent, negative)
 
 
 
