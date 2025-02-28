@@ -323,6 +323,8 @@ This encoding allows for an unlimited significand size, and a ludicrous exponent
 
 The value is derived as: `sign` × `significand` × 10^`exponent`
 
+**Note**: A big number **MUST** be encoded into its smallest valid representation (no ULEB128 stuffing such as `80 00`, no integer field stuffing such as `12 00 00 00`).
+
 #### Special Values
 
 When the `significand length` field is 0 (regardless of the contents of the `exponent length` field), then there are never any `significand` or `exponent` bytes (the entire encoded value occupies a single byte). In this case, the `exponent length` bits represent the following special values (with the `negative` bit representing the sign):
