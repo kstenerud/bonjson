@@ -11,18 +11,18 @@ value             = array | object | number | boolean | string | null;
 
 # Types
 
-array             = u8(0x92) & value* & end_container;
-object            = u8(0x93) & (string & value)* & end_container;
-end_container     = u8(0x94);
+array             = u8(0x99) & value* & end_container;
+object            = u8(0x9a) & (string & value)* & end_container;
+end_container     = u8(0x9b);
 
 number            = int_small | int_unsigned | int_signed | float_16 | float_32 | float_64 | big_number;
-int_small         = i8(-106~106);
+int_small         = i8(-100~100);
 int_unsigned      = u4(7) & u1(0) & u3(var(count, ~)) & ordered(uint((count+1)*8, ~));
 int_signed        = u4(7) & u1(1) & u3(var(count, ~)) & ordered(sint((count+1)*8, ~));
-float_16          = u8(0x6b) & ordered(f16(~));
-float_32          = u8(0x6c) & ordered(f32(~));
-float_64          = u8(0x6d) & ordered(f64(~));
-big_number        = u8(0x91)
+float_16          = u8(0x6a) & ordered(f16(~));
+float_32          = u8(0x6b) & ordered(f32(~));
+float_64          = u8(0x6c) & ordered(f64(~));
+big_number        = u8(0x69)
                   & var(header, big_number_header)
                   & [
                         header.sig_length > 0: ordered(uint(header.sig_length*8, ~))
@@ -38,9 +38,9 @@ true              = u8(0x6f);
 
 string            = string_short | string_long;
 string_short      = u4(8) & u4(var(count, ~)) & sized(count*8, char_string*);
-string_long       = u8(0x90) & char_string* & u8(0xff);
+string_long       = u8(0x68) & char_string* & u8(0xff);
 
-null              = u8(0x95);
+null              = u8(0x6d);
 
 # Primitives & Functions
 
