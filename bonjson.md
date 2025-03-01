@@ -208,7 +208,7 @@ Numbers
 
 Numbers can be encoded using various integer and floating point forms. Encoders **SHOULD** use the most compact representation that stores each value without data loss.
 
-With the exception of [Big Number](#big-number), all numeric types are encoded exactly as they would appear in memory on little endian architectures.
+All primitive numeric types are encoded exactly as they would appear in memory on little endian architectures.
 
 **Note**: Floating point `NaN` and `infinity` values **MUST NOT** be present in a document since they are not allowed in [JSON](#json-standards).
 
