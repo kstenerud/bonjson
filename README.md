@@ -63,12 +63,35 @@ A simple binary format is orders of magnitude faster to produce and consume comp
 BONJSON is Small, Simple, and Efficient
 ---------------------------------------
 
-BONJSON's format is designed to be simple (the [C reference implementation](#implementations) is less than 500 LOC each for the encoder and decoder), and compact where it makes sense to do so. This means:
+**The BONJSON format is designed for simplicity and efficiency:**
 
- * No built-in compression (dictionaries, lookups, etc). Leave that to the _real_ compression algorithms.
- * Prefer existing, ubiquitous encodings as much as possible.
- * Encode the most likely data using the smallest encoding overhead.
- * Be computationally simple for 99.99% of real-world data.
+ * No compression tricks. Leave that to the _real_ compression algorithms.
+ * Use existing, CPU-native data encodings as much as possible.
+ * Encode the most common data using the smallest encoding overhead.
+ * Be computationally simple.
+
+**As a result:**
+
+ * [The BONJSON specification](bonjson.md) is only 600 lines long.
+ * [The C reference implementation](https://github.com/kstenerud/ksbonjson) is less than 500 LOC each for the encoder and decoder)
+
+**It's 10x faster:**
+
+Benchmarking [the C Reference Implementation](https://github.com/kstenerud/ksbonjson) vs [jq](https://github.com/jqlang/jq) on [large-file](https://github.com/json-iterator/test-data/blob/master/large-file.json)
+
+    ~/ksbonjson/benchmark$ ./benchmark.sh large-file
+
+    Benchmarking BONJSON decode+encode with 23364k file large-file.bjn
+
+    real    0m0.086s
+    user    0m0.060s
+    sys     0m0.034s
+
+    Benchmarking JSON decode+encode with 25532k file large-file.json
+
+    real    0m0.747s
+    user    0m0.689s
+    sys     0m0.073s
 
 -------------------------------------------------------------------------------
 
