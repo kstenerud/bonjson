@@ -31,7 +31,7 @@ Contents
     - [32-bit Float](#32-bit-float)
     - [64-bit Float](#64-bit-float)
     - [Big Number](#big-number)
-      - [Special Values](#special-values)
+      - [Special Big Number Encodings](#special-big-number-encodings)
   - [Containers](#containers)
     - [Array](#array)
     - [Object](#object)
@@ -61,7 +61,6 @@ Terms and Conventions
 | **MAY (NOT)**    | It is up to the implementation to decide whether to do something or not.                         |
 | **CAN**          | Refers to a possibility which **MUST** be accommodated by the implementation.                    |
 | **CANNOT**       | Refers to a situation which **MUST NOT** be allowed by the implementation.                       |
-| **OPTIONAL**     | An implementation **MAY** choose to implement this, or not.                                      |
 
 -------------------------------------------------------------------------------
 
@@ -72,12 +71,12 @@ Types
 
 BONJSON has the exact same types as [JSON](#json-standards) (and no more):
 
- * [String](#string-encoding)
- * [Number](#number-encoding)
- * [Array](#array-encoding)
- * [Object](#object-encoding)
- * [Boolean](#boolean-encoding)
- * [Null](#null-encoding)
+ * [String](#strings)
+ * [Number](#numbers)
+ * [Array](#array)
+ * [Object](#object)
+ * [Boolean](#boolean)
+ * [Null](#null)
 
 
 
@@ -137,26 +136,26 @@ BONJSON is a byte-oriented format. All values begin and end on an 8-bit boundary
 
 Every value is composed of an 8-bit type code, and in some cases also a payload:
 
-| Type Code | Payload                      | Type    | Description                                         |
-| --------- | ---------------------------- | ------- | --------------------------------------------------- |
-| 00 - 64   |                              | Number  | [Integers 0 through 100](#small-integer)            |
-| 65 - 67   |                              |         | RESERVED                                            |
-| 68        | Arbitrary length string      | String  | [Long String](#long-string)                         |
-| 69        | Arbitrary length number      | Number  | [Big Number](#big-number)                           |
-| 6a        | 16-bit bfloat16 binary float | Number  | [16-bit float](#16-bit-float)                       |
-| 6b        | 32-bit ieee754 binary float  | Number  | [32-bit float](#32-bit-float)                       |
-| 6c        | 64-bit ieee754 binary float  | Number  | [64-bit float](#64-bit-float)                       |
-| 6d        |                              | Null    | [Null](#null-encoding)                              |
-| 6e        |                              | Boolean | [False](#boolean-encoding)                          |
-| 6f        |                              | Boolean | [True](#boolean-encoding)                           |
-| 70 - 77   | Unsigned integer of n bytes  | Number  | [Unsigned Integer](#integer)                        |
-| 78 - 7f   | Signed integer of n bytes    | Number  | [Signed Integer](#integer)                          |
-| 80 - 8f   | String of n bytes            | String  | [Short String](#short-string)                       |
-| 90 - 98   |                              |         | RESERVED                                            |
-| 99        |                              | Array   | [Array start](#array-encoding)                      |
-| 9a        |                              | Object  | [Object start](#object-encoding)                    |
-| 9b        |                              |         | [Container end](#container-encoding)                |
-| 9c - ff   |                              | Number  | [Integers -100 through -1](#small-integer)          |
+| Type Code | Payload                      | Type    | Description                                |
+| --------- | ---------------------------- | ------- | ------------------------------------------ |
+| 00 - 64   |                              | Number  | [Integers 0 through 100](#small-integer)   |
+| 65 - 67   |                              |         | RESERVED                                   |
+| 68        | Arbitrary length string      | String  | [Long String](#long-string)                |
+| 69        | Arbitrary length number      | Number  | [Big Number](#big-number)                  |
+| 6a        | 16-bit bfloat16 binary float | Number  | [16-bit float](#16-bit-float)              |
+| 6b        | 32-bit ieee754 binary float  | Number  | [32-bit float](#32-bit-float)              |
+| 6c        | 64-bit ieee754 binary float  | Number  | [64-bit float](#64-bit-float)              |
+| 6d        |                              | Null    | [Null](#null)                              |
+| 6e        |                              | Boolean | [False](#boolean)                          |
+| 6f        |                              | Boolean | [True](#boolean)                           |
+| 70 - 77   | Unsigned integer of n bytes  | Number  | [Unsigned Integer](#integer)               |
+| 78 - 7f   | Signed integer of n bytes    | Number  | [Signed Integer](#integer)                 |
+| 80 - 8f   | String of n bytes            | String  | [Short String](#short-string)              |
+| 90 - 98   |                              |         | RESERVED                                   |
+| 99        |                              | Array   | [Array start](#array)                      |
+| 9a        |                              | Object  | [Object start](#object)                    |
+| 9b        |                              |         | [Container end](#containers)               |
+| 9c - ff   |                              | Number  | [Integers -100 through -1](#small-integer) |
 
 
 
@@ -172,11 +171,12 @@ Strings can be encoded in two ways:
 
 Short strings have their byte length (up to 15) encoded directly into the lower nybble of the type code, and have no terminator byte.
 
-    Type Code
-    ---------
-    1000 LLLL
-         |
-         Length (bytes)
+    Type Code Byte
+    ───────────────
+    1 0 0 0 L L L L
+            ╰─┴─┴─┤
+                  ╰─> Length (0-15 bytes)
+
 
 **Example**:
 
@@ -230,17 +230,12 @@ Small integers (-100 to 100) are encoded into the [type code](#type-codes) itsel
 
 Integers are encoded in little-endian byte order following the [type code](#type-codes). The type code determines the size of the integer in bytes, and whether it is signed or unsigned.
 
-    Type Code Encoding
-    ------------------
+    Type Code Byte
+    ───────────────
     0 1 1 1 S L L L
-            | \_|_/
-            |   |
-            |   Length
-            Signed?
-
-**Signed**: 0 = unsigned, 1 = signed
-
-**Length**: Add 1 to this value to give the integer's length in bytes (1-8)
+            | ╰─┼─╯
+            |   ╰───> Length (add 1 to value for 1-8 bytes)
+            ╰───────> Signed (0 = unsigned, 1 = signed)
 
 Encoders **SHOULD** favor _signed_ over _unsigned_ when both types would encode a value into the same number of bytes.
 
@@ -289,46 +284,39 @@ Encoders **SHOULD** favor _signed_ over _unsigned_ when both types would encode 
 
 ### Big Number
 
-Big Number ([type code](#type-codes) `0x69`) allows for encoding an effectively unlimited range of base-10 numbers.
-
-**Note**: This is an **OPTIONAL** type that mainly exists to box-tick full compatibility with the theoretical limits of the JSON format, and is unlikely to see much use in the real world (except maybe in closed systems that are prepared to deal with large numbers). A codec **MAY** [reject](#invalid-or-out-of-range-data) this type regardless of its contents, and **MUST** declare its support (or lack thereof) in its documentation.
+Big Number ([type code](#type-codes) `0x69`) allows for encoding an incredibly large range of base-10 numbers. Although it doesn't match the unlimited range of [JSON](#json-standards), it does allow for up to 75 siginficant digits and an exponent range of ± 8 million, which is well beyond virtually all real-world use cases.
 
 The structure of a big number is as follows:
 
     [header] [exponent bytes] [significand bytes]
 
- * The `header` contains sign and field-length information, and is encoded as an [unsigned LEB128](https://en.wikipedia.org/wiki/LEB128).
+ * The `header` is a byte containing sign and field-length information.
  * The `exponent` represents a base-10 exponent, and is encoded as a signed integer in little endian byte order.
  * The `significand` is encoded as an unsigned integer in little endian byte order. The `header` contains the significand's sign.
 
-The `header` consists of 3 fields:
+The `header` byte consists of 3 fields:
 
-    [significand length] [exponent length] [significand sign]
+      Header Byte
+    ───────────────
+    S S S S S E E N
+    ╰─┴─┼─┴─╯ ╰─┤ ╰─> Significand sign (0 = positive, 1 = negative)
+        │       ╰───> Exponent Length (0-3 bytes)
+        ╰───────────> Significand Length (0-31 bytes)
 
- * The lowest bit is the `significand`'s sign bit (0 = positive, 1 = negative).
- * The next 2 bits represent the `exponent`'s length (0-3 bytes).
- * The remaining upper bits of the header represent the `significand`'s length in bytes.
+The final value is derived as: `sign` × `significand` × 10^`exponent`
+
+**Notes**:
+
  * A field length of 0 implies a value of 0 for the field whose length it defines.
+ * A big number **MUST** be encoded into its smallest valid representation (no stuffing `00` bytes).
 
-```
-Big Number Header
------------------------
-S S S S S S S ... E E N
-\               / | |  \
- \             /  |/    negative
-   significand    exponent
-     length       length
-```
+#### Special Big Number Encodings
 
-This encoding allows for an unlimited significand size, and a ludicrous exponent range of ± 8 million.
+When the `significand length` field is 0 (regardless of the contents of the `exponent length` field), then there are never any `significand` or `exponent` bytes (the entire encoded value occupies a single byte).
 
-The value is derived as: `sign` × `significand` × 10^`exponent`
+Instead, the `exponent length` bits represent the special values listed in the following table (with the `negative` bit representing the sign as usual).
 
-**Note**: A big number **MUST** be encoded into its smallest valid representation (no ULEB128 stuffing such as `80 00`, no integer field stuffing such as `12 00 00 00`).
-
-#### Special Values
-
-When the `significand length` field is 0 (regardless of the contents of the `exponent length` field), then there are never any `significand` or `exponent` bytes (the entire encoded value occupies a single byte). In this case, the `exponent length` bits represent the following special values (with the `negative` bit representing the sign):
+**Note**: Most of these special values are invalid in BONJSON due to [JSON](#json-standards)'s value restrictions against infinity and NaN. If JSON is ever updated to support such values, this is how they would be encoded.
 
 | Exponent Length Bits | Meaning            | Valid in BONJSON |
 | -------------------- | ------------------ | ---------------- |
@@ -337,15 +325,13 @@ When the `significand length` field is 0 (regardless of the contents of the `exp
 | `1 0`                | `NaN` (quiet)      | ❌                |
 | `1 1`                | `NaN` (signaling)  | ❌                |
 
-**Note**: Most of these special values are invalid in BONJSON due to [JSON](#json-standards)'s value restrictions against infinity and NaN. If JSON is ever updated to support such values, this is how they would be encoded.
-
 **Examples**:
 
-    69 48 00 10 32 54 76 98 ba dc fe     // 0xfedcba987654321000 (9 bytes significand, no exponent, positive)
-    69 0a ff 0f                          // 1.5 (15 x 10⁻¹) (1 byte significand, 1 byte exponent, positive)
-    69 01                                // -0 (no significand, no exponent, negative)
-    69 d8 dc 8d 01 97 EB F2 0E C3 98 06  // -13837758495464977165497261864967377972119 x 10⁻⁹⁰⁰⁰
-       C1 47 71 5E 65 4F 58 5F AA 28     // (17 bytes significand, 2 bytes exponent, negative)
+    69 48 00 10 32 54 76 98 ba dc fe  // 0xfedcba987654321000 (9 bytes significand, no exponent, positive)
+    69 0a ff 0f                       // 1.5 (15 x 10⁻¹) (1 byte significand, 1 byte exponent, positive)
+    69 01                             // -0 (no significand, no exponent, negative)
+    69 8d 8d 01 97 EB F2 0E C3 98 06  // -13837758495464977165497261864967377972119 x 10⁻⁹⁰⁰⁰
+       C1 47 71 5E 65 4F 58 5F AA 28  // (17 bytes significand, 2 bytes exponent, negative)
 
 
 
@@ -445,7 +431,7 @@ Full Example
 
 **BONJSON**:
 
-```
+```text
     9a                                                       // {
         86 6e 75 6d 62 65 72                                 //     "number":
         01                                                   //     1,
@@ -490,7 +476,7 @@ Although JSON allows an unlimited range for most values, it's important to take 
 
 Encoders **SHOULD** always use the smallest encoding for the value being encoded in order to ensure maximum compatibility.
 
-A decoder **MAY** choose its own value range restrictions, but **SHOULD** stick with reasonable industry-standard ranges for maximum interoperability.
+A codec **MAY** choose its own value range restrictions, but **SHOULD** stick with reasonable industry-standard ranges for maximum interoperability, and **MUST** publish what its restrictions are.
 
 Most systems can natively handle:
 
@@ -508,8 +494,7 @@ Javascript in particular can natively handle:
 It's expected that your codec will at some point encounter invalid data:
 
  * Disllowed values, such as floating point `NaN` or `infinity`
- * Values that are too large to be ingested by the receiving system
- * Optional types that are not supported
+ * Out-of-range values
  * Malformed data
 
 Invalid data that makes the decoder less than 100% sure of where the next [type code](#type-codes) begins is considered irrecoverable, and **MUST** always abort processing.
