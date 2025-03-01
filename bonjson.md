@@ -575,7 +575,7 @@ big_number        = u8(0x69)
                                              ;
                     ]
                   ;
-big_number_header = uleb128(uany(var(sig_length, ~)) & u2(var(exp_length, ~) & u1(var(sig_negative, ~)));
+big_number_header = u5(var(sig_length, ~)) & u2(var(exp_length, ~)) & u1(var(sig_negative, ~));
 
 boolean           = true | false;
 false             = u8(0x6e);
@@ -593,6 +593,7 @@ u1(v)             = uint(1, v);
 u2(v)             = uint(2, v);
 u3(v)             = uint(3, v);
 u4(v)             = uint(4, v);
+u5(v)             = uint(5, v);
 u8(v)             = uint(8, v);
 i8(v)             = sint(8, v);
 uany(v)           = uint(~,v);
@@ -603,7 +604,6 @@ f64(v)            = float(64, v);
 char_string       = '\[0]' ~ '\[10ffff]'; # JSON technically supports unassigned and invalid codepoints
 
 bfloat16(v: bits): bits = """https://en.wikipedia.org/wiki/Bfloat16_floating-point_format""";
-uleb128(v: bits): bits = """https://en.wikipedia.org/wiki/LEB128#Unsigned_LEB128""";
 ```
 
 
