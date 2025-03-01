@@ -51,7 +51,6 @@ u4(v)             = uint(4, v);
 u5(v)             = uint(5, v);
 u8(v)             = uint(8, v);
 i8(v)             = sint(8, v);
-uany(v)           = uint(~,v);
 f16(v)            = bfloat16(v);
 f32(v)            = float(32, v);
 f64(v)            = float(64, v);
