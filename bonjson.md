@@ -41,7 +41,7 @@ Contents
   - [Full Example](#full-example)
   - [Interoperability Considerations](#interoperability-considerations)
     - [Value Ranges](#value-ranges)
-    - [Invalid or Out Of Range Data](#invalid-or-out-of-range-data)
+    - [Invalid Data](#invalid-data)
   - [Security Considerations](#security-considerations)
   - [Convenience Considerations](#convenience-considerations)
   - [JSON Standards](#json-standards)
@@ -503,21 +503,24 @@ Javascript in particular can natively handle:
  * Up to 53 bit integer values (plus the sign)
 
 
-### Invalid or Out Of Range Data
+### Invalid Data
 
-It's expected that your codec will at some point encounter disallowed data:
+It's expected that your codec will at some point encounter invalid data:
 
- * Values that are outright invalid, such as floating point `NaN` or `infinity`
+ * Disllowed values, such as floating point `NaN` or `infinity`
  * Values that are too large to be ingested by the receiving system
  * Optional types that are not supported
+ * Malformed data
 
-Codecs **SHOULD** offer the user options for what to do when these situations occur (ideally, separate options for "invalid" and for "out of range" values):
+Invalid data that makes the decoder less than 100% sure of where the next [type code](#type-codes) begins is considered irrecoverable, and **MUST** always abort processing.
 
- * Abort processing
+Codecs **SHOULD** offer the user options for what to do when recoverable invalid data is encountered (ideally, separate options for different classes of invalid data):
+
+ * Abort processing (for security reasons, this **MUST** always be the default behavior)
  * Stringify the value (for example to a decimal or hexadecimal string)
  * Replace the value with `null`
 
-Codec documentation **MUST** explain what behaviors they offer, and what are the defaults. For safety and security reasons, the default behavior **SHOULD** be to abort processing.
+Codec documentation **MUST** explain what behaviors they offer.
 
 
 
