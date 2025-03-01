@@ -411,13 +411,13 @@ Full Example
 
 ```json
 {
-    "number": 1,
+    "number": 50,
     "null": null,
     "boolean": true,
     "array": [
         "x",
         1000,
-        1.5
+        -1.25
     ],
     "object": {
         "negative number": -100,
@@ -426,24 +426,24 @@ Full Example
 }
 ```
 
-    Size:     242 bytes
-    Minified: 153 bytes
+    Size:     245 bytes
+    Minified: 156 bytes
 
 **BONJSON**:
 
 ```text
     9a                                                       // {
         86 6e 75 6d 62 65 72                                 //     "number":
-        01                                                   //     1,
+        32                                                   //     50,
         84 6e 75 6c 6c                                       //     "null":
         6d                                                   //     null,
         87 62 6f 6f 6c 65 61 6e                              //     "boolean":
         6f                                                   //     true,
-        85 61 72 72 61 79                                    //     "array"
+        85 61 72 72 61 79                                    //     "array":
         99                                                   //     [
             81 78                                            //         "x",
             79 e8 03                                         //         1000,
-            6a c0 3f                                         //         1.5
+            6a a0 bf                                         //         -1.25
         9b                                                   //     ],
         86 6f 62 6a 65 63 74                                 //     "object":
         9a                                                   //     {
