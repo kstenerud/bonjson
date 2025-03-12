@@ -3,7 +3,7 @@ BONJSON: Binary Object Notation for JSON
 
 BONJSON is a **1:1 compatible** binary serialization format for [JSON](#json-standards).
 
-It's a drop-in replacement that works in the same way and has the same capabilities and limitations as [JSON](#json-standards) (no more, no less), in a compact and simple-to-process binary format rather than text.
+It's a drop-in replacement that works in the same way and has the same capabilities and limitations as [JSON](#json-standards) (no more, no less), in a compact and simple-to-process binary format that is **30x faster** to process.
 
 
 
@@ -12,21 +12,21 @@ Why make a binary JSON?
 
 [JSON](#json-standards) isn't going anywhere, so let's at least be more efficient where we can!
 
-BONJSON documents are quicker and more energy efficent to process, and are generally smaller and compress better than JSON.
+BONJSON documents are quicker and more energy efficient to process, and are usually smaller than JSON.
 
 Machine-to-machine transmission is better done in binary, with conversion to human-readable JSON only where a human actually needs to be involved.
 
 
 ### Why not BSON or anther existing binary JSON format?
 
-Because they _all_ add extra things that make them **NOT** 1:1 compatible.
+Because they _all_ add extra things that make them **NOT** 1:1 compatible (and more complicated).
 
 | Encoding | Type Parity | Value Parity | Feature Parity | Endianness |
 | -------- | ----------- | ------------ | -------------- | ---------- |
 | BONJSON  |      ✔️      |      ✔️       |        ✔️       |   Little   |
 | BSON     |      ❌     |      ❌      |        ❌      |   Little   |
 | UBJSON   |      ✔️      |      ❌      |        ❌      |   Big      |
-| BJData   |      ✔️      |      ❌      |        ❌      |   Little   |
+| BJData   |      ❌      |      ❌      |        ❌      |   Little   |
 | PSON     |      ❌     |      ❌      |        ❌      |   Unclear  |
 | Smile    |      ❌     |      ❌      |        ❌      |   Big      |
 
@@ -54,44 +54,84 @@ A simple binary format is orders of magnitude faster to produce and consume comp
 
 | Stage                               | Data Choice                                                        |
 | ----------------------------------- | ------------------------------------------------------------------ |
-| New project                         | JSON, because it's simple and ubiquitous and piss simple to debug. |
-| Your costs begin to rise            | JSON-compatible binary format, because it's (hopefully) a drop-in replacement for JSON, with lower processing and transmission costs (such as BONJSON). |
+| New project                         | JSON, because it's the ubiquitous go-to format. |
+| Your costs begin to rise            | JSON-compatible binary format as a drop-in replacement, for lower processing and transmission costs (such as BONJSON). |
 | Your needs expand beyond basic data | A more advanced binary format specific to your use case (such as Protobufs). |
 
 
 
-BONJSON is Small, Simple, and Efficient
----------------------------------------
+BONJSON is Small, Simple, and Speedy
+------------------------------------
 
-**The BONJSON format is designed for simplicity and efficiency:**
+### Designed for simplicity and efficiency
 
- * No compression tricks. Leave that to the _real_ compression algorithms.
+ * No compression tricks like histograms or references or lookups. Leave that to the _real_ compression algorithms.
  * Use existing, CPU-native data encodings as much as possible.
  * Encode the most common data using the smallest encoding overhead.
  * Be computationally simple.
 
-**As a result:**
+### Easy to implement
 
- * [The BONJSON specification](bonjson.md) is only 600 lines long.
- * [The C reference implementation](https://github.com/kstenerud/ksbonjson) is less than 500 LOC each for the encoder and decoder)
+ * [The BONJSON specification](bonjson.md) is only 600 lines long (including formal grammar).
+ * [The C reference implementation](https://github.com/kstenerud/ksbonjson) is less than 500 LOC each for the encoder and decoder
 
-**It's 10x faster:**
+### 30x faster than JSON
 
-Benchmarking [the C Reference Implementation](https://github.com/kstenerud/ksbonjson) vs [jq](https://github.com/jqlang/jq) on [large-file](https://github.com/json-iterator/test-data/blob/master/large-file.json)
+Benchmarking [the C Reference Implementation](https://github.com/kstenerud/ksbonjson) vs [jq](https://github.com/jqlang/jq) on a Core i3-1315U (using test data from https://github.com/kstenerud/test-data):
 
-    ~/ksbonjson/benchmark$ ./benchmark.sh large-file
+**10MB:**
 
-    Benchmarking BONJSON decode+encode with 23364k file large-file.bjn
+```
+~/ksbonjson/benchmark$ ./benchmark.sh 10mb
 
-    real    0m0.086s
-    user    0m0.060s
-    sys     0m0.034s
+Benchmarking BONJSON decode+encode with 9024k file 10mb.bjn
 
-    Benchmarking JSON decode+encode with 25532k file large-file.json
+real    0m0.022s
+user    0m0.012s
+sys     0m0.012s
 
-    real    0m0.747s
-    user    0m0.689s
-    sys     0m0.073s
+Benchmarking JSON decode+encode with 10256k file 10mb.json
+
+real    0m0.347s
+user    0m0.317s
+sys     0m0.035s
+```
+
+**100MB:**
+
+```
+~/ksbonjson/benchmark$ ./benchmark.sh 100mb
+
+Benchmarking BONJSON decode+encode with 90224k file 100mb.bjn
+
+real    0m0.202s
+user    0m0.095s
+sys     0m0.131s
+
+Benchmarking JSON decode+encode with 102556k file 100mb.json
+
+real    0m3.245s
+user    0m3.039s
+sys     0m0.294s
+```
+
+**1000MB:**
+
+```
+~/ksbonjson/benchmark$ ./benchmark.sh 1000mb
+
+Benchmarking BONJSON decode+encode with 902208k file 1000mb.bjn
+
+real    0m1.849s
+user    0m0.889s
+sys     0m1.152s
+
+Benchmarking JSON decode+encode with 1025564k file 1000mb.json
+
+real    0m32.455s
+user    0m30.295s
+sys     0m2.693s
+```
 
 -------------------------------------------------------------------------------
 

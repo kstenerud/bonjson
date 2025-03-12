@@ -6,7 +6,7 @@ BONJSON: Binary Object Notation for JSON
 
 BONJSON is a **1:1 compatible** binary serialization format for [JSON](#json-standards).
 
-It's a drop-in replacement that works in the same way and has the same capabilities and limitations as [JSON](#json-standards) (no more, no less), in a compact and simple-to-process binary format rather than text.
+It's a drop-in replacement that works in the same way and has the same capabilities and limitations as [JSON](#json-standards) (no more, no less), in a compact and simple-to-process binary format that is 30x faster to process.
 
 -------------------------------------------------------------------------------
 
@@ -284,7 +284,7 @@ Encoders **SHOULD** favor _signed_ over _unsigned_ when both types would encode 
 
 ### Big Number
 
-Big Number ([type code](#type-codes) `0x69`) allows for encoding an incredibly large range of base-10 numbers. Although it doesn't match the unlimited range of [JSON](#json-standards), it does allow for up to 75 siginficant digits and an exponent range of ± 8 million, which is well beyond virtually all real-world use cases.
+Big Number ([type code](#type-codes) `0x69`) allows for encoding an incredibly large range of base-10 numbers. Although it doesn't match the unlimited range of [JSON](#json-standards), it does allow for up to 75 significant digits and an exponent range of ± 8 million, which is well beyond virtually all real-world use cases.
 
 The structure of a big number is as follows:
 
@@ -483,7 +483,7 @@ Most systems can natively handle:
  * Up to 64 bit floating point values
  * Up to 64 bit integer values (signed or unsigned)
 
-Javascript in particular can natively handle:
+JavaScript in particular can natively handle:
 
  * Up to 64 bit floating point values
  * Up to 53 bit integer values (plus the sign)
@@ -493,7 +493,7 @@ Javascript in particular can natively handle:
 
 It's expected that your codec will at some point encounter invalid data:
 
- * Disllowed values, such as floating point `NaN` or `infinity`
+ * Disallowed values, such as floating point `NaN` or `infinity`
  * Out-of-range values
  * Malformed data
 
