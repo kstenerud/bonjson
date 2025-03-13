@@ -37,7 +37,7 @@ Contents
     - [Object](#object)
   - [Boolean](#boolean)
   - [Null](#null)
-  - [Filename Extensions](#filename-extensions)
+  - [Filename Extensions and MIME Type](#filename-extensions-and-mime-type)
   - [Full Example](#full-example)
   - [Interoperability Considerations](#interoperability-considerations)
     - [Value Ranges](#value-ranges)
@@ -210,7 +210,7 @@ Numbers can be encoded using various integer and floating point forms. Encoders 
 
 All primitive numeric types are encoded exactly as they would appear in memory on little endian architectures.
 
-**Note**: Floating point `NaN` and `infinity` values **MUST NOT** be present in a document since they are not allowed in [JSON](#json-standards).
+**Note**: `NaN` and `infinity` values **MUST NOT** be present in a document since they are not allowed in [JSON](#json-standards).
 
 
 ### Small Integer
@@ -228,7 +228,7 @@ Small integers (-100 to 100) are encoded into the [type code](#type-codes) itsel
 
 ### Integer
 
-Integers are encoded in little-endian byte order following the [type code](#type-codes). The type code determines the size of the integer in bytes, and whether it is signed or unsigned.
+Integers are encoded in little-endian byte order following the [type code](#type-codes). The lower nybble of the type code determines the size of the integer in bytes, and whether it is signed or unsigned.
 
     Type Code Byte
     ───────────────
@@ -251,9 +251,7 @@ Encoders **SHOULD** favor _signed_ over _unsigned_ when both types would encode 
 
 ### 16-bit Float
 
-16-bit float is encoded as a little-endian 16-bit [bfloat16](https://en.wikipedia.org/wiki/Bfloat16_floating-point_format) following the [type code](#type-codes) (`0x6a`). This is a convenience encoding for a commonly used float type (often used in AI).
-
-**Note**: NaN and infinity values **MUST NOT** be encoded into a BONJSON document.
+16-bit float is encoded as a little-endian 16-bit [bfloat16](https://en.wikipedia.org/wiki/Bfloat16_floating-point_format) following the [type code](#type-codes) (`0x6a`).
 
 **Example**:
 
@@ -262,9 +260,7 @@ Encoders **SHOULD** favor _signed_ over _unsigned_ when both types would encode 
 
 ### 32-bit Float
 
-32-bit float is encoded as a little-endian [32-bit ieee754 binary float](https://en.wikipedia.org/wiki/Single-precision_floating-point_format) following the [type code](#type-codes) (`0x6b`). This is a convenience encoding for a commonly used float type.
-
-**Note**: NaN and infinity values **MUST NOT** be encoded into a BONJSON document.
+32-bit float is encoded as a little-endian [32-bit ieee754 binary float](https://en.wikipedia.org/wiki/Single-precision_floating-point_format) following the [type code](#type-codes) (`0x6b`).
 
 **Example**:
 
@@ -273,9 +269,7 @@ Encoders **SHOULD** favor _signed_ over _unsigned_ when both types would encode 
 
 ### 64-bit Float
 
-64-bit float is encoded as a little-endian [64-bit ieee754 binary float](https://en.wikipedia.org/wiki/Double-precision_floating-point_format) following the [type code](#type-codes) (`0x6c`). This is a convenience encoding for a commonly used float type.
-
-**Note**: NaN and infinity values **MUST NOT** be encoded into a BONJSON document.
+64-bit float is encoded as a little-endian [64-bit ieee754 binary float](https://en.wikipedia.org/wiki/Double-precision_floating-point_format) following the [type code](#type-codes) (`0x6c`).
 
 **Example**:
 
@@ -394,13 +388,15 @@ Null has [type code](#type-codes) `0x6d`.
 
 
 
-Filename Extensions
--------------------
+Filename Extensions and MIME Type
+---------------------------------
 
 BONJSON files can use the filename extension `bonjson`, or the shorter `bjn`.
 
     example.bjn
     example.bonjson
+
+BONJSON's MIME type is `application/x.bonjson`, and will be `application/bonjson` once registered.
 
 
 
