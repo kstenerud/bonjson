@@ -24,7 +24,7 @@ Why use BONJSON?
 
 ### It's Simple
 
-* It doesn't use compression tricks like histograms or references or lookups. Leave those to the _real_ compression algorithms.
+* It doesn't use tricks like histograms or references or lookups. Leave those to _real_ compression algorithms.
 * It uses existing, CPU-native data encodings as much as possible.
 * It keeps tricky sub-byte data to a minimum.
 
