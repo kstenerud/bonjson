@@ -110,7 +110,9 @@ What about the other binary JSON formats?
 * **Feature Parity**: Supports the same features as [JSON](#json-standards) (for example: progressive document construction)
 * **Endianness**: Big endian formats are slower to process on modern hardware
 
-**Wherever there's a compatibility mismatch, breakage will eventually occur** - it's only a matter of time before your complex data pipelines trigger it. Having confidence in your data plumbing is paramount.
+**Wherever there's a compatibility mismatch, breakage will eventually occur** - it's only a matter of time before your complex data pipelines trigger it.
+
+Having confidence in your data plumbing is paramount.
 
 
 -------------------------------------------------------------------------------
