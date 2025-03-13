@@ -3,13 +3,13 @@ BONJSON: Binary Object Notation for JSON
 
 BONJSON is a _lightning-fast_ and _efficient_ **1:1 compatible** binary drop-in replacement for [JSON](#json-standards).
 
+BONJSON is **30 times** faster to process than [JSON](#json-standards).
+
 
 Why use binary?
 ---------------
 
 Text formats are great for humans to read, but they're slow and wasteful for computers. Computers should speak to humans in **text** (such as [JSON](#json-standards)), and to each other in **binary**.
-
-BONJSON is **30 times** faster to process than [JSON](#json-standards).
 
 
 Why use BONJSON?
