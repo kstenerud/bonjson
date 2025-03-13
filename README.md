@@ -1,81 +1,36 @@
 BONJSON: Binary Object Notation for JSON
 ========================================
 
-BONJSON is a **1:1 compatible** binary serialization format for [JSON](#json-standards).
-
-It's a drop-in replacement that works in the same way and has the same capabilities and limitations as [JSON](#json-standards) (no more, no less), in a compact and simple-to-process binary format that is **30x faster** to process.
+BONJSON is a _lightning-fast_ and _efficient_ **1:1 compatible** binary drop-in replacement for [JSON](#json-standards).
 
 
+Why use binary?
+---------------
 
-Why make a binary JSON?
------------------------
+Text formats are great for humans to read, but they're slow and wasteful for computers. Computers should speak to humans in **text** (such as [JSON](#json-standards)), and to each other in **binary**.
 
-[JSON](#json-standards) isn't going anywhere, so let's at least be more efficient where we can!
-
-BONJSON documents are quicker and more energy efficient to process, and are usually smaller than JSON.
-
-Machine-to-machine transmission is better done in binary, with conversion to human-readable JSON only where a human actually needs to be involved.
+BONJSON is **30 times** faster to process than [JSON](#json-standards).
 
 
-### Why not BSON or anther existing binary JSON format?
+Why use BONJSON?
+----------------
 
-Because they _all_ add extra things that make them **NOT** 1:1 compatible (and more complicated).
+### It's Small
 
-| Encoding | Type Parity | Value Parity | Feature Parity | Endianness |
-| -------- | ----------- | ------------ | -------------- | ---------- |
-| BONJSON  |      ✔️      |      ✔️       |        ✔️       |   Little   |
-| BSON     |      ❌     |      ❌      |        ❌      |   Little   |
-| UBJSON   |      ✔️      |      ❌      |        ❌      |   Big      |
-| BJData   |      ❌      |      ❌      |        ❌      |   Little   |
-| PSON     |      ❌     |      ❌      |        ❌      |   Unclear  |
-| Smile    |      ❌     |      ❌      |        ❌      |   Big      |
+* The [BONJSON specification](bonjson.md) is only 600 lines long (including the formal grammar).
+* [The C reference implementation](https://github.com/kstenerud/ksbonjson) is less than 500 LOC each for the encoder and decoder.
 
-* **Type Parity**: Meaning the format has no extra data types that aren't present in JSON
-* **Value Parity**: Meaning the format allows only the same value ranges as JSON (for example: infinities and NaN are disallowed)
-* **Feature Parity**: Meaning the format supports the same features as JSON (for example: progressive document construction)
+### It's Simple
 
-**Wherever there's a compatibility mismatch, breakage will eventually occur** - it's only a matter of time before your complex data pipelines trigger it. Having confidence in your data plumbing is paramount.
+* It doesn't use compression tricks like histograms or references or lookups. Leave those to the _real_ compression algorithms.
+* It uses existing, CPU-native data encodings as much as possible.
+* It keeps tricky sub-byte data to a minimum.
 
-**1:1 compatible means that**:
+### It's Speedy
 
- * Any valid document **MUST** be round-trip convertible between [JSON](#json-standards) and the binary format (in either direction) without data loss or schema requirement.
- * The binary format **MUST** support the same feature set as [JSON](#json-standards) does. For example, JSON supports progressive encoding.
-
-A binary version of JSON **MUST** behave in exactly the same way as [JSON](#json-standards). The _only_ difference should be in the encoding mechanism.
-
-**_This_ is what BONJSON is.**
-
-
-### Why use binary at all?
-
-A simple binary format is orders of magnitude faster to produce and consume compared to a text format, and has a smaller data footprint.
-
-**Most systems follow a similar progression of data needs**:
-
-| Stage                               | Data Choice                                                        |
-| ----------------------------------- | ------------------------------------------------------------------ |
-| New project                         | JSON, because it's the ubiquitous go-to format. |
-| Your costs begin to rise            | JSON-compatible binary format as a drop-in replacement, for lower processing and transmission costs (such as BONJSON). |
-| Your needs expand beyond basic data | A more advanced binary format specific to your use case (such as Protobufs). |
-
-
-
-BONJSON is Small, Simple, and Speedy
-------------------------------------
-
-### Designed for simplicity and efficiency
-
- * No compression tricks like histograms or references or lookups. Leave that to the _real_ compression algorithms.
- * Use existing, CPU-native data encodings as much as possible.
- * Encode the most common data using the smallest encoding overhead.
- * Be computationally simple.
-
-### Easy to implement
-
- * [The BONJSON specification](bonjson.md) is only 600 lines long (including formal grammar).
- * [The C reference implementation](https://github.com/kstenerud/ksbonjson) is less than 500 LOC each for the encoder and decoder
-
-### 30x faster than JSON
+* Data encoding and decoding can be done using branchless algorithms (see the [C reference implementation](https://github.com/kstenerud/ksbonjson) for an example).
+* The most common data types and ranges are encoded in fewer bytes.
+* The [C reference implementation](https://github.com/kstenerud/ksbonjson) is **34x** faster than [jq](https://github.com/jqlang/jq).
 
 Benchmarking [the C Reference Implementation](https://github.com/kstenerud/ksbonjson) vs [jq](https://github.com/jqlang/jq) on a Core i3-1315U (using test data from https://github.com/kstenerud/test-data):
 
@@ -133,6 +88,29 @@ user    0m30.295s
 sys     0m2.693s
 ```
 
+
+What about the other binary formats?
+------------------------------------
+
+**None** of them are 1:1 compatible. Most of them are overcomplicated.
+
+| Encoding | Type Parity | Value Parity | Feature Parity | Endianness |
+| -------- | ----------- | ------------ | -------------- | ---------- |
+| BONJSON  |      ✔️      |      ✔️       |        ✔️       |   Little   |
+| BSON     |      ❌     |      ❌      |        ❌      |   Little   |
+| UBJSON   |      ✔️      |      ❌      |        ❌      |   Big      |
+| BJData   |      ❌      |      ❌      |        ❌      |   Little   |
+| PSON     |      ❌     |      ❌      |        ❌      |   Unclear  |
+| Smile    |      ❌     |      ❌      |        ❌      |   Big      |
+
+* **Type Parity**: No extra data types that aren't present in [JSON](#json-standards)
+* **Value Parity**: Allows only the same value ranges as [JSON](#json-standards) (for example: infinities and NaN are disallowed)
+* **Feature Parity**: Supports the same features as [JSON](#json-standards) (for example: progressive document construction)
+* **Endianness**: Big endian formats are slower to process on modern hardware
+
+**Wherever there's a compatibility mismatch, breakage will eventually occur** - it's only a matter of time before your complex data pipelines trigger it. Having confidence in your data plumbing is paramount.
+
+
 -------------------------------------------------------------------------------
 
 📚 Specifications and Code
@@ -148,7 +126,7 @@ sys     0m2.693s
 
 ### Implementations
 
- * [⚙️ C Reference Implementation](https://github.com/kstenerud/ksbonjson) (reference implementation)
+ * [⚙️ C Reference Implementation](https://github.com/kstenerud/ksbonjson)
 
 -------------------------------------------------------------------------------
 
