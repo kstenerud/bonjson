@@ -32,7 +32,7 @@ Why use BONJSON?
 * The most common data types and ranges are encoded in fewer bytes.
 * The [C reference implementation](https://github.com/kstenerud/ksbonjson) is **34x** faster than [jq](https://github.com/jqlang/jq).
 
-Benchmarking [the C Reference Implementation](https://github.com/kstenerud/ksbonjson) vs [jq](https://github.com/jqlang/jq) on a Core i3-1315U (using test data from https://github.com/kstenerud/test-data):
+Benchmarking [the C Reference Implementation](https://github.com/kstenerud/ksbonjson) vs [jq](https://github.com/jqlang/jq) on a Core i3-1315U (using [this test data](https://github.com/kstenerud/test-data)):
 
 **10MB:**
 
