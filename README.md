@@ -9,7 +9,9 @@ BONJSON is **30 times** faster to process than [JSON](#json-standards).
 Why use binary?
 ---------------
 
-Text formats are great for humans to read, but they're slow and wasteful for computers. Computers should speak to humans in **text** (such as [JSON](#json-standards)), and to each other in **binary**.
+Text formats are great for humans to read, but they're slow and wasteful for computers.
+
+Computers should speak to humans in **text** (such as [JSON](#json-standards)), and to each other in **binary**.
 
 
 Why use BONJSON?
