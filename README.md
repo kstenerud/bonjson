@@ -91,8 +91,8 @@ sys     0m2.693s
 ```
 
 
-What about the other binary formats?
-------------------------------------
+What about the other binary JSON formats?
+-----------------------------------------
 
 **None** of them are 1:1 compatible. Most of them are overcomplicated.
 
