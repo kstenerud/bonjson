@@ -28,7 +28,7 @@ Why use BONJSON?
 
 ### It's Speedy
 
-* Data encoding and decoding can be done using branchless algorithms (see the [C reference implementation](https://github.com/kstenerud/ksbonjson) for an example).
+* Data encoding and decoding can be done using branchless algorithms ([example](https://github.com/kstenerud/ksbonjson/tree/main/library/src)).
 * The most common data types and ranges are encoded in fewer bytes.
 * The [C reference implementation](https://github.com/kstenerud/ksbonjson) is **34x** faster than [jq](https://github.com/jqlang/jq).
 
