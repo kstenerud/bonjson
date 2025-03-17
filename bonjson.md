@@ -41,8 +41,8 @@ Contents
   - [Full Example](#full-example)
   - [Interoperability Considerations](#interoperability-considerations)
     - [Value Ranges](#value-ranges)
-    - [Invalid Data](#invalid-data)
   - [Security Considerations](#security-considerations)
+    - [Hardening](#hardening)
   - [Convenience Considerations](#convenience-considerations)
   - [JSON Standards](#json-standards)
   - [Formal BONJSON Grammar](#formal-bonjson-grammar)
@@ -62,7 +62,7 @@ Terms and Conventions
 | **CAN**          | Refers to a possibility which **MUST** be accommodated by the implementation.                    |
 | **CANNOT**       | Refers to a situation which **MUST NOT** be allowed by the implementation.                       |
 
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
 
 
 
@@ -485,25 +485,6 @@ JavaScript in particular can natively handle:
  * Up to 53 bit integer values (plus the sign)
 
 
-### Invalid Data
-
-It's expected that your codec will at some point encounter invalid data:
-
- * Disallowed values, such as floating point `NaN` or `infinity`
- * Out-of-range values
- * Malformed data
-
-Invalid data that makes the decoder less than 100% sure of where the next [type code](#type-codes) begins is considered irrecoverable, and **MUST** always abort processing.
-
-Codecs **SHOULD** offer the user options for what to do when recoverable invalid data is encountered (ideally, separate options for different classes of invalid data):
-
- * Abort processing (for security reasons, this **MUST** always be the default behavior)
- * Stringify the value (for example to a decimal or hexadecimal string)
- * Replace the value with `null`
-
-Codec documentation **MUST** explain what behaviors they offer.
-
-
 
 Security Considerations
 -----------------------
@@ -514,13 +495,25 @@ Any data format that includes length fields is by definition open to abuse. BONJ
  * Sanity check: Does the length field contain a value greater than the remaining document length (if known)?
 
 
+### Hardening
+
+JSON is by nature [vulnerable](https://bishopfox.com/blog/json-interoperability-vulnerabilities) to attackers who can take advantage of differences between implementations due to the laxity of the [JSON specification](#json-standards). In order to mitigate such vulnerabilities, BONJSON codecs **SHOULD** implement the following hardening rules:
+
+* Reject documents where a string contains invalid UTF-8 data (invalid encodings, reserved codepoints, surrogate pairs, etc).
+* Reject documents containing disallowed values (such as NaN or infinity or values outside of the codec's [allowed range](#value-ranges)).
+* Reject documents containing values that are too large for the receiving system to store without data loss.
+* Reject documents where an object contains duplicate names (this check **SHOULD** be made _after_ any Unicode normalization).
+
+A codec **MAY** offer user-configurable alternatives to document rejection (such as stringifying long numbers, or replacing bad values with `null`), but the default action **MUST** be to reject the document.
+
+
 
 Convenience Considerations
 --------------------------
 
 Decoders **SHOULD** offer an option to allow for partial data to be recovered (along with an error condition) when decoding fails partway through.
 
-This would involve discarding any partially decoded value (and its associated member name - if any), and then artificially terminating all open arrays and objects to produce a well-formed tree.
+This would involve discarding any partially decoded value (and its associated object member name - if any), and then artificially terminating all open arrays and objects to produce a well-formed tree.
 
 
 
