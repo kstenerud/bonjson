@@ -502,7 +502,7 @@ JSON is by nature [vulnerable](https://bishopfox.com/blog/json-interoperability-
 * Reject documents where a string contains invalid UTF-8 data (invalid encodings, reserved codepoints, surrogate pairs, etc).
 * Reject documents containing disallowed values (such as NaN or infinity or values outside of the codec's [allowed range](#value-ranges)).
 * Reject documents containing values that are too large for the receiving system to store without data loss.
-* Reject documents where an object contains duplicate names (this check **SHOULD** be made _after_ any Unicode normalization).
+* Reject documents where an object contains duplicate names (this check **MUST** be made _after_ any Unicode normalization).
 
 A codec **MAY** offer user-configurable alternatives to document rejection (such as stringifying long numbers, or replacing bad values with `null`), but the default action **MUST** be to reject the document.
 
