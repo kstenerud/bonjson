@@ -4,9 +4,17 @@ BONJSON: Binary Object Notation for JSON
 ** * * * **PRERELEASE** * * * **
 
 
-BONJSON is a **1:1 compatible** binary serialization format for [JSON](#json-standards).
+BONJSON is a _hardened_, _lightning-fast_ and _efficient_, **1:1 compatible** binary drop-in replacement for [JSON](#json-standards).
 
-It's a drop-in replacement that works in the same way and has the same capabilities and limitations as [JSON](#json-standards) (no more, no less), in a compact and simple-to-process binary format that is 30x faster to process.
+It's **35 times** faster to process than [JSON](#json-standards).
+
+It's also **far safer** than JSON:
+
+* **Safe** against key collision attacks
+* **Safe** against injection attacks
+* **Safe** against truncation attacks
+* **Safe** against numeric range attacks
+
 
 -------------------------------------------------------------------------------
 
@@ -23,7 +31,7 @@ Contents
   - [Strings](#strings)
     - [Short String](#short-string)
     - [Long String](#long-string)
-      - [About the Termination Delimiter](#about-the-termination-delimiter)
+      - [String Chunk](#string-chunk)
   - [Numbers](#numbers)
     - [Small Integer](#small-integer)
     - [Integer](#integer)
@@ -37,13 +45,22 @@ Contents
     - [Object](#object)
   - [Boolean](#boolean)
   - [Null](#null)
-  - [Filename Extensions and MIME Type](#filename-extensions-and-mime-type)
-  - [Full Example](#full-example)
+  - [Length Field](#length-field)
+    - [Length Field Header](#length-field-header)
+    - [Length Field Payload Format](#length-field-payload-format)
+    - [Length Payload Encoding Process](#length-payload-encoding-process)
+    - [Length Payload Decoding Process](#length-payload-decoding-process)
   - [Interoperability Considerations](#interoperability-considerations)
     - [Value Ranges](#value-ranges)
-  - [Security Considerations](#security-considerations)
-    - [Hardening](#hardening)
+  - [Security Rules](#security-rules)
+    - [Field Lengths](#field-lengths)
+    - [UTF-8 Codepoints and Encoding](#utf-8-codepoints-and-encoding)
+    - [Mandatory Hardening](#mandatory-hardening)
+      - [Out-of-range Values](#out-of-range-values)
+      - [Chunking Restrictions](#chunking-restrictions)
   - [Convenience Considerations](#convenience-considerations)
+  - [Filename Extensions and MIME Type](#filename-extensions-and-mime-type)
+  - [Full Example](#full-example)
   - [JSON Standards](#json-standards)
   - [Formal BONJSON Grammar](#formal-bonjson-grammar)
   - [License](#license)
@@ -92,31 +109,22 @@ BONJSON follows the same structural rules as [JSON](#json-standards), as illustr
 **Value**:
 
     ──┬─>─[string]──┬─>
-      │             │
       ├─>─[number]──┤
-      │             │
       ├─>─[object]──┤
-      │             │
       ├─>─[array]───┤
-      │             │
       ├─>─[boolean]─┤
-      │             │
       ╰─>─[null]────╯
 
 **Object**:
 
     ──[begin object]─┬─>────────────────────┬─[end container]──>
-                     │                      │
                      ├─>─[string]──[value]──┤
-                     │                      │
                      ╰─<─<─<─<─<─<─<─<─<─<──╯
 
 **Array**:
 
     ──[begin array]─┬─>──────────┬─[end container]──>
-                    │            │
                     ├─>─[value]──┤
-                    │            │
                     ╰─<─<─<─<─<──╯
 
 
@@ -128,7 +136,7 @@ BONJSON is a byte-oriented format. All values begin and end on an 8-bit boundary
 
 **Notes**:
 
- * All strings are encoded as UTF-8.
+ * All strings are encoded as [UTF-8](#utf-8-codepoints-and-encoding).
  * All numeric fields are encoded in little endian byte order.
 
 
@@ -162,14 +170,12 @@ Every value is composed of an 8-bit type code, and in some cases also a payload:
 Strings
 -------
 
-Strings **MUST** be encoded in UTF-8. BONJSON supports the same UTF-8 codepoints as [JSON](#json-standards) does, but does not implement escape sequences (which are unnecessary in a binary format).
-
-Strings can be encoded in two ways:
+Strings are sequences of [UTF-8](#utf-8-codepoints-and-encoding) characters, and can be encoded in two ways:
 
 
 ### Short String
 
-Short strings have their byte length (up to 15) encoded directly into the lower nybble of the type code, and have no terminator byte.
+Short strings have their byte length (up to 15) encoded directly into the lower nybble of the type code.
 
     Type Code Byte
     ───────────────
@@ -178,7 +184,7 @@ Short strings have their byte length (up to 15) encoded directly into the lower 
                   ╰─> Length (0-15 bytes)
 
 
-**Example**:
+**Examples**:
 
     80                                               // ""
     81 41                                            // "A"
@@ -188,18 +194,34 @@ Short strings have their byte length (up to 15) encoded directly into the lower 
 
 ### Long String
 
-Long strings begin after the [type code](#type-codes) (`0x68`), and are terminated by the byte `0xff`.
+Long strings begin with the [type code](#type-codes) (`0x68`), followed by one or more [string chunks](#string-chunk).
 
-#### About the Termination Delimiter
+    0x68 [string chunk] ...
 
-`0xff` was chosen as the string termination delimiter because it's never a valid byte within a UTF-8 sequence (and never will be until we surpass 68 _billion_ codepoints). This also gives the benefit that there's no need to decode the individual UTF-8 codepoints in order to find the end of a string (simply scan the bytes until `0xff` is encountered).
+#### String Chunk
 
-A C implementation for example could use [`memccpy()`](https://www.man7.org/linux/man-pages/man3/memccpy.3.html) and then replace the copied `0xff` with 0 to produce a null-terminated string. Alternatively, if the source buffer is writable, one could overwrite the `0xff` delimiter with 0 to yield a zero-copy null-terminated string using the source buffer as a backing store.
+A `string chunk` is comprised of a [length field](#length-field), followed by that many bytes of string data.
 
-**Example**:
+    [length] [bytes]
 
-    68 ff                         // ""
-    68 61 20 73 74 72 69 6e 67 ff // "a string"
+Chunking continues until a length field's [`continuation bit`](#length-field-payload-format) is 0.
+
+**Note**: Each string chunk **MUST** be individually verifiable as a complete and valid UTF-8 string. If a string chunk cannot be fully decoded on its own and validated, the decoder **MUST** reject the document.
+
+**Examples**:
+
+    68 01                               // ""
+    68 21 61 20 73 74 72 69 6e 67       // "a string" (in 1 chunk)
+    68 07 61 13 20 73 74 72 0d 69 6e 67 // "a string" (in chunks: 1 byte, 4 bytes, 3 bytes)
+    68 02 02                            // (String of 64 Zs)
+    5a 5a 5a 5a 5a 5a 5a 5a             // ZZZZZZZZ
+    5a 5a 5a 5a 5a 5a 5a 5a             // ZZZZZZZZ
+    5a 5a 5a 5a 5a 5a 5a 5a             // ZZZZZZZZ
+    5a 5a 5a 5a 5a 5a 5a 5a             // ZZZZZZZZ
+    5a 5a 5a 5a 5a 5a 5a 5a             // ZZZZZZZZ
+    5a 5a 5a 5a 5a 5a 5a 5a             // ZZZZZZZZ
+    5a 5a 5a 5a 5a 5a 5a 5a             // ZZZZZZZZ
+    5a 5a 5a 5a 5a 5a 5a 5a             // ZZZZZZZZ
 
 
 
@@ -388,6 +410,199 @@ Null has [type code](#type-codes) `0x6d`.
 
 
 
+Length Field
+------------
+
+Length fields are used to delimit long data types (such as [strings](#strings)), and also support splitting data into multiple chunks (which is useful for progressive encoding, where the total length of the data is not known up front).
+
+Length-delimited data is safer because the receiving end can make decisions about the length of the data before attempting to ingest it.
+
+A `length field` is composed of a `header` and possible `payload bytes`.
+
+    [header] [payload bytes]
+
+### Length Field Header
+
+The `header` determines how many bytes comprise the length field itself, so that it doesn't occupy more bytes than are necessary.
+
+The lower bits of the `header` contain a `count` field, encoded in a reversed unary code (going from low bit to high bit - or describing visually: right-to-left rather than left-to-right)
+
+The higher bits hold `payload` data (when there's room)
+
+| Header     | Count | Extra Payload Bytes | Total Payload Bits |
+| ---------- | ----- | ------------------- | ------------------ |
+| `.......1` |   1   |          0          |          7         |
+| `......10` |   2   |          1          |         14         |
+| `.....100` |   3   |          2          |         21         |
+| `....1000` |   4   |          3          |         28         |
+| `...10000` |   5   |          4          |         35         |
+| `..100000` |   6   |          5          |         42         |
+| `.1000000` |   7   |          6          |         49         |
+| `10000000` |   8   |          7          |         56         |
+| `00000000` |   9   |          8          |         64         |
+
+* Header bits shown as `0` and `1` are the possible bit patterns of the `count` field.
+* Header bits shown as `.` are the lower bits of the `payload`.
+
+The `count` field serves two purposes:
+
+* It tells how many bytes this length field occupies (including the `header` byte itself).
+* It tells how many bits to shift right when decoding in order to eliminate the `count` field (for payload sizes <= 56 bits).
+
+Any upper `header` bits that aren't part of the `count` field hold the lower bits of the payload data. When `count` is greater than 1, the payload data spills over into (`count - 1`) `payload bytes`.
+
+The entire encoded stream is stored in little endian byte order so that it can be efficiently read into a zeroed register on little endian architectures.
+
+Consequently, the `header` occupies the lowest byte when the encoded data is loaded into a register, and the `payload bytes` progressively fill the higher bytes in typical little-endian ordering. Once loaded, one simply shifts the register right by `count` bits to eliminate the `count` field, yielding the `payload`.
+
+This encoding has the same size overhead as [LEB128](https://en.wikipedia.org/wiki/LEB128) (1 bit per byte), but is far more efficient to decode because the full size of the field can be determined from the first byte, and the overhead bits can be elimitated in a single shift operation.
+
+
+### Length Field Payload Format
+
+A length field `payload` is itself composed of two components:
+
+      Payload
+    -----------
+    ... L L L C
+    ╰─┴─┼─┴─╯ ╰─> Continuation bit (1 means another chunk follows this one)
+        ╰───────> Length (up to 0x7FFFFFFFFFFFFF)
+
+The low bit of the `payload` is the `continuation bit`. When this bit is 1, there is another `length field` following the data chunk that this `length field` refers to.
+
+
+### Length Payload Encoding Process
+
+For payloads containing 0 to 56 bits of data:
+
+* Determine the 1-based `position` of the _highest_ set-bit of the `payload` (1-56).
+  * When encoding a `payload` value of 0, consider it to have `position` 1.
+* The overhead tradeoff is 7 bits per byte, so our `extra bytes count` (0-7) is `floor((position - 1) / 7)`.
+* Copy your `payload` to a 64-bit `register`.
+* Shift `register` left by 1 and set the lowest bit to 1.
+* Shift `register` left by `extra bytes count`.
+  * `register` now holds the `payload` in its upper bits, and the `count` field in its lower bits.
+* Write `extra bytes count`+1 bytes of `register` in little endian byte order to the `destination buffer`.
+* `destination buffer` now contains the encoded length field in `extra bytes count`+1 bytes.
+
+For payloads containing 57 to 64 bits of data:
+
+* Write the `header` byte 0x00.
+* Write the 8 bytes of `payload` in little endian order.
+
+
+### Length Payload Decoding Process
+
+* Read the `header` byte.
+
+If the `header` byte is 0x00:
+
+* Discard the `header`
+* Read the next 8 bytes in little endian order as the `payload`.
+
+Otherwise:
+
+* Determine the 1-based bit position of the _lowest_ set-bit of the `header` (1-8). This is your `count`.
+* Read `count` bytes (including re-reading the `header` byte) as little-endian data into a zeroed 64-bit `register`.
+* shift `register` right by `count` bits.
+* `register` now contains the decoded `payload`.
+
+
+**Examples**:
+
+    01                          // Length 0 and continuation 0
+    03                          // Length 0 and continuation 1
+    05                          // Length 1 and continuation 0
+    07                          // Length 1 and continuation 1
+    fd                          // Length 63 and continuation 0
+    ff                          // Length 63 and continuation 1
+    02 02                       // Length 64 and continuation 0
+    06 02                       // Length 64 and continuation 1
+    0c 24 f4                    // Length 1,000,000 and continuation 1
+    00 fe ff ff ff ff ff ff ff  // Length 9,223,372,036,854,775,807 and continuation 0
+
+
+
+Interoperability Considerations
+-------------------------------
+
+Because [JSON](#json-standards) is so weakly specified, there are numerous ways in which one implementation can become incompatible with another.
+
+
+### Value Ranges
+
+Although JSON allows an unlimited range for most values, it's important to take into consideration the limitations of the systems that will be trying to ingest your data.
+
+Encoders **SHOULD** always use the smallest encoding for the value being encoded in order to ensure maximum compatibility.
+
+A codec **MAY** choose its own value range restrictions, but **SHOULD** at least support reasonable industry-standard ranges for maximum interoperability, and **MUST** publish what its restrictions are.
+
+Most systems can natively handle:
+
+ * Up to 64 bit floating point values
+ * Up to 64 bit integer values (signed or unsigned)
+
+JavaScript in particular can natively handle:
+
+ * Up to 64 bit floating point values
+ * Up to 53 bit integer values (plus the sign)
+
+
+
+Security Rules
+--------------
+
+### Field Lengths
+
+Any data format that includes length fields is by definition open to abuse. BONJSON decoders **MUST** provide protection against this. For example:
+
+ * Maximum lengths (possibly user-configurable with sane defaults) for potentially long data types (such as [strings](#long-string)).
+ * Sanity check: Does a length field contain a value greater than the remaining document length (if known)?
+
+
+### UTF-8 Codepoints and Encoding
+
+Although [JSON](#json-standards) technically supports the full range of [UTF-8](https://en.wikipedia.org/wiki/UTF-8) codepoints from 0 to 0x10ffff, many of these are actually invalid (such as surrogates, reserved codepoints, and codepoints marked as permanently invalid). [RFC 3629, section 10](https://www.rfc-editor.org/rfc/rfc3629#section-10) explains many of the problems that come from lax treatment of UTF-8 data.
+
+Indeed, there are a whole slew of security issues concerning [improper handling of UTF-8](https://www.unicode.org/reports/tr36/)!
+
+BONJSON prohibits all invalid UTF-8 encodings, including [overlong UTF-8 encodings](https://en.wikipedia.org/wiki/UTF-8#Overlong_encodings) (which are [invalid as of Unicode 3.0.1](https://www.unicode.org/versions/corrigendum1.html)). Overlong UTF-8 encodings were famously involved in the 2001 exploit of IIS web severs by encoding "../" as `2F C0 AE 2E 2F` instead of the `2F 2E 2E 2F` encoding that the servers were guarding against.
+
+
+### Mandatory Hardening
+
+JSON is by nature [vulnerable](https://bishopfox.com/blog/json-interoperability-vulnerabilities) to attackers who can take advantage of differences between codec implementations due to the laxity of the [JSON specifications](#json-standards). In order to mitigate such vulnerabilities, BONJSON codecs **MUST** implement the following hardening rules:
+
+* Reject documents where an object contains duplicate names (this check **MUST** be made on the [normalized](https://www.unicode.org/reports/tr15/) Unicode representation).
+* Reject documents where a string contains [invalid UTF-8 data](#utf-8-codepoints-and-encoding) (truncation or replacement is **unsafe**, and not allowed).
+* Reject documents containing disallowed values (such as NaN or infinity).
+
+#### Out-of-range Values
+
+Codecs **MUST** reject documents containing numeric values that are outside of the codec's [allowed range](#value-ranges), unless the codec offers a configuration option to stringify the number instead. In such a case, the _default_ configuration **MUST** be to reject the document.
+
+#### Chunking Restrictions
+
+Codecs **MUST** implement at least one security policy for [chunking](#string-chunk), such as:
+
+* Refuse chunking entirely (if there's no reason for this receiver to ever expect progressively-built data). In this case, the [continuation bit](#length-field-payload-format) **MUST** always be 0.
+* Limit the maximum number of chunks allowed at a time (to prevent abuses like a long series of length-1 chunks).
+* Limit chunks even more after a certain amount of data has been received (to prevent sending a large amount of normal data, followed by abusive chunks).
+* Allow chunking with no limitations.
+
+Refusing chunking entirely **MUST** be the default security policy. If a codec doesn't allow its chunking policy to be configured, refusing chunking entirely **MUST** be its _only_ policy.
+
+
+
+Convenience Considerations
+--------------------------
+
+Decoders **SHOULD** offer an option (disabled by default) to allow for partial data to be recovered (along with an error condition) when decoding fails partway through.
+
+This would involve discarding any partially decoded value (and its associated object member name - if any), and then artificially terminating all open arrays and objects to produce a well-formed tree.
+
+
+
 Filename Extensions and MIME Type
 ---------------------------------
 
@@ -446,74 +661,16 @@ Full Example
             8f 6e 65 67 61 74 69 76 65 20 6e 75 6d 62 65 72  //         "negative number":
             9c                                               //         -100,
             8b 6c 6f 6e 67 20 73 74 72 69 6e 67              //         "long string":
-            68                                               //         "1234567890123456789012345678901234567890"
+            68 a1                                            //         "1234567890123456789012345678901234567890"
                 31 32 33 34 35 36 37 38 39 30                //
                 31 32 33 34 35 36 37 38 39 30                //
                 31 32 33 34 35 36 37 38 39 30                //
                 31 32 33 34 35 36 37 38 39 30                //
-            ff                                               //
         9b                                                   //     }
     9b                                                       // }
 ```
 
     Size:    121 bytes
-
-
-
-Interoperability Considerations
--------------------------------
-
-Because [JSON](#json-standards) is so weakly specified, there are numerous ways in which one implementation can become incompatible with another. [RFC 8259](https://www.rfc-editor.org/info/rfc8259) discusses many of these issues and how to mitigate them. BONJSON implementations **SHOULD** follow their advice.
-
-
-### Value Ranges
-
-Although JSON allows an unlimited range for most values, it's important to take into consideration the limitations of the systems that will be trying to ingest your data, and how they're likely to deal with out-of-range values.
-
-Encoders **SHOULD** always use the smallest encoding for the value being encoded in order to ensure maximum compatibility.
-
-A codec **MAY** choose its own value range restrictions, but **SHOULD** stick with reasonable industry-standard ranges for maximum interoperability, and **MUST** publish what its restrictions are.
-
-Most systems can natively handle:
-
- * Up to 64 bit floating point values
- * Up to 64 bit integer values (signed or unsigned)
-
-JavaScript in particular can natively handle:
-
- * Up to 64 bit floating point values
- * Up to 53 bit integer values (plus the sign)
-
-
-
-Security Considerations
------------------------
-
-Any data format that includes length fields is by definition open to abuse. BONJSON decoders **MUST** provide protection against this. For example:
-
- * Maximum byte lengths (possibly user-configurable) for [big numbers](#big-number) (with sane defaults).
- * Sanity check: Does the length field contain a value greater than the remaining document length (if known)?
-
-
-### Hardening
-
-JSON is by nature [vulnerable](https://bishopfox.com/blog/json-interoperability-vulnerabilities) to attackers who can take advantage of differences between implementations due to the laxity of the [JSON specification](#json-standards). In order to mitigate such vulnerabilities, BONJSON codecs **SHOULD** implement the following hardening rules:
-
-* Reject documents where a string contains invalid UTF-8 data (invalid encodings, reserved codepoints, surrogate pairs, etc).
-* Reject documents containing disallowed values (such as NaN or infinity or values outside of the codec's [allowed range](#value-ranges)).
-* Reject documents containing values that are too large for the receiving system to store without data loss.
-* Reject documents where an object contains duplicate names (this check **MUST** be made _after_ any Unicode normalization).
-
-A codec **MAY** offer user-configurable alternatives to document rejection (such as stringifying long numbers, or replacing bad values with `null` - along with the security implications this causes), but the default action **MUST** be to reject the document.
-
-
-
-Convenience Considerations
---------------------------
-
-Decoders **SHOULD** offer an option to allow for partial data to be recovered (along with an error condition) when decoding fails partway through.
-
-This would involve discarding any partially decoded value (and its associated object member name - if any), and then artificially terminating all open arrays and objects to produce a well-formed tree.
 
 
 
@@ -570,11 +727,25 @@ boolean           = true | false;
 false             = u8(0x6e);
 true              = u8(0x6f);
 
-string            = string_short | string_long;
-string_short      = u4(8) & u4(var(count, ~)) & sized(count*8, char_string*);
-string_long       = u8(0x68) & char_string* & u8(0xff);
-
 null              = u8(0x6d);
+
+string                = string_short | string_long;
+string_short          = u4(8) & u4(var(count, ~)) & sized(count*8, char_string*);
+string_long           = u8(0x68) & string_chunk(1)* & string_chunk(0);
+string_chunk(hasNext) = chunked(var(count, ~), hasNext) & sized(count*8, char_string*);
+
+chunked(len, hasNext) = length(len * 2 + hasNext);
+length(l)             = ordered([
+                                    l >=                 0 & l <=               0x7f: uint( 7, l) & uint(1, 0x01);
+                                    l >=              0x80 & l <=             0x3fff: uint(14, l) & uint(2, 0x02);
+                                    l >=            0x4000 & l <=           0x1fffff: uint(21, l) & uint(3, 0x04);
+                                    l >=          0x200000 & l <=          0xfffffff: uint(28, l) & uint(4, 0x08);
+                                    l >=        0x10000000 & l <=        0x7ffffffff: uint(35, l) & uint(5, 0x10);
+                                    l >=       0x800000000 & l <=      0x3ffffffffff: uint(42, l) & uint(6, 0x20);
+                                    l >=     0x40000000000 & l <=    0x1ffffffffffff: uint(49, l) & uint(7, 0x40);
+                                    l >=   0x2000000000000 & l <=   0xffffffffffffff: uint(56, l) & uint(8, 0x80);
+                                    l >= 0x100000000000000 & l <= 0xffffffffffffffff: uint(64, l) & uint(8, 0x00);
+                                ]);
 
 # Primitives & Functions
 
@@ -585,13 +756,11 @@ u4(v)             = uint(4, v);
 u5(v)             = uint(5, v);
 u8(v)             = uint(8, v);
 i8(v)             = sint(8, v);
-f16(v)            = bfloat16(v);
+f16(v)            = sized(16, f32(v)); # bfloat16
 f32(v)            = float(32, v);
 f64(v)            = float(64, v);
 
-char_string       = '\[0]' ~ '\[10ffff]'; # JSON technically supports unassigned and invalid codepoints
-
-bfloat16(v: bits): bits = """https://en.wikipedia.org/wiki/Bfloat16_floating-point_format""";
+char_string       = unicode(C,L,M,N,P,S,Z);
 ```
 
 

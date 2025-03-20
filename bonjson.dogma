@@ -36,11 +36,25 @@ boolean           = true | false;
 false             = u8(0x6e);
 true              = u8(0x6f);
 
-string            = string_short | string_long;
-string_short      = u4(8) & u4(var(count, ~)) & sized(count*8, char_string*);
-string_long       = u8(0x68) & char_string* & u8(0xff);
-
 null              = u8(0x6d);
+
+string                = string_short | string_long;
+string_short          = u4(8) & u4(var(count, ~)) & sized(count*8, char_string*);
+string_long           = u8(0x68) & string_chunk(1)* & string_chunk(0);
+string_chunk(hasNext) = chunked(var(count, ~), hasNext) & sized(count*8, char_string*);
+
+chunked(len, hasNext) = length(len * 2 + hasNext);
+length(l)             = ordered([
+                                    l >=                 0 & l <=               0x7f: uint( 7, l) & uint(1, 0x01);
+                                    l >=              0x80 & l <=             0x3fff: uint(14, l) & uint(2, 0x02);
+                                    l >=            0x4000 & l <=           0x1fffff: uint(21, l) & uint(3, 0x04);
+                                    l >=          0x200000 & l <=          0xfffffff: uint(28, l) & uint(4, 0x08);
+                                    l >=        0x10000000 & l <=        0x7ffffffff: uint(35, l) & uint(5, 0x10);
+                                    l >=       0x800000000 & l <=      0x3ffffffffff: uint(42, l) & uint(6, 0x20);
+                                    l >=     0x40000000000 & l <=    0x1ffffffffffff: uint(49, l) & uint(7, 0x40);
+                                    l >=   0x2000000000000 & l <=   0xffffffffffffff: uint(56, l) & uint(8, 0x80);
+                                    l >= 0x100000000000000 & l <= 0xffffffffffffffff: uint(64, l) & uint(8, 0x00);
+                                ]);
 
 # Primitives & Functions
 
@@ -51,10 +65,8 @@ u4(v)             = uint(4, v);
 u5(v)             = uint(5, v);
 u8(v)             = uint(8, v);
 i8(v)             = sint(8, v);
-f16(v)            = bfloat16(v);
+f16(v)            = sized(16, f32(v)); # bfloat16
 f32(v)            = float(32, v);
 f64(v)            = float(64, v);
 
-char_string       = '\[0]' ~ '\[10ffff]'; # JSON technically supports unassigned and invalid codepoints
-
-bfloat16(v: bits): bits = """https://en.wikipedia.org/wiki/Bfloat16_floating-point_format""";
+char_string       = unicode(C,L,M,N,P,S,Z);
