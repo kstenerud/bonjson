@@ -571,7 +571,7 @@ BONJSON prohibits all invalid UTF-8 encodings, including [overlong UTF-8 encodin
 
 ### Mandatory Hardening
 
-JSON is by nature [vulnerable](https://bishopfox.com/blog/json-interoperability-vulnerabilities) to attackers who can take advantage of differences between codec implementations due to the laxity of the [JSON specifications](#json-standards). In order to mitigate such vulnerabilities, BONJSON codecs **MUST** implement the following hardening rules:
+JSON is by nature [vulnerable](https://bishopfox.com/blog/json-interoperability-vulnerabilities) to attackers who can take advantage of differences between codec implementations due to the laxity of the [JSON specifications](#json-standards). In order to mitigate such vulnerabilities, BONJSON decoders **MUST** implement the following hardening rules:
 
 * Reject documents where an object contains duplicate names (this check **MUST** be made on the [normalized](https://www.unicode.org/reports/tr15/) Unicode representation).
 * Reject documents where a string contains [invalid UTF-8 data](#utf-8-codepoints-and-encoding) (truncation or replacement is **unsafe**, and not allowed).
@@ -579,18 +579,18 @@ JSON is by nature [vulnerable](https://bishopfox.com/blog/json-interoperability-
 
 #### Out-of-range Values
 
-Codecs **MUST** reject documents containing numeric values that are outside of the codec's [allowed range](#value-ranges), unless the codec offers a configuration option to stringify the number instead (replacing the numeric value with a string value containing a [JSON](#json-standards) numeric literal or a C-style hexadecimal "0x" integer literal). In such a case, the _default_ configuration **MUST** be to reject the document.
+Decoders **MUST** reject documents containing numeric values that are outside of the decoder's [allowed range](#value-ranges), unless the decoder offers a configuration option to stringify the number instead (replacing the numeric value with a string value containing a [JSON](#json-standards) numeric literal or a C-style hexadecimal "0x" integer literal). In such a case, the _default_ configuration **MUST** be to reject the document.
 
 #### Chunking Restrictions
 
-Codecs **MUST** implement at least one security policy for [chunking](#string-chunk), such as:
+Decoders **MUST** implement at least one security policy for [chunking](#string-chunk), such as:
 
 * Refuse chunking entirely (if there's no reason for this receiver to ever expect progressively-built data). In this case, the [continuation bit](#length-field-payload-format) **MUST** always be 0.
 * Limit the maximum number of chunks allowed at a time (to prevent abuses like a long series of length-1 chunks).
 * Limit chunks even more after a certain amount of data has been received (to prevent sending a large amount of normal data, followed by abusive chunks).
 * Allow chunking with no limitations.
 
-Refusing chunking entirely **MUST** be the default security policy. If a codec doesn't allow its chunking policy to be configured, refusing chunking entirely **MUST** be its _only_ policy.
+Refusing chunking entirely **MUST** be the default security policy. If a decoder doesn't allow its chunking policy to be configured, refusing chunking entirely **MUST** be its _only_ policy.
 
 
 
