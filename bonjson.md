@@ -579,7 +579,7 @@ JSON is by nature [vulnerable](https://bishopfox.com/blog/json-interoperability-
 
 #### Out-of-range Values
 
-Codecs **MUST** reject documents containing numeric values that are outside of the codec's [allowed range](#value-ranges), unless the codec offers a configuration option to stringify the number instead. In such a case, the _default_ configuration **MUST** be to reject the document.
+Codecs **MUST** reject documents containing numeric values that are outside of the codec's [allowed range](#value-ranges), unless the codec offers a configuration option to stringify the number instead (to a [JSON](#json-standards) numeric literal, or to a C-style hexadecimal "0x" integer literal). In such a case, the _default_ configuration **MUST** be to reject the document.
 
 #### Chunking Restrictions
 
