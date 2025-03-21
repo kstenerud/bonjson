@@ -61,8 +61,8 @@ Contents
   - [Convenience Considerations](#convenience-considerations)
   - [Filename Extensions and MIME Type](#filename-extensions-and-mime-type)
   - [Full Example](#full-example)
-  - [JSON Standards](#json-standards)
   - [Formal BONJSON Grammar](#formal-bonjson-grammar)
+  - [JSON Standards](#json-standards)
   - [License](#license)
 
 
@@ -674,17 +674,6 @@ Full Example
 
 
 
-JSON Standards
---------------
-
-Any discussions about JSON are done within the context of the ECMA and RFC specifications for JSON, and the json.org website:
-
- * [ECMA-404](https://ecma-international.org/publications-and-standards/standards/ecma-404/)
- * [RFC 8259](https://www.rfc-editor.org/info/rfc8259)
- * [json.org](https://www.json.org)
-
-
-
 Formal BONJSON Grammar
 ----------------------
 
@@ -762,6 +751,18 @@ f64(v)            = float(64, v);
 
 char_string       = unicode(C,L,M,N,P,S,Z);
 ```
+
+
+
+JSON Standards
+--------------
+
+Any discussions about JSON are done within the context of the ECMA and RFC specifications for JSON, and the json.org website:
+
+ * [ECMA-404](https://ecma-international.org/publications-and-standards/standards/ecma-404/)
+ * [RFC 8259](https://www.rfc-editor.org/info/rfc8259)
+ * [json.org](https://www.json.org)
+
 
 
 License
