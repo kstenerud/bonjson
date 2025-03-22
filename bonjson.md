@@ -204,7 +204,7 @@ A `string chunk` is comprised of a [length field](#length-field), followed by th
 
     [length] [bytes]
 
-Chunking continues until a length field's [`continuation bit`](#length-field-payload-format) is 0.
+Chunking continues until the end of a chunk whose length field's [`continuation bit`](#length-field-payload-format) is 0.
 
 **Note**: Each string chunk **MUST** be individually verifiable as a complete and valid UTF-8 string. If a string chunk cannot be fully decoded on its own and validated, the decoder **MUST** reject the document.
 
