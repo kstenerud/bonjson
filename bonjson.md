@@ -587,14 +587,14 @@ Decoders **MUST** reject documents containing numeric values that are outside of
 
 #### Chunking Restrictions
 
-Decoders **MUST** implement at least one security policy for [chunking](#string-chunk), such as:
+Decoders **MAY** offer configuration options for when to allow [chunking](#string-chunk):
 
 * Refuse chunking entirely. In this case, the [continuation bit](#length-field-payload-format) **MUST** always be 0.
 * Limit the maximum number of chunks allowed at a time (to prevent abuses like a long series of length-1 chunks).
 * Limit chunks even more after a certain amount of data has been received (to prevent sending a large amount of normal data, followed by abusive chunks).
 * Allow chunking with no limitations.
 
-Refusing chunking entirely **MUST** be the default security policy. If a decoder doesn't allow its chunking policy to be configured, refusing chunking entirely **MUST** be its _only_ policy.
+Refusing chunking entirely **MUST** be the default behavior. If the decoder doesn't offer configuration options for chunking, refusing chunking entirely **MUST** be the _only_ behavior.
 
 
 
