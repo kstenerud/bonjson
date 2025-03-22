@@ -583,11 +583,16 @@ JSON is by nature [vulnerable](https://bishopfox.com/blog/json-interoperability-
 
 #### Out-of-range Values
 
-Decoders **MUST** reject documents containing numeric values that are outside of the decoder's [allowed range](#value-ranges), unless the decoder offers a configuration option to stringify the number instead (replacing the numeric value with a string value containing a [JSON](#json-standards) numeric literal or a C-style hexadecimal "0x" integer literal). In such a case, the _default_ configuration **MUST** be to reject the document.
+Decoders **MAY** offer these configuration options (and no other) for what to do when encountering numeric values that are outside of the decoder's [allowed range](#value-ranges):
+
+* Reject the document.
+* Stringify the number, replacing the numeric value with a string value containing a [JSON](#json-standards) numeric literal or a C-style hexadecimal "0x" integer literal.
+
+Rejecting the document **MUST** be the default behavior. If the decoder doesn't offer configuration options for out-of-range values, rejecting the document **MUST** be the _only_ behavior.
 
 #### Chunking Restrictions
 
-Decoders **MAY** offer configuration options for when to allow [chunking](#string-chunk):
+Decoders **MAY** offer configuration options for when to allow [chunking](#string-chunk), such as:
 
 * Refuse chunking entirely. In this case, the [continuation bit](#length-field-payload-format) **MUST** always be 0.
 * Limit the maximum number of chunks allowed at a time (to prevent abuses like a long series of length-1 chunks).
