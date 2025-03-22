@@ -380,7 +380,11 @@ An object consists of an `object start` (`0x9a`), an optional collection of name
     [object start] (name+value ...) [container end]
          0x9a            ...            0x9b
 
-**Note**: Names **MUST** be strings and **MUST NOT** be null.
+**Notes**:
+
+* Names **MUST** be [strings](#strings).
+* Names **MUST NOT** be [null](#null).
+* Names **MUST NOT** be duplicates of other names in the same object.
 
 **Example**:
 
@@ -585,7 +589,7 @@ Decoders **MUST** reject documents containing numeric values that are outside of
 
 Decoders **MUST** implement at least one security policy for [chunking](#string-chunk), such as:
 
-* Refuse chunking entirely (if there's no reason for this receiver to ever expect progressively-built data). In this case, the [continuation bit](#length-field-payload-format) **MUST** always be 0.
+* Refuse chunking entirely. In this case, the [continuation bit](#length-field-payload-format) **MUST** always be 0.
 * Limit the maximum number of chunks allowed at a time (to prevent abuses like a long series of length-1 chunks).
 * Limit chunks even more after a certain amount of data has been received (to prevent sending a large amount of normal data, followed by abusive chunks).
 * Allow chunking with no limitations.
