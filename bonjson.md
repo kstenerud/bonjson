@@ -256,7 +256,7 @@ Integers are encoded in little-endian byte order following the [type code](#type
     ───────────────
     0 1 1 1 S L L L
             | ╰─┼─╯
-            |   ╰───> Length (add 1 to value for 1-8 bytes)
+            |   ╰───> Length (add 1 to yield a length from 1 to 8 bytes)
             ╰───────> Signed (0 = unsigned, 1 = signed)
 
 Encoders **SHOULD** favor _signed_ over _unsigned_ when both types would encode a value into the same number of bytes.
@@ -321,16 +321,13 @@ The `header` byte consists of 3 fields:
 
 The final value is derived as: `sign` × `significand` × 10^`exponent`
 
-**Notes**:
-
- * A field length of 0 implies a value of 0 for the field whose length it defines.
- * A big number **MUST** be encoded into its smallest valid representation (no stuffing `00` bytes).
+**Note**: When the exponent length is 0, the exponent is 0.
 
 #### Special Big Number Encodings
 
 When the `significand length` field is 0 (regardless of the contents of the `exponent length` field), then there are never any `significand` or `exponent` bytes (the entire encoded value occupies a single byte).
 
-Instead, the `exponent length` bits represent the special values listed in the following table (with the `negative` bit representing the sign as usual).
+Instead, the `exponent length` field's bits represent the special values listed in the following table (with the `negative` bit representing the sign as usual).
 
 **Note**: Most of these special values are invalid in BONJSON due to [JSON](#json-standards)'s value restrictions against infinity and NaN. If JSON is ever updated to support such values, this is how they would be encoded.
 
@@ -429,9 +426,9 @@ A `length field` is composed of a `header` and possible `payload bytes`.
 
 The `header` determines how many bytes comprise the length field itself, so that it doesn't occupy more bytes than are necessary.
 
-The lower bits of the `header` contain a `count` field, encoded in a reversed unary code (going from low bit to high bit - or describing visually: right-to-left rather than left-to-right)
+The lower `header` bits contain a `count` field, encoded in a reversed unary code (going from low bit to high bit - or describing visually: right-to-left rather than left-to-right)
 
-The higher bits hold `payload` data (when there's room)
+The upper `header` bits contain `payload` data (when there's room)
 
 | Header     | Count | Extra Payload Bytes | Total Payload Bits |
 | ---------- | ----- | ------------------- | ------------------ |
@@ -457,7 +454,7 @@ Any upper `header` bits that aren't part of the `count` field hold the lower bit
 
 The entire encoded stream is stored in little endian byte order so that it can be efficiently read into a zeroed register on little endian architectures.
 
-Consequently, the `header` occupies the lowest byte when the encoded data is loaded into a register, and the `payload bytes` progressively fill the higher bytes in typical little-endian ordering. Once loaded, one simply shifts the register right by `count` bits to eliminate the `count` field, yielding the `payload`.
+Consequently, the `header` occupies the lowest byte when the encoded data is loaded into a register, and the `payload bytes` progressively fill the higher bytes in typical little-endian ordering. Once loaded, one simply shifts the register right by `count` bits to eliminate the `count` field and yield the `payload`.
 
 This encoding has the same size overhead as [LEB128](https://en.wikipedia.org/wiki/LEB128) (1 bit per byte), but is far more efficient to decode because the full size of the field can be determined from the first byte, and the overhead bits can be elimitated in a single shift operation.
 
@@ -477,7 +474,7 @@ The low bit of the `payload` is the `continuation bit`. When this bit is 1, ther
 
 ### Length Payload Encoding Process
 
-For payloads containing 0 to 56 bits of data:
+**For payloads containing 0 to 56 bits of data:**
 
 * Determine the 1-based `position` of the _highest_ set-bit of the `payload` (1-56).
   * When encoding a `payload` value of 0, consider it to have `position` 1.
@@ -489,7 +486,7 @@ For payloads containing 0 to 56 bits of data:
 * Write `extra bytes count`+1 bytes of `register` in little endian byte order to the `destination buffer`.
 * `destination buffer` now contains the encoded length field in `extra bytes count`+1 bytes.
 
-For payloads containing 57 to 64 bits of data:
+**For payloads containing 57 to 64 bits of data:**
 
 * Write the `header` byte 0x00.
 * Write the 8 bytes of `payload` in little endian order.
@@ -499,12 +496,12 @@ For payloads containing 57 to 64 bits of data:
 
 * Read the `header` byte.
 
-If the `header` byte is 0x00:
+**If the `header` byte is 0x00:**
 
 * Discard the `header`
 * Read the next 8 bytes in little endian order as the `payload`.
 
-Otherwise:
+**Otherwise:**
 
 * Determine the 1-based bit position of the _lowest_ set-bit of the `header` (1-8). This is your `count`.
 * Read `count` bytes (including re-reading the `header` byte) as little-endian data into a zeroed 64-bit `register`.
@@ -543,13 +540,13 @@ A codec **MAY** choose its own value range restrictions, but **SHOULD** at least
 
 Most systems can natively handle:
 
- * Up to 64 bit floating point values
- * Up to 64 bit integer values (signed or unsigned)
+ * 64 bit floating point values
+ * 64 bit integer values (signed or unsigned)
 
 JavaScript in particular can natively handle:
 
- * Up to 64 bit floating point values
- * Up to 53 bit integer values (plus the sign)
+ * 64 bit floating point values
+ * 53 bit integer values (plus the sign)
 
 
 
@@ -714,8 +711,8 @@ float_64          = u8(0x6c) & ordered(f64(~));
 big_number        = u8(0x69)
                   & var(header, big_number_header)
                   & [
-                        header.sig_length > 0: ordered(uint(header.sig_length*8, ~))
-                                             & ordered(sint(header.exp_length*8, ~))
+                        header.sig_length > 0: ordered(sint(header.exp_length*8, ~))
+                                             & ordered(uint(header.sig_length*8, ~))
                                              ;
                     ]
                   ;
