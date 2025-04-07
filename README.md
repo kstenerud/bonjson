@@ -60,13 +60,13 @@ Benchmarking [the C Reference Implementation](https://github.com/kstenerud/ksbon
 ```
 ~/ksbonjson/benchmark$ ./benchmark.sh 10mb
 
-Benchmarking BONJSON (decode+encode) with 9052k file 10mb.bjn
+Benchmarking BONJSON (decode+encode) with 9052k file 10mb.boj
 
 real    0m0.021s
 user    0m0.009s
 sys     0m0.016s
 
-Benchmarking BONJSON (decode only) with 9052k file 10mb.bjn
+Benchmarking BONJSON (decode only) with 9052k file 10mb.boj
 
 real    0m0.011s
 user    0m0.003s
@@ -86,13 +86,13 @@ BONJSON processed **35.8x** faster.
 ```
 ~/ksbonjson/benchmark$ ./benchmark.sh 100mb
 
-Benchmarking BONJSON (decode+encode) with 90508k file 100mb.bjn
+Benchmarking BONJSON (decode+encode) with 90508k file 100mb.boj
 
 real    0m0.183s
 user    0m0.085s
 sys     0m0.121s
 
-Benchmarking BONJSON (decode only) with 90508k file 100mb.bjn
+Benchmarking BONJSON (decode only) with 90508k file 100mb.boj
 
 real    0m0.080s
 user    0m0.030s
@@ -112,13 +112,13 @@ BONJSON processed **35.8x** faster.
 ```
 ~/ksbonjson/benchmark$ ./benchmark.sh 1000mb
 
-Benchmarking BONJSON (decode+encode) with 905076k file 1000mb.bjn
+Benchmarking BONJSON (decode+encode) with 905076k file 1000mb.boj
 
 real    0m1.762s
 user    0m0.846s
 sys     0m1.124s
 
-Benchmarking BONJSON (decode only) with 905076k file 1000mb.bjn
+Benchmarking BONJSON (decode only) with 905076k file 1000mb.boj
 
 real    0m0.746s
 user    0m0.300s

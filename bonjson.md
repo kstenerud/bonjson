@@ -612,9 +612,9 @@ This would involve discarding any partially decoded value (and its associated ob
 Filename Extensions and MIME Type
 ---------------------------------
 
-BONJSON files can use the filename extension `bonjson`, or the shorter `bjn`.
+BONJSON files can use the filename extension `bonjson`, or the shorter `boj`.
 
-    example.bjn
+    example.boj
     example.bonjson
 
 BONJSON's MIME type is `application/x.bonjson`, and will be `application/bonjson` once registered.
