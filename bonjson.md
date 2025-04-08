@@ -442,7 +442,7 @@ The upper `header` bits contain `payload` data (when there's room)
 | `10000000` |   8   |          7          |         56         |
 | `00000000` |   9   |          8          |         64         |
 
-* Header bits shown as `0` and `1` are the possible bit patterns of the `count` field.
+* Header bits shown as `0` and `1` are the bit patterns of the `count` field.
 * Header bits shown as `.` are the lower bits of the `payload`.
 
 The `count` field serves two purposes:
@@ -476,13 +476,11 @@ The low bit of the `payload` is the `continuation bit`. When this bit is 1, ther
 
 **For payloads containing 0 to 56 bits of data:**
 
-* Determine the 1-based `position` of the _highest_ set-bit of the `payload` (1-56).
-  * When encoding a `payload` value of 0, consider it to have `position` 1.
+* Determine the 1-based `position` (1-56) of the _highest_ set-bit of the `payload` (consider `0` to have bit position 1).
 * The overhead tradeoff is 7 bits per byte, so our `extra bytes count` (0-7) is `floor((position - 1) / 7)`.
 * Copy your `payload` to a 64-bit `register`.
 * Shift `register` left by 1 and set the lowest bit to 1.
-* Shift `register` left by `extra bytes count`.
-  * `register` now holds the `payload` in its upper bits, and the `count` field in its lower bits.
+* Shift `register` left by `extra bytes count`. `register` now has `payload` in its upper bits and `count` in its lower bits.
 * Write `extra bytes count`+1 bytes of `register` in little endian byte order to the `destination buffer`.
 * `destination buffer` now contains the encoded length field in `extra bytes count`+1 bytes.
 
