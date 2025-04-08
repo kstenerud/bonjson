@@ -266,7 +266,7 @@ Encoders **SHOULD** favor _signed_ over _unsigned_ when both types would encode 
     70 b4                      //  180
     79 18 fc                   // -1000
     71 00 80                   //  0x8000
-    75 bc 9a 78 56 34 12       //  0x123456789abc
+    7d bc 9a 78 56 34 12       //  0x123456789abc
     7f 00 00 00 00 00 00 00 80 // -0x8000000000000000
     77 da da da de d0 d0 d0 de //  0xded0d0d0dedadada (is all I want to say to you)
 
