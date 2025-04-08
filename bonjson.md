@@ -58,6 +58,7 @@ Contents
     - [Mandatory Hardening](#mandatory-hardening)
       - [Out-of-range Values](#out-of-range-values)
       - [Chunking Restrictions](#chunking-restrictions)
+      - [NUL Codepoint Restrictions](#nul-codepoint-restrictions)
   - [Convenience Considerations](#convenience-considerations)
   - [Filename Extensions and MIME Type](#filename-extensions-and-mime-type)
   - [Full Example](#full-example)
@@ -476,7 +477,7 @@ The low bit of the `payload` is the `continuation bit`. When this bit is 1, ther
 
 **For payloads containing 0 to 56 bits of data:**
 
-* Determine the 1-based `position` (1-56) of the _highest_ set-bit of the `payload` (consider `0` to have bit position 1).
+* Determine the 1-based `position` of the _highest_ 1-bit (1-56) of the `payload` (consider `0` to have bit position 1).
 * The overhead tradeoff is 7 bits per byte, so our `extra bytes count` (0-7) is `floor((position - 1) / 7)`.
 * Copy your `payload` to a 64-bit `register`.
 * Shift `register` left by 1 and set the lowest bit to 1.
@@ -501,7 +502,7 @@ The low bit of the `payload` is the `continuation bit`. When this bit is 1, ther
 
 **Otherwise:**
 
-* Determine the 1-based bit position of the _lowest_ set-bit of the `header` (1-8). This is your `count`.
+* Determine the 1-based bit position of the _lowest_ 0-bit (1-8) of the `header`. This is your `count`.
 * Read `count` bytes (including re-reading the `header` byte) as little-endian data into a zeroed 64-bit `register`.
 * shift `register` right by `count` bits.
 * `register` now contains the decoded `payload`.
@@ -596,6 +597,9 @@ Decoders **MAY** offer configuration options for when to allow [chunking](#strin
 
 Refusing chunking entirely **MUST** be the default behavior. If the decoder doesn't offer configuration options for chunking, refusing chunking entirely **MUST** be the _only_ behavior.
 
+#### NUL Codepoint Restrictions
+
+The `NUL` codepoint (0x00) **MUST** be disallowed by default, since it can be leveraged for a truncation attack by taking advantage of different NUL behaviors (e.g. username "administrator\0", which could get past your username checker that uses length-delimited strings, and then get truncated to "administrator" by your infrastructure that uses NUL terminated strings).
 
 
 Convenience Considerations
