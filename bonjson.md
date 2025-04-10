@@ -443,7 +443,7 @@ The upper `header` bits contain `payload` data (when there's room)
 | `10000000` |   8   |          7          |         56         |
 | `00000000` |   9   |          8          |         64         |
 
-* Header bits shown as `0` and `1` are the bit patterns of the `count` field.
+* Header bits shown as `0` and `1` are the bit patterns of the `count` field. It can be trivially decoded using a `ctz` (count trailing zeroes) compiler intrinsic.
 * Header bits shown as `.` are the lower bits of the `payload`.
 
 The `count` field serves two purposes:
