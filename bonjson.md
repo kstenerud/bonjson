@@ -1,9 +1,6 @@
 BONJSON: Binary Object Notation for JSON
 ========================================
 
-** * * * **PRERELEASE** * * * **
-
-
 BONJSON is a _hardened_, _lightning-fast_ and _efficient_, **1:1 compatible** binary drop-in replacement for [JSON](#json-standards).
 
 It's **35 times** faster to process than [JSON](#json-standards).
@@ -145,26 +142,26 @@ BONJSON is a byte-oriented format. All values begin and end on an 8-bit boundary
 
 Every value is composed of an 8-bit type code, and in some cases also a payload:
 
-| Type Code | Payload                      | Type    | Description                                |
-| --------- | ---------------------------- | ------- | ------------------------------------------ |
-| 00 - 64   |                              | Number  | [Integers 0 through 100](#small-integer)   |
-| 65 - 67   |                              |         | RESERVED                                   |
-| 68        | Arbitrary length string      | String  | [Long String](#long-string)                |
-| 69        | Arbitrary length number      | Number  | [Big Number](#big-number)                  |
-| 6a        | 16-bit bfloat16 binary float | Number  | [16-bit float](#16-bit-float)              |
-| 6b        | 32-bit ieee754 binary float  | Number  | [32-bit float](#32-bit-float)              |
-| 6c        | 64-bit ieee754 binary float  | Number  | [64-bit float](#64-bit-float)              |
-| 6d        |                              | Null    | [Null](#null)                              |
-| 6e        |                              | Boolean | [False](#boolean)                          |
-| 6f        |                              | Boolean | [True](#boolean)                           |
-| 70 - 77   | Unsigned integer of n bytes  | Number  | [Unsigned Integer](#integer)               |
-| 78 - 7f   | Signed integer of n bytes    | Number  | [Signed Integer](#integer)                 |
-| 80 - 8f   | String of n bytes            | String  | [Short String](#short-string)              |
-| 90 - 98   |                              |         | RESERVED                                   |
-| 99        |                              | Array   | [Array start](#array)                      |
-| 9a        |                              | Object  | [Object start](#object)                    |
-| 9b        |                              |         | [Container end](#containers)               |
-| 9c - ff   |                              | Number  | [Integers -100 through -1](#small-integer) |
+| Type Code | Payload                      | Type      | Description                                |
+| --------- | ---------------------------- | --------- | ------------------------------------------ |
+| 00 - 64   |                              | Number    | [Integers 0 through 100](#small-integer)   |
+| 65 - 67   |                              |           | RESERVED                                   |
+| 68        | Arbitrary length string      | String    | [Long String](#long-string)                |
+| 69        | Arbitrary length number      | Number    | [Big Number](#big-number)                  |
+| 6a        | 16-bit bfloat16 binary float | Number    | [16-bit float](#16-bit-float)              |
+| 6b        | 32-bit ieee754 binary float  | Number    | [32-bit float](#32-bit-float)              |
+| 6c        | 64-bit ieee754 binary float  | Number    | [64-bit float](#64-bit-float)              |
+| 6d        |                              | Null      | [Null](#null)                              |
+| 6e        |                              | Boolean   | [False](#boolean)                          |
+| 6f        |                              | Boolean   | [True](#boolean)                           |
+| 70 - 77   | Unsigned integer of n bytes  | Number    | [Unsigned Integer](#integer)               |
+| 78 - 7f   | Signed integer of n bytes    | Number    | [Signed Integer](#integer)                 |
+| 80 - 8f   | String of n bytes            | String    | [Short String](#short-string)              |
+| 90 - 98   |                              |           | RESERVED                                   |
+| 99        |                              | Container | [Array start](#array)                      |
+| 9a        |                              | Container | [Object start](#object)                    |
+| 9b        |                              | Container | [Container end](#containers)               |
+| 9c - ff   |                              | Number    | [Integers -100 through -1](#small-integer) |
 
 
 
@@ -352,7 +349,7 @@ Instead, the `exponent length` field's bits represent the special values listed 
 Containers
 ----------
 
-Containers (objects and arrays) are encoded beginning with a `container start` [type code](#type-codes), and ending with a `container end` [type code](#type-codes). Both [object](#object) and [array](#array) share the same `container end` [type code](#type-codes) (`0x9b`).
+A container begins with a type-specific container "start" [type code](#type-codes), is filled with other values (each with their own [type codes](#type-codes)), and then ends when a `container end` (`0x9b`) [type code](#type-codes) is encountered.
 
 
 ### Array
