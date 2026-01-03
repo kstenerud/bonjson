@@ -600,7 +600,7 @@ Decoders **MAY** offer configuration options for when to allow [chunking](#strin
 
 * Limit the maximum number of chunks allowed in a single value (to prevent abuses like a long series of length-1 chunks). If this option is available, it **SHOULD** default to 100.
 * Limit chunks even more after a certain amount of data has been received (to prevent sending a large amount of normal data, followed by abusive chunks).
-* Refuse chunking entirely ([continuation bit](#length-field-payload-format) **MUST** always be 0). If this is the only chunking configuration option, it **MUST** be the default behavior.
+* Refuse chunking entirely (treat a [continuation bit](#length-field-payload-format) of 1 as invalid). If this is the only chunking configuration option, it **MUST** be the default behavior.
 
 If the decoder doesn't offer configuration options for chunking, refusing chunking entirely **MUST** be the _only_ behavior.
 
