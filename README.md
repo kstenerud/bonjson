@@ -178,6 +178,7 @@ Having confidence in your data plumbing is paramount.
 ### Implementations
 
  * [⚙️ C Reference Implementation](https://github.com/kstenerud/ksbonjson)
+ * [⚙️ Go Reference Implementation](https://github.com/kstenerud/go-bonjson)
 
 -------------------------------------------------------------------------------
 
