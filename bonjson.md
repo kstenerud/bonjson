@@ -608,7 +608,7 @@ If the decoder doesn't offer configuration options for chunking, refusing chunki
 
 Decoders **MAY** offer a configuration option for how to deal with the `NUL` codepoint (0x00), since it can be leveraged for a truncation attack by taking advantage of different `NUL` behaviors (e.g. username "administrator\0", which could get past your username checker that uses length-delimited strings, and then get truncated to "administrator" by your infrastructure that uses `NUL` terminated strings).
 
-If such an option is offered, it **MUST** default to disallowing the `NUL` codepoint. If such an option is not offered, the codec **MUST** disallow 'NUL' always.
+If such an option is offered, it **MUST** default to disallowing the `NUL` codepoint. If no such option is offered, the codec **MUST** disallow `NUL` always.
 
 
 
