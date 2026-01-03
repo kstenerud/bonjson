@@ -47,6 +47,7 @@ Contents
     - [Length Field Payload Format](#length-field-payload-format)
     - [Length Payload Encoding Process](#length-payload-encoding-process)
     - [Length Payload Decoding Process](#length-payload-decoding-process)
+    - [Chunking](#chunking)
   - [Interoperability Considerations](#interoperability-considerations)
     - [Value Ranges](#value-ranges)
   - [Security Rules](#security-rules)
@@ -518,6 +519,14 @@ The low bit of the `payload` is the `continuation bit`. When this bit is 1, ther
     0c 24 f4                    // Length 1,000,000 and continuation 1
     00 fe ff ff ff ff ff ff ff  // Length 9,223,372,036,854,775,807 and continuation 0
 
+### Chunking
+
+A `chunk` is comprised of a [length field](#length-field), followed by that many items of data.
+
+    [length] [items]
+
+Chunking continues until the end of a chunk whose length field's [`continuation bit`](#length-field-payload-format) is 0. This mechanism allows an encoder to begin encoding data before the total number of items is known.
+
 
 
 Interoperability Considerations
@@ -585,14 +594,15 @@ Rejecting the document **MUST** be the default behavior. If the decoder doesn't 
 
 #### Chunking Restrictions
 
+Allowing unlimited chunking opens the door for abusive payloads (chunk bombs).
+
 Decoders **MAY** offer configuration options for when to allow [chunking](#string-chunk), such as:
 
-* Refuse chunking entirely. In this case, the [continuation bit](#length-field-payload-format) **MUST** always be 0.
-* Limit the maximum number of chunks allowed at a time (to prevent abuses like a long series of length-1 chunks).
+* Limit the maximum number of chunks allowed in a single value (to prevent abuses like a long series of length-1 chunks). If this option is available, it **SHOULD** default to 100.
 * Limit chunks even more after a certain amount of data has been received (to prevent sending a large amount of normal data, followed by abusive chunks).
-* Allow chunking with no limitations.
+* Refuse chunking entirely ([continuation bit](#length-field-payload-format) **MUST** always be 0). If this is the only chunking configuration option, it **MUST** be the default behavior.
 
-Refusing chunking entirely **MUST** be the default behavior. If the decoder doesn't offer configuration options for chunking, refusing chunking entirely **MUST** be the _only_ behavior.
+If the decoder doesn't offer configuration options for chunking, refusing chunking entirely **MUST** be the _only_ behavior.
 
 #### NUL Codepoint Restrictions
 
