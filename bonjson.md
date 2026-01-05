@@ -609,9 +609,11 @@ Decoders **MAY** offer a configuration option to allow `NUL`, but the default be
 
 NaN and infinity are unrepresentable in JSON, but are technically possible to encode in BONJSON because it stores the binary floating point values directly.
 
-Codecs **MUST** by default reject such values.
+Codecs **MUST** by default reject such values, and **MAY** offer the following configuration options:
 
-Codecs **MAY** offer a configuration to allow such values, but the default behavior **MUST** be to reject.
+* Reject the document (this **MUST** be the default behavior)
+* Stringify the value ("NaN", "infinity", "-infinity")
+* Allow the value (Passing the decoded data to a JSON encoder may fail)
 
 
 ### Out-of-range Values
