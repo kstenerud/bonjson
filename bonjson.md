@@ -591,7 +591,7 @@ Although [JSON](#json-standards) technically supports the entire range of Unicod
 BONJSON codecs **MUST** by default reject documents containing invalid Unicode or UTF-8, but for compatibility with JSON and broken data sources the following configuration options **MAY** be offered:
 
 * Reject the document (this **MUST** be the default behavior)
-* Substitute invalid characters with the REPLACEMENT CHARACTER U+FFFD (less secure, and could become exploitable)
+* Replace invalid characters: substitute with the REPLACEMENT CHARACTER U+FFFD (less secure, and could become exploitable)
 * Delete invalid characters from the string (an even less secure option that is proven to lead to many exploitable weaknesses)
 * Ignore invalid characters (the least secure option that has been involved in countless security incidents)
 
@@ -628,8 +628,8 @@ Duplicate [object](#object) keys (the same key appearing multiple times in the s
 Decoders **MAY** offer the following configuration options:
 
 * Reject documents containing duplicate keys (this **MUST** be the default option)
-* Ignore duplicate keys, keeping the first one encountered (dangerous and possible to exploit in the right circumstances)
-* Replace any already received key with the new duplicate (extrememely dangerous and actively exploited)
+* Keep the first instance, ignoring duplicate keys (dangerous and possible to exploit in the right circumstances)
+* Keep the last instance, replacing any already received keys (extrememely dangerous and actively exploited)
 
 If no configuration options are provided, documents containing duplicate keys **MUST** be rejected.
 
