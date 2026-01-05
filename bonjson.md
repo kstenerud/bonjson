@@ -3,7 +3,7 @@ BONJSON: Binary Object Notation for JSON
 
 BONJSON is a _hardened_, _lightning-fast_ and _efficient_, **1:1 compatible** binary drop-in replacement for [JSON](#json-standards).
 
-It's **35 times** faster to process than [JSON](#json-standards).
+It's **35 times** faster to process than [JSON](#json-standards) due to the format being designed to take advantage of intrinsics present in modern day processors.
 
 It's also **far safer** than JSON:
 
@@ -51,12 +51,13 @@ Contents
   - [Interoperability Considerations](#interoperability-considerations)
     - [Value Ranges](#value-ranges)
   - [Security Rules](#security-rules)
-    - [Field Lengths](#field-lengths)
-    - [UTF-8 Codepoints and Encoding](#utf-8-codepoints-and-encoding)
-    - [Mandatory Hardening](#mandatory-hardening)
-      - [Out-of-range Values](#out-of-range-values)
-      - [Chunking Restrictions](#chunking-restrictions)
-      - [NUL Codepoint Restrictions](#nul-codepoint-restrictions)
+    - [Long Field Lengths](#long-field-lengths)
+    - [Chunking Restrictions](#chunking-restrictions)
+    - [Invalid Unicode and UTF-8](#invalid-unicode-and-utf-8)
+    - [NUL Codepoint Restriction](#nul-codepoint-restriction)
+    - [Values incompatible with JSON](#values-incompatible-with-json)
+    - [Out-of-range Values](#out-of-range-values)
+    - [Duplicate object keys](#duplicate-object-keys)
   - [Convenience Considerations](#convenience-considerations)
   - [Filename Extensions and MIME Type](#filename-extensions-and-mime-type)
   - [Full Example](#full-example)
@@ -135,7 +136,7 @@ BONJSON is a byte-oriented format. All values begin and end on an 8-bit boundary
 
 **Notes**:
 
- * All strings are encoded as [UTF-8](#utf-8-codepoints-and-encoding).
+ * All strings are encoded as UTF-8.
  * All numeric fields are encoded in little endian byte order.
 
 
@@ -169,7 +170,7 @@ Every value is composed of an 8-bit type code, and in some cases also a payload:
 Strings
 -------
 
-Strings are sequences of [UTF-8](#utf-8-codepoints-and-encoding) characters, and can be encoded in two ways:
+Strings are sequences of UTF-8 characters, and can be encoded in two ways:
 
 
 ### Short String
@@ -332,10 +333,10 @@ Instead, the `exponent length` field's bits represent the special values listed 
 
 | Exponent Length Bits | Meaning            | Valid in BONJSON |
 | -------------------- | ------------------ | ---------------- |
-| `0 0`                | `0`                | ✔️                |
-| `0 1`                | `infinity`         | ❌                |
-| `1 0`                | `NaN` (quiet)      | ❌                |
-| `1 1`                | `NaN` (signaling)  | ❌                |
+| `0 0`                | `0`                | ✔️               |
+| `0 1`                | `infinity`         | ❌               |
+| `1 0`                | `NaN` (quiet)      | ❌               |
+| `1 1`                | `NaN` (signaling)  | ❌               |
 
 **Examples**:
 
@@ -380,7 +381,6 @@ An object consists of an `object start` (`0x9a`), an optional collection of name
 
 * Names **MUST** be [strings](#strings).
 * Names **MUST NOT** be [null](#null).
-* Names **MUST NOT** be duplicates of other names in the same object.
 
 **Example**:
 
@@ -558,57 +558,80 @@ JavaScript in particular can natively handle:
 Security Rules
 --------------
 
-### Field Lengths
+All data formats contain technically feasible coding sequences that could result in exploitable weaknesses if certain invariants aren't artificially enforced. [JSON is particularly bad in this regard](https://bishopfox.com/blog/json-interoperability-vulnerabilities). BONJSON mitigates these by being cautious, rejecting dangerous sequences by default. However, since JSON is so old, systems have inevitably arisen that rely upon such broken behaviors.
 
-Any data format that includes length fields is by definition open to abuse. BONJSON decoders **MUST** provide protection against this. For example:
+BONJSON handles this by choosing opinionated, secure default behaviors while allowing informed users to deliberatly disable such security protections when necessary.
 
- * Maximum lengths (possibly user-configurable with sane defaults) for potentially long data types (such as [strings](#long-string)).
- * Sanity check: Does a length field contain a value greater than the remaining document length (if known)?
-
-
-### UTF-8 Codepoints and Encoding
-
-Although [JSON](#json-standards) technically supports the full range of [UTF-8](https://en.wikipedia.org/wiki/UTF-8) codepoints from 0 to 0x10ffff, many of these are actually invalid (such as surrogates, reserved codepoints, and codepoints marked as permanently invalid). [RFC 3629, section 10](https://www.rfc-editor.org/rfc/rfc3629#section-10) explains many of the problems that come from lax treatment of UTF-8 data.
-
-Indeed, there are a whole slew of security issues concerning [improper handling of UTF-8](https://www.unicode.org/reports/tr36/)!
-
-BONJSON prohibits all invalid UTF-8 encodings, including [overlong UTF-8 encodings](https://en.wikipedia.org/wiki/UTF-8#Overlong_encodings) (which are [invalid as of Unicode 3.0.1](https://www.unicode.org/versions/corrigendum1.html)). Overlong UTF-8 encodings were famously involved in the 2001 exploit of IIS web severs by encoding "../" as `2F C0 AE 2E 2F` instead of the `2F 2E 2E 2F` encoding that the servers were guarding against.
+**Note**: By "rejecting", it is meant that the entire document is rejected as a consequence of rejecting the unacceptable data (as opposed to just ignoring or replacing the unacceptable data).
 
 
-### Mandatory Hardening
+### Long Field Lengths
 
-JSON is by nature [vulnerable](https://bishopfox.com/blog/json-interoperability-vulnerabilities) to attackers who can take advantage of differences between codec implementations due to the laxity of the [JSON specifications](#json-standards). In order to mitigate such vulnerabilities, BONJSON decoders **MUST** implement the following hardening rules:
+Any data format that includes length fields is by definition open to abuse. BONJSON decoders **MUST** provide protection against this, such as:
 
-* Reject documents where an object contains duplicate names (this check **MUST** be made on the [normalized](https://www.unicode.org/reports/tr15/) Unicode representation).
-* Reject documents where a string contains [invalid UTF-8 data](#utf-8-codepoints-and-encoding) (truncation or replacement is **unsafe**, and not allowed).
-* Reject documents containing disallowed values (such as NaN or infinity).
+* Maximum lengths (ideally user-configurable with sane defaults) for potentially long data types (such as [strings](#long-string)) as a protection against DOS attacks.
+* Sanity check: Does a length field contain a value greater than the remaining document length (if known)?
 
-#### Out-of-range Values
 
-Decoders **MAY** offer these configuration options (and no other) for what to do when encountering numeric values that are outside of the decoder's [allowed range](#value-ranges):
+### Chunking Restrictions
 
-* Reject the document.
-* Stringify the number, replacing the numeric value with a string value containing a [JSON](#json-standards) numeric literal or a C-style hexadecimal "0x" integer literal.
+Allowing unlimited [chunking](#string-chunk) opens the door for abusive DOS payloads (chunk bombs). Decoders **MUST** mitigate against this.
 
-Rejecting the document **MUST** be the default behavior. If the decoder doesn't offer configuration options for out-of-range values, rejecting the document **MUST** be the _only_ behavior.
-
-#### Chunking Restrictions
-
-Allowing unlimited chunking opens the door for abusive payloads (chunk bombs).
-
-Decoders **MAY** offer configuration options for when to allow [chunking](#string-chunk), such as:
+Possible mitigation options that decoders **MAY** offer:
 
 * Limit the maximum number of chunks allowed in a single value (to prevent abuses like a long series of length-1 chunks). If this option is available, it **SHOULD** default to 100.
 * Limit chunks even more after a certain amount of data has been received (to prevent sending a large amount of normal data, followed by abusive chunks).
-* Refuse chunking entirely (treat a [continuation bit](#length-field-payload-format) of 1 as invalid). If this is the only chunking configuration option, it **MUST** be the default behavior.
+* Refuse chunking entirely (reject any chunk that contains a [continuation bit](#length-field-payload-format) of 1).
 
-If the decoder doesn't offer configuration options for chunking, refusing chunking entirely **MUST** be the _only_ behavior.
 
-#### NUL Codepoint Restrictions
+### Invalid Unicode and UTF-8
 
-Decoders **MAY** offer a configuration option for how to deal with the `NUL` codepoint (0x00), since it can be leveraged for a truncation attack by taking advantage of different `NUL` behaviors (e.g. username "administrator\0", which could get past your username checker that uses length-delimited strings, and then get truncated to "administrator" by your infrastructure that uses `NUL` terminated strings).
+Although [JSON](#json-standards) technically supports the entire range of Unicode codepoints from 0 to 0x10ffff, many of these are actually invalid (such as surrogates in UTF-8, reserved codepoints, and codepoints marked as permanently invalid). Further information about how these can become security nightmares is available at [RFC 3629, section 10](https://www.rfc-editor.org/rfc/rfc3629#section-10), [Unicode Technical Report #36](https://www.unicode.org/reports/tr36/tr36-15.html), and [Corrigendum #1: UTF-8 Shortest Form](https://www.unicode.org/versions/corrigendum1.html) (overlong UTF-8 encodings were famously involved in the 2001 exploit of IIS web severs by encoding "../" as `2F C0 AE 2E 2F` instead of the `2F 2E 2E 2F` encoding that the servers were guarding against).
 
-If such an option is offered, it **MUST** default to disallowing the `NUL` codepoint. If no such option is offered, the codec **MUST** disallow `NUL` always.
+BONJSON codecs **MUST** by default reject documents containing invalid Unicode or UTF-8, but for compatibility with JSON and broken data sources the following configuration options **MAY** be offered:
+
+* Reject the document (this **MUST** be the default behavior)
+* Substitute invalid characters with the REPLACEMENT CHARACTER U+FFFD (less secure, and could become exploitable)
+* Truncate invalid characters (an even less secure option that is proven to lead to many exploitable weaknesses)
+* Ignore invalid characters (the least secure option that has been involved in countless security incidents)
+
+**NOTE**: The more variance there is in how a codec handles invalid Unicode, the more likely it is for an exploitable security hole to arise. Therefore, it is safest to always **reject** invalid Unicode and UTF-8.
+
+
+### NUL Codepoint Restriction
+
+Because the `NUL` (U+0000) codepoint can so easily be exploited, it **MUST** be rejected by default.
+
+Decoders **MAY** offer a configuration option to allow `NUL`, but the default behavior **MUST** be to reject.
+
+
+### Values incompatible with JSON
+
+NaN and infinity are unrepresentable in JSON, but are technically possible to encode in BONJSON because it stores the binary floating point values directly.
+
+Codecs **MUST** by default reject such values.
+
+Codecs **MAY** offer a configuration to allow such values, but the default behavior **MUST** be to reject.
+
+
+### Out-of-range Values
+
+Decoders **MUST** by default reject numeric values that are outside of the decoder's [allowed range](#value-ranges).
+
+Decoders **MAY** offer an option to stringify such values, replacing the numeric value with a string value containing a [JSON](#json-standards) numeric literal or a C-style hexadecimal "0x" integer literal, but the default behavior **MUST** be to reject.
+
+
+### Duplicate object keys
+
+Duplicate [object](#object) keys (the same key appearing multiple times in the same object) are being actively exploited in the wild to compromise security and exfiltrate data. Allowing duplicate keys is **extremely** dangerous. However, some systems must allow it for interoperability reasons.
+
+Decoders **MAY** offer the following configuration options:
+
+* Reject documents containing duplicate keys (this **MUST** be the default option)
+* Ignore duplicate keys, keeping the first one encountered (dangerous and possible to exploit in the right circumstances)
+* Replace any already received key with the new duplicate (extrememely dangerous and actively exploited)
+
+If no configuration options are provided, documents containing duplicate keys **MUST** be rejected.
 
 
 
@@ -624,7 +647,7 @@ This would involve discarding any partially decoded value (and its associated ob
 Filename Extensions and MIME Type
 ---------------------------------
 
-BONJSON files can use the filename extension `bonjson`, or the shorter `boj`.
+BONJSON files have the filename extension `bonjson`, or the shorter `boj`.
 
     example.boj
     example.bonjson
