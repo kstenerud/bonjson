@@ -592,10 +592,10 @@ BONJSON codecs **MUST** by default reject documents containing invalid Unicode o
 
 * Reject the document (this **MUST** be the default behavior)
 * Substitute invalid characters with the REPLACEMENT CHARACTER U+FFFD (less secure, and could become exploitable)
-* Truncate invalid characters (an even less secure option that is proven to lead to many exploitable weaknesses)
+* Delete invalid characters from the string (an even less secure option that is proven to lead to many exploitable weaknesses)
 * Ignore invalid characters (the least secure option that has been involved in countless security incidents)
 
-**NOTE**: The more variance there is in how a codec handles invalid Unicode, the more likely it is for an exploitable security hole to arise. Therefore, it is safest to always **reject** invalid Unicode and UTF-8.
+**Note**: Not all languages/platforms are able to completely offer the options above. Any peculiar behaviors with regards to Unicode and UTF-8 support that might prove surprising **MUST** be documented. For example, some platforms may only offer the ability to check for invalid UTF-8 sequences, but not for reserved/invalid Unicode codepoints that came from valid UTF-8 sequences.
 
 
 ### NUL Codepoint Restriction
