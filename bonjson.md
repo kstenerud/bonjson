@@ -212,10 +212,10 @@ A chunk with length 0 **MUST** have a [`continuation bit`](#length-field-payload
 
 **Examples**:
 
-    68 01                               // ""
-    68 21 61 20 73 74 72 69 6e 67       // "a string" (in 1 chunk)
-    68 07 61 13 20 73 74 72 0d 69 6e 67 // "a string" (in chunks: 1 byte, 4 bytes, 3 bytes)
-    68 02 02                            // (String of 64 Zs)
+    68 00                               // ""
+    68 20 61 20 73 74 72 69 6e 67       // "a string" (in 1 chunk)
+    68 06 61 12 20 73 74 72 0c 69 6e 67 // "a string" (in chunks: 1 byte, 4 bytes, 3 bytes)
+    68 01 02                            // (String of 64 Zs)
     5a 5a 5a 5a 5a 5a 5a 5a             // ZZZZZZZZ
     5a 5a 5a 5a 5a 5a 5a 5a             // ZZZZZZZZ
     5a 5a 5a 5a 5a 5a 5a 5a             // ZZZZZZZZ
@@ -427,24 +427,25 @@ A `length field` is composed of a `header` and possible `payload bytes`.
 
 The `header` determines how many bytes comprise the length field itself, so that it doesn't occupy more bytes than are necessary.
 
-The lower `header` bits contain a `count` field, encoded in a reversed unary code (going from low bit to high bit - or describing visually: right-to-left rather than left-to-right)
+The lower `header` bits contain a `count` field, encoded in a reversed unary code (going from low bit to high bit - or describing visually: right-to-left rather than left-to-right). The count field uses trailing `1` bits terminated by a `0` bit.
 
 The upper `header` bits contain `payload` data (when there's room)
 
 | Header     | Count | Extra Payload Bytes | Total Payload Bits |
 | ---------- | ----- | ------------------- | ------------------ |
-| `.......1` |   1   |          0          |          7         |
-| `......10` |   2   |          1          |         14         |
-| `.....100` |   3   |          2          |         21         |
-| `....1000` |   4   |          3          |         28         |
-| `...10000` |   5   |          4          |         35         |
-| `..100000` |   6   |          5          |         42         |
-| `.1000000` |   7   |          6          |         49         |
-| `10000000` |   8   |          7          |         56         |
-| `00000000` |   9   |          8          |         64         |
+| `.......0` |   1   |          0          |          7         |
+| `......01` |   2   |          1          |         14         |
+| `.....011` |   3   |          2          |         21         |
+| `....0111` |   4   |          3          |         28         |
+| `...01111` |   5   |          4          |         35         |
+| `..011111` |   6   |          5          |         42         |
+| `.0111111` |   7   |          6          |         49         |
+| `01111111` |   8   |          7          |         56         |
+| `11111111` |   9   |          8          |         64         |
 
-* Header bits shown as `0` and `1` are the bit patterns of the `count` field. It can be trivially decoded using a `ctz` (count trailing zeroes) compiler intrinsic.
+* Header bits shown as `0` and `1` are the bit patterns of the `count` field. It can be trivially decoded using a `ctz` (count trailing zeroes) compiler intrinsic on the bitwise-inverted header.
 * Header bits shown as `.` are the lower bits of the `payload`.
+* This encoding allows a length of 0 with continuation 0 to be encoded as byte `0x00`, enabling zero-copy optimizations for NUL-terminated strings.
 
 The `count` field serves two purposes:
 
@@ -480,14 +481,14 @@ The low bit of the `payload` is the `continuation bit`. When this bit is 1, ther
 * Determine the 1-based `position` of the _highest_ 1-bit (1-56) of the `payload` (consider `0` to have bit position 1).
 * The overhead tradeoff is 7 bits per byte, so our `extra bytes count` (0-7) is `floor((position - 1) / 7)`.
 * Copy your `payload` to a 64-bit `register`.
-* Shift `register` left by 1 and set the lowest bit to 1.
-* Shift `register` left by `extra bytes count`. `register` now has `payload` in its upper bits and `count` in its lower bits.
+* Shift `register` left by `extra bytes count` + 1. This makes room for the `count` field (a terminating 0 bit plus `extra bytes count` trailing 1 bits).
+* Set the lowest `extra bytes count` bits of `register` to 1 (the trailing 1s of the count field). The terminating 0 is already in place from the shift.
 * Write `extra bytes count`+1 bytes of `register` in little endian byte order to the `destination buffer`.
 * `destination buffer` now contains the encoded length field in `extra bytes count`+1 bytes.
 
 **For payloads containing 57 to 64 bits of data:**
 
-* Write the `header` byte 0x00.
+* Write the `header` byte 0xff.
 * Write the 8 bytes of `payload` in little endian order.
 
 
@@ -495,31 +496,32 @@ The low bit of the `payload` is the `continuation bit`. When this bit is 1, ther
 
 * Read the `header` byte.
 
-**If the `header` byte is 0x00:**
+**If the `header` byte is 0xff:**
 
 * Discard the `header`
 * Read the next 8 bytes in little endian order as the `payload`.
 
 **Otherwise:**
 
-* Determine the 1-based bit position of the _lowest_ 0-bit (1-8) of the `header`. This is your `count`.
+* Bitwise-invert the `header` to get `inverted_header`.
+* Determine the 1-based bit position of the _lowest_ 1-bit (1-8) of `inverted_header`. This is your `count`. (Equivalently: find the lowest 0-bit in the original `header`.)
 * Read `count` bytes (including re-reading the `header` byte) as little-endian data into a zeroed 64-bit `register`.
-* shift `register` right by `count` bits.
+* Shift `register` right by `count` bits.
 * `register` now contains the decoded `payload`.
 
 
 **Examples**:
 
-    01                          // Length 0 and continuation 0
-    03                          // Length 0 and continuation 1
-    05                          // Length 1 and continuation 0
-    07                          // Length 1 and continuation 1
-    fd                          // Length 63 and continuation 0
-    ff                          // Length 63 and continuation 1
-    02 02                       // Length 64 and continuation 0
-    06 02                       // Length 64 and continuation 1
-    0c 24 f4                    // Length 1,000,000 and continuation 1
-    00 fe ff ff ff ff ff ff ff  // Length 9,223,372,036,854,775,807 and continuation 0
+    00                          // Length 0 and continuation 0
+    02                          // Length 0 and continuation 1
+    04                          // Length 1 and continuation 0
+    06                          // Length 1 and continuation 1
+    fc                          // Length 63 and continuation 0
+    fe                          // Length 63 and continuation 1
+    01 02                       // Length 64 and continuation 0
+    05 02                       // Length 64 and continuation 1
+    0b 24 f4                    // Length 1,000,000 and continuation 1
+    ff fe ff ff ff ff ff ff ff  // Length 9,223,372,036,854,775,807 and continuation 0
 
 ### Chunking
 
@@ -706,7 +708,7 @@ Full Example
           8f 6e 65 67 61 74 69 76 65 20 6e 75 6d 62 65 72  //         "negative number":
           9c                                               //         -100,
           8b 6c 6f 6e 67 20 73 74 72 69 6e 67              //         "long string":
-          68 a1                                            //         "1234567890123456789012345678901234567890"
+          68 a0                                            //         "1234567890123456789012345678901234567890"
              31 32 33 34 35 36 37 38 39 30                 //
              31 32 33 34 35 36 37 38 39 30                 //
              31 32 33 34 35 36 37 38 39 30                 //
@@ -770,15 +772,15 @@ string_chunk(hasNext) = chunked(var(count, ~), hasNext) & sized(count*8, char_st
 
 chunked(len, hasNext) = length(len * 2 + hasNext);
 length(l)             = ordered([
-                                    l >=                 0 & l <=               0x7f: uint( 7, l) & uint(1, 0x01);
-                                    l >=              0x80 & l <=             0x3fff: uint(14, l) & uint(2, 0x02);
-                                    l >=            0x4000 & l <=           0x1fffff: uint(21, l) & uint(3, 0x04);
-                                    l >=          0x200000 & l <=          0xfffffff: uint(28, l) & uint(4, 0x08);
-                                    l >=        0x10000000 & l <=        0x7ffffffff: uint(35, l) & uint(5, 0x10);
-                                    l >=       0x800000000 & l <=      0x3ffffffffff: uint(42, l) & uint(6, 0x20);
-                                    l >=     0x40000000000 & l <=    0x1ffffffffffff: uint(49, l) & uint(7, 0x40);
-                                    l >=   0x2000000000000 & l <=   0xffffffffffffff: uint(56, l) & uint(8, 0x80);
-                                    l >= 0x100000000000000 & l <= 0xffffffffffffffff: uint(64, l) & uint(8, 0x00);
+                                    l >=                 0 & l <=               0x7f: uint( 7, l) & uint(1, 0x00);
+                                    l >=              0x80 & l <=             0x3fff: uint(14, l) & uint(2, 0x01);
+                                    l >=            0x4000 & l <=           0x1fffff: uint(21, l) & uint(3, 0x03);
+                                    l >=          0x200000 & l <=          0xfffffff: uint(28, l) & uint(4, 0x07);
+                                    l >=        0x10000000 & l <=        0x7ffffffff: uint(35, l) & uint(5, 0x0f);
+                                    l >=       0x800000000 & l <=      0x3ffffffffff: uint(42, l) & uint(6, 0x1f);
+                                    l >=     0x40000000000 & l <=    0x1ffffffffffff: uint(49, l) & uint(7, 0x3f);
+                                    l >=   0x2000000000000 & l <=   0xffffffffffffff: uint(56, l) & uint(8, 0x7f);
+                                    l >= 0x100000000000000 & l <= 0xffffffffffffffff: uint(64, l) & uint(8, 0xff);
                                 ]);
 
 # Primitives & Functions
