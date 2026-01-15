@@ -1,0 +1,112 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Float encoding tests covering float16, float32, and float64",
+  "tests": [
+    {
+      "//": "Float16 (bfloat16) uses type code 0x6a - 1.125 can be exactly represented",
+      "name": "float16_1_125",
+      "type": "encode",
+      "input": 1.125,
+      "expected_bytes": "6a903f"
+    },
+    {
+      "//": "Float32 uses type code 0x6b",
+      "name": "float32_39_875",
+      "type": "encode",
+      "input": 39.875,
+      "expected_bytes": "6b00b81f42"
+    },
+    {
+      "//": "Float64 uses type code 0x6c - 1.234 requires full precision",
+      "name": "float64_1_234",
+      "type": "encode",
+      "input": 1.234,
+      "expected_bytes": "6c5839b4c876bef33f"
+    },
+    {
+      "//": "Negative float16: -1.25",
+      "name": "float16_neg1_25",
+      "type": "encode",
+      "input": -1.25,
+      "expected_bytes": "6aa0bf"
+    },
+    {
+      "//": "Small float that fits in float64: -5.923441e-50",
+      "name": "float64_small",
+      "type": "encode",
+      "input": -5.923441e-50,
+      "expected_bytes": "6c353cce818729b6b5"
+    },
+    {
+      "//": "Decode tests - float32 encoding of 1.125 decodes correctly",
+      "name": "decode_float32_1_125",
+      "type": "decode",
+      "input_bytes": "6b0000903f",
+      "expected_value": 1.125
+    },
+    {
+      "//": "Decode float64 encoding of 1.125",
+      "name": "decode_float64_1_125",
+      "type": "decode",
+      "input_bytes": "6c000000000000f23f",
+      "expected_value": 1.125
+    },
+    {
+      "//": "Decode float64 pi using hex float for precise representation",
+      "name": "decode_float64_pi_hex",
+      "type": "decode",
+      "input_bytes": "6c 182d4454fb210940",
+      "expected_value": {"$number": "0x1.921fb54442d18p+1"}
+    },
+    {
+      "//": "Decode float64 e using hex float for precise representation",
+      "name": "decode_float64_e_hex",
+      "type": "decode",
+      "input_bytes": "6c 6957148b0abf0540",
+      "expected_value": {"$number": "0x1.5bf0a8b145769p+1"}
+    },
+    {
+      "//": "Round-trip tests for floats",
+      "name": "roundtrip_float_1_125",
+      "type": "roundtrip",
+      "input": 1.125
+    },
+    {
+      "name": "roundtrip_float_neg1_25",
+      "type": "roundtrip",
+      "input": -1.25
+    },
+    {
+      "name": "roundtrip_float_pi",
+      "type": "roundtrip",
+      "input": 3.141592653589793
+    },
+    {
+      "name": "roundtrip_float_e",
+      "type": "roundtrip",
+      "input": 2.718281828459045
+    },
+    {
+      "name": "roundtrip_float_large",
+      "type": "roundtrip",
+      "input": 1.7976931348623157e308
+    },
+    {
+      "name": "roundtrip_float_small_positive",
+      "type": "roundtrip",
+      "input": 2.2250738585072014e-308
+    },
+    {
+      "name": "roundtrip_float_zero",
+      "type": "roundtrip",
+      "input": 0.0
+    },
+    {
+      "//": "Integer values encoded as float should work",
+      "name": "roundtrip_float_integer_value",
+      "type": "roundtrip",
+      "input": 42.0
+    }
+  ]
+}

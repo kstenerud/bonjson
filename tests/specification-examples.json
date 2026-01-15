@@ -1,0 +1,206 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Examples taken directly from the BONJSON specification document",
+  "tests": [
+    {
+      "//": "Short String examples from spec",
+      "name": "spec_short_string_empty",
+      "type": "encode",
+      "input": "",
+      "expected_bytes": "80"
+    },
+    {
+      "name": "spec_short_string_a",
+      "type": "encode",
+      "input": "A",
+      "expected_bytes": "8141"
+    },
+    {
+      "//": "Japanese 'ohayou' (good morning)",
+      "name": "spec_short_string_japanese",
+      "type": "encode",
+      "input": "\u304a\u306f\u3088\u3046",
+      "expected_bytes": "8ce3818ae381afe38288e38186"
+    },
+    {
+      "name": "spec_short_string_15bytes",
+      "type": "encode",
+      "input": "15 byte string!",
+      "expected_bytes": "8f313520627974652073747269636721"
+    },
+    {
+      "//": "Long String examples from spec",
+      "name": "spec_long_string_empty",
+      "type": "decode",
+      "input_bytes": "6800",
+      "expected_value": ""
+    },
+    {
+      "name": "spec_long_string_astring",
+      "type": "decode",
+      "input_bytes": "68206120737472696e67",
+      "expected_value": "a string"
+    },
+    {
+      "//": "64 Z's (length field = 0x01 0x02)",
+      "name": "spec_long_string_64chars",
+      "type": "encode",
+      "input": "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ",
+      "expected_bytes": "6801025a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"
+    },
+    {
+      "//": "Small Integer examples from spec",
+      "name": "spec_smallint_100",
+      "type": "encode",
+      "input": 100,
+      "expected_bytes": "64"
+    },
+    {
+      "name": "spec_smallint_5",
+      "type": "encode",
+      "input": 5,
+      "expected_bytes": "05"
+    },
+    {
+      "name": "spec_smallint_0",
+      "type": "encode",
+      "input": 0,
+      "expected_bytes": "00"
+    },
+    {
+      "name": "spec_smallint_neg60",
+      "type": "encode",
+      "input": -60,
+      "expected_bytes": "c4"
+    },
+    {
+      "name": "spec_smallint_neg100",
+      "type": "encode",
+      "input": -100,
+      "expected_bytes": "9c"
+    },
+    {
+      "//": "Integer examples from spec",
+      "name": "spec_int_180",
+      "type": "encode",
+      "input": 180,
+      "expected_bytes": "70b4"
+    },
+    {
+      "name": "spec_int_neg1000",
+      "type": "encode",
+      "input": -1000,
+      "expected_bytes": "7918fc"
+    },
+    {
+      "name": "spec_int_32768",
+      "type": "encode",
+      "input": 32768,
+      "expected_bytes": "710080"
+    },
+    {
+      "//": "0x123456789abc",
+      "name": "spec_int_large",
+      "type": "encode",
+      "input": 20015998343868,
+      "expected_bytes": "7dbc9a78563412"
+    },
+    {
+      "name": "spec_int_min_int64",
+      "type": "encode",
+      "input": -9223372036854775808,
+      "expected_bytes": "7f0000000000000080"
+    },
+    {
+      "//": "0xded0d0d0dedadada",
+      "name": "spec_uint64_example",
+      "type": "encode",
+      "input": {"$number": "16064616592295173850"},
+      "expected_bytes": "77dadadaded0d0d0de"
+    },
+    {
+      "//": "Float16 (bfloat16) example from spec",
+      "name": "spec_float16",
+      "type": "encode",
+      "input": 1.125,
+      "expected_bytes": "6a903f"
+    },
+    {
+      "//": "Float32 example from spec (0x1.3f7p5 = 39.875)",
+      "name": "spec_float32",
+      "type": "encode",
+      "input": 39.875,
+      "expected_bytes": "6b00b81f42"
+    },
+    {
+      "//": "Float64 example from spec",
+      "name": "spec_float64",
+      "type": "encode",
+      "input": 1.234,
+      "expected_bytes": "6c5839b4c876bef33f"
+    },
+    {
+      "//": "BigNumber decoding: 1.5 = 1 * 15 * 10^-1",
+      "name": "spec_bignumber_1_5",
+      "type": "decode",
+      "input_bytes": "690aff0f",
+      "expected_value": {"$number": "1.5"}
+    },
+    {
+      "//": "BigNumber decoding: -0 = -1 * 0 * 10^0",
+      "name": "spec_bignumber_neg_zero",
+      "type": "decode",
+      "input_bytes": "6901",
+      "expected_value": {"$number": "-0"}
+    },
+    {
+      "//": "Array example from spec",
+      "name": "spec_array",
+      "type": "encode",
+      "input": ["a", 1, null],
+      "expected_bytes": "998161016d9b"
+    },
+    {
+      "//": "Object example from spec (roundtrip since key order is unspecified)",
+      "name": "spec_object",
+      "type": "roundtrip",
+      "input": {"b": 0, "test": "x"}
+    },
+    {
+      "//": "Boolean examples from spec",
+      "name": "spec_bool_false",
+      "type": "encode",
+      "input": false,
+      "expected_bytes": "6e"
+    },
+    {
+      "name": "spec_bool_true",
+      "type": "encode",
+      "input": true,
+      "expected_bytes": "6f"
+    },
+    {
+      "//": "Null example from spec",
+      "name": "spec_null",
+      "type": "encode",
+      "input": null,
+      "expected_bytes": "6d"
+    },
+    {
+      "//": "Full example from spec (roundtrip since key order is unspecified)",
+      "name": "spec_full_example",
+      "type": "roundtrip",
+      "input": {
+        "number": 50,
+        "null": null,
+        "boolean": true,
+        "array": ["x", 1000, -1.25],
+        "object": {
+          "negative number": -100,
+          "long string": "1234567890123456789012345678901234567890"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,353 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Error handling tests for invalid encodings and decode failures",
+  "tests": [
+    {
+      "//": "Truncated integer types - data ends before all bytes received",
+      "name": "truncated_uint8",
+      "type": "decode_error",
+      "input_bytes": "70",
+      "expected_error": "truncated"
+    },
+    {
+      "name": "truncated_uint16",
+      "type": "decode_error",
+      "input_bytes": "7102",
+      "expected_error": "truncated"
+    },
+    {
+      "name": "truncated_uint24",
+      "type": "decode_error",
+      "input_bytes": "720202",
+      "expected_error": "truncated"
+    },
+    {
+      "name": "truncated_uint32",
+      "type": "decode_error",
+      "input_bytes": "73020202",
+      "expected_error": "truncated"
+    },
+    {
+      "name": "truncated_uint40",
+      "type": "decode_error",
+      "input_bytes": "7402020202",
+      "expected_error": "truncated"
+    },
+    {
+      "name": "truncated_uint48",
+      "type": "decode_error",
+      "input_bytes": "750202020202",
+      "expected_error": "truncated"
+    },
+    {
+      "name": "truncated_uint56",
+      "type": "decode_error",
+      "input_bytes": "76020202020202",
+      "expected_error": "truncated"
+    },
+    {
+      "name": "truncated_uint64",
+      "type": "decode_error",
+      "input_bytes": "7702020202020202",
+      "expected_error": "truncated"
+    },
+    {
+      "name": "truncated_sint8",
+      "type": "decode_error",
+      "input_bytes": "78",
+      "expected_error": "truncated"
+    },
+    {
+      "name": "truncated_sint16",
+      "type": "decode_error",
+      "input_bytes": "7902",
+      "expected_error": "truncated"
+    },
+    {
+      "name": "truncated_sint24",
+      "type": "decode_error",
+      "input_bytes": "7a0202",
+      "expected_error": "truncated"
+    },
+    {
+      "name": "truncated_sint32",
+      "type": "decode_error",
+      "input_bytes": "7b020202",
+      "expected_error": "truncated"
+    },
+    {
+      "name": "truncated_sint40",
+      "type": "decode_error",
+      "input_bytes": "7c02020202",
+      "expected_error": "truncated"
+    },
+    {
+      "name": "truncated_sint48",
+      "type": "decode_error",
+      "input_bytes": "7d0202020202",
+      "expected_error": "truncated"
+    },
+    {
+      "name": "truncated_sint56",
+      "type": "decode_error",
+      "input_bytes": "7e020202020202",
+      "expected_error": "truncated"
+    },
+    {
+      "name": "truncated_sint64",
+      "type": "decode_error",
+      "input_bytes": "7f02020202020202",
+      "expected_error": "truncated"
+    },
+    {
+      "//": "Truncated float types",
+      "name": "truncated_float16",
+      "type": "decode_error",
+      "input_bytes": "6a00",
+      "expected_error": "truncated"
+    },
+    {
+      "name": "truncated_float32",
+      "type": "decode_error",
+      "input_bytes": "6b000000",
+      "expected_error": "truncated"
+    },
+    {
+      "name": "truncated_float64",
+      "type": "decode_error",
+      "input_bytes": "6c00000000000000",
+      "expected_error": "truncated"
+    },
+    {
+      "//": "Truncated BigNumber",
+      "name": "truncated_bignumber_1",
+      "type": "decode_error",
+      "input_bytes": "6908",
+      "expected_error": "truncated"
+    },
+    {
+      "name": "truncated_bignumber_2",
+      "type": "decode_error",
+      "input_bytes": "691000",
+      "expected_error": "truncated"
+    },
+    {
+      "name": "truncated_bignumber_3",
+      "type": "decode_error",
+      "input_bytes": "69180000",
+      "expected_error": "truncated"
+    },
+    {
+      "//": "Truncated short strings",
+      "name": "truncated_string1",
+      "type": "decode_error",
+      "input_bytes": "81",
+      "expected_error": "truncated"
+    },
+    {
+      "name": "truncated_string2",
+      "type": "decode_error",
+      "input_bytes": "8261",
+      "expected_error": "truncated"
+    },
+    {
+      "name": "truncated_string3",
+      "type": "decode_error",
+      "input_bytes": "836161",
+      "expected_error": "truncated"
+    },
+    {
+      "name": "truncated_string15",
+      "type": "decode_error",
+      "input_bytes": "8f6161616161616161616161616161",
+      "expected_error": "truncated"
+    },
+    {
+      "//": "Invalid (reserved) type codes",
+      "name": "invalid_type_code_65",
+      "type": "decode_error",
+      "input_bytes": "650000000000000000000000ff",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_66",
+      "type": "decode_error",
+      "input_bytes": "660000000000000000000000ff",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_67",
+      "type": "decode_error",
+      "input_bytes": "670000000000000000000000ff",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_90",
+      "type": "decode_error",
+      "input_bytes": "900000000000000000000000ff",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_91",
+      "type": "decode_error",
+      "input_bytes": "910000000000000000000000ff",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_92",
+      "type": "decode_error",
+      "input_bytes": "920000000000000000000000ff",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_93",
+      "type": "decode_error",
+      "input_bytes": "930000000000000000000000ff",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_94",
+      "type": "decode_error",
+      "input_bytes": "940000000000000000000000ff",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_95",
+      "type": "decode_error",
+      "input_bytes": "950000000000000000000000ff",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_96",
+      "type": "decode_error",
+      "input_bytes": "960000000000000000000000ff",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_97",
+      "type": "decode_error",
+      "input_bytes": "970000000000000000000000ff",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_98",
+      "type": "decode_error",
+      "input_bytes": "980000000000000000000000ff",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "//": "Unclosed container errors",
+      "name": "unclosed_object",
+      "type": "decode_error",
+      "input_bytes": "9a",
+      "expected_error": "unclosed_container"
+    },
+    {
+      "name": "unclosed_object_with_nested_object",
+      "type": "decode_error",
+      "input_bytes": "9a809a9b",
+      "expected_error": "unclosed_container"
+    },
+    {
+      "name": "unclosed_object_with_nested_array",
+      "type": "decode_error",
+      "input_bytes": "9a80999b",
+      "expected_error": "unclosed_container"
+    },
+    {
+      "name": "unclosed_array",
+      "type": "decode_error",
+      "input_bytes": "99",
+      "expected_error": "unclosed_container"
+    },
+    {
+      "name": "unclosed_array_with_nested_array",
+      "type": "decode_error",
+      "input_bytes": "99999b",
+      "expected_error": "unclosed_container"
+    },
+    {
+      "name": "unclosed_array_with_nested_object",
+      "type": "decode_error",
+      "input_bytes": "999a9b",
+      "expected_error": "unclosed_container"
+    },
+    {
+      "//": "NUL character in string (rejected by default)",
+      "name": "nul_in_string1",
+      "type": "decode_error",
+      "input_bytes": "8100",
+      "expected_error": "nul_character"
+    },
+    {
+      "name": "nul_in_string_middle",
+      "type": "decode_error",
+      "input_bytes": "826100",
+      "expected_error": "nul_character"
+    },
+    {
+      "name": "nul_in_string_start",
+      "type": "decode_error",
+      "input_bytes": "820061",
+      "expected_error": "nul_character"
+    },
+    {
+      "name": "nul_in_long_string",
+      "type": "decode_error",
+      "input_bytes": "68407468697320697320612073747200676e67",
+      "expected_error": "nul_character"
+    },
+    {
+      "//": "BigNumber NaN/Infinity (rejected by default)",
+      "name": "bignumber_nan_quiet",
+      "type": "decode_error",
+      "input_bytes": "690200000000000000000000",
+      "expected_error": "invalid_data"
+    },
+    {
+      "name": "bignumber_nan_signaling",
+      "type": "decode_error",
+      "input_bytes": "690300000000000000000000",
+      "expected_error": "invalid_data"
+    },
+    {
+      "name": "bignumber_infinity_positive",
+      "type": "decode_error",
+      "input_bytes": "690400000000000000000000",
+      "expected_error": "invalid_data"
+    },
+    {
+      "name": "bignumber_infinity_negative",
+      "type": "decode_error",
+      "input_bytes": "690500000000000000000000",
+      "expected_error": "invalid_data"
+    },
+    {
+      "//": "BigNumber significand too large (max 8 bytes)",
+      "name": "bignumber_significand_too_large",
+      "type": "decode_error",
+      "input_bytes": "6948000000000000000000",
+      "expected_error": "value_out_of_range"
+    },
+    {
+      "//": "Encoding errors - NaN and Infinity rejected by default",
+      "name": "encode_nan",
+      "type": "encode_error",
+      "input": {"$number": "NaN"},
+      "expected_error": "invalid_data"
+    },
+    {
+      "name": "encode_infinity",
+      "type": "encode_error",
+      "input": {"$number": "Infinity"},
+      "expected_error": "invalid_data"
+    },
+    {
+      "name": "encode_neg_infinity",
+      "type": "encode_error",
+      "input": {"$number": "-Infinity"},
+      "expected_error": "invalid_data"
+    }
+  ]
+}

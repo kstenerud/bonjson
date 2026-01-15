@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bonjson.org/tests/bonjson-test-config.schema.json",
+  "title": "BONJSON Test Configuration",
+  "description": "Schema for BONJSON test configuration files that specify test sources",
+  "type": "object",
+  "required": ["type", "version", "sources"],
+  "properties": {
+    "type": {
+      "type": "string",
+      "description": "Format identifier for this configuration file",
+      "const": "bonjson-test-config"
+    },
+    "version": {
+      "type": "string",
+      "description": "Configuration format version (full semver: MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD])",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$"
+    },
+    "sources": {
+      "type": "array",
+      "description": "Ordered array of test sources to load",
+      "items": {
+        "$ref": "#/$defs/source"
+      },
+      "minItems": 1
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "source": {
+      "type": "object",
+      "description": "A test source (file or directory). Keys starting with // are treated as comments.",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Relative path to a test file or directory"
+        },
+        "recursive": {
+          "type": "boolean",
+          "description": "Process subdirectories recursively (default: false)"
+        },
+        "skip": {
+          "type": "boolean",
+          "description": "Skip this source entirely (default: false)"
+        }
+      },
+      "patternProperties": {
+        "^//": {
+          "description": "Comment field (ignored by test runners)"
+        }
+      },
+      "required": ["path"],
+      "additionalProperties": false
+    }
+  }
+}

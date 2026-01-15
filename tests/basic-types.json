@@ -1,0 +1,86 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Basic type encoding tests for null, boolean, and simple values",
+  "tests": [
+    {
+      "//": "Null encodes to type code 0x6d",
+      "name": "null",
+      "type": "encode",
+      "input": null,
+      "expected_bytes": "6d"
+    },
+    {
+      "//": "True encodes to type code 0x6f",
+      "name": "bool_true",
+      "type": "encode",
+      "input": true,
+      "expected_bytes": "6f"
+    },
+    {
+      "//": "False encodes to type code 0x6e",
+      "name": "bool_false",
+      "type": "encode",
+      "input": false,
+      "expected_bytes": "6e"
+    },
+    {
+      "//": "Empty array encodes to start (0x99) + end (0x9b)",
+      "name": "empty_array",
+      "type": "encode",
+      "input": [],
+      "expected_bytes": "999b"
+    },
+    {
+      "//": "Empty object encodes to start (0x9a) + end (0x9b)",
+      "name": "empty_object",
+      "type": "encode",
+      "input": {},
+      "expected_bytes": "9a9b"
+    },
+    {
+      "//": "Simple array with mixed types",
+      "name": "array_mixed",
+      "type": "encode",
+      "input": [1, "x", null],
+      "expected_bytes": "99018178016d9b"
+    },
+    {
+      "//": "Simple object with key-value pairs",
+      "name": "object_simple",
+      "type": "encode",
+      "input": {"b": 0, "test": "x"},
+      "expected_bytes": "9a8162008474657374817809b"
+    },
+    {
+      "//": "Null round-trips correctly",
+      "name": "roundtrip_null",
+      "type": "roundtrip",
+      "input": null
+    },
+    {
+      "//": "Boolean true round-trips correctly",
+      "name": "roundtrip_bool_true",
+      "type": "roundtrip",
+      "input": true
+    },
+    {
+      "//": "Boolean false round-trips correctly",
+      "name": "roundtrip_bool_false",
+      "type": "roundtrip",
+      "input": false
+    },
+    {
+      "//": "Empty array round-trips correctly",
+      "name": "roundtrip_empty_array",
+      "type": "roundtrip",
+      "input": []
+    },
+    {
+      "//": "Empty object round-trips correctly",
+      "name": "roundtrip_empty_object",
+      "type": "roundtrip",
+      "input": {}
+    }
+  ]
+}

@@ -1,0 +1,388 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Integer encoding tests covering all size variants",
+  "tests": [
+    {
+      "//": "Small integers (0-100) encode directly as their value",
+      "name": "smallint_0",
+      "type": "encode",
+      "input": 0,
+      "expected_bytes": "00"
+    },
+    {
+      "name": "smallint_1",
+      "type": "encode",
+      "input": 1,
+      "expected_bytes": "01"
+    },
+    {
+      "name": "smallint_5",
+      "type": "encode",
+      "input": 5,
+      "expected_bytes": "05"
+    },
+    {
+      "name": "smallint_10",
+      "type": "encode",
+      "input": 10,
+      "expected_bytes": "0a"
+    },
+    {
+      "name": "smallint_100",
+      "type": "encode",
+      "input": 100,
+      "expected_bytes": "64"
+    },
+    {
+      "//": "Small negative integers (-100 to -1) encode as 0x9c to 0xff",
+      "name": "smallint_neg1",
+      "type": "encode",
+      "input": -1,
+      "expected_bytes": "ff"
+    },
+    {
+      "name": "smallint_neg60",
+      "type": "encode",
+      "input": -60,
+      "expected_bytes": "c4"
+    },
+    {
+      "name": "smallint_neg100",
+      "type": "encode",
+      "input": -100,
+      "expected_bytes": "9c"
+    },
+    {
+      "//": "Signed int8 (101-127, -101 to -128) uses type code 0x78",
+      "name": "sint8_101",
+      "type": "encode",
+      "input": 101,
+      "expected_bytes": "7865"
+    },
+    {
+      "name": "sint8_122",
+      "type": "encode",
+      "input": 122,
+      "expected_bytes": "787a"
+    },
+    {
+      "name": "sint8_126",
+      "type": "encode",
+      "input": 126,
+      "expected_bytes": "787e"
+    },
+    {
+      "name": "sint8_127",
+      "type": "encode",
+      "input": 127,
+      "expected_bytes": "787f"
+    },
+    {
+      "name": "sint8_neg101",
+      "type": "encode",
+      "input": -101,
+      "expected_bytes": "789b"
+    },
+    {
+      "name": "sint8_neg121",
+      "type": "encode",
+      "input": -121,
+      "expected_bytes": "7887"
+    },
+    {
+      "name": "sint8_neg127",
+      "type": "encode",
+      "input": -127,
+      "expected_bytes": "7881"
+    },
+    {
+      "name": "sint8_neg128",
+      "type": "encode",
+      "input": -128,
+      "expected_bytes": "7880"
+    },
+    {
+      "//": "Unsigned int8 (128-255) uses type code 0x70",
+      "name": "uint8_128",
+      "type": "encode",
+      "input": 128,
+      "expected_bytes": "7080"
+    },
+    {
+      "name": "uint8_180",
+      "type": "encode",
+      "input": 180,
+      "expected_bytes": "70b4"
+    },
+    {
+      "name": "uint8_200",
+      "type": "encode",
+      "input": 200,
+      "expected_bytes": "70c8"
+    },
+    {
+      "name": "uint8_255",
+      "type": "encode",
+      "input": 255,
+      "expected_bytes": "70ff"
+    },
+    {
+      "//": "Signed int16 uses type code 0x79 (little-endian)",
+      "name": "sint16_1000",
+      "type": "encode",
+      "input": 1000,
+      "expected_bytes": "79e803"
+    },
+    {
+      "name": "sint16_256",
+      "type": "encode",
+      "input": 256,
+      "expected_bytes": "790001"
+    },
+    {
+      "name": "sint16_32767",
+      "type": "encode",
+      "input": 32767,
+      "expected_bytes": "79ff7f"
+    },
+    {
+      "name": "sint16_neg1000",
+      "type": "encode",
+      "input": -1000,
+      "expected_bytes": "7918fc"
+    },
+    {
+      "name": "sint16_neg32768",
+      "type": "encode",
+      "input": -32768,
+      "expected_bytes": "790080"
+    },
+    {
+      "//": "Unsigned int16 uses type code 0x71",
+      "name": "uint16_32768",
+      "type": "encode",
+      "input": 32768,
+      "expected_bytes": "710080"
+    },
+    {
+      "name": "uint16_65535",
+      "type": "encode",
+      "input": 65535,
+      "expected_bytes": "71ffff"
+    },
+    {
+      "//": "Signed int24 uses type code 0x7a",
+      "name": "sint24_65536",
+      "type": "encode",
+      "input": 65536,
+      "expected_bytes": "7a000001"
+    },
+    {
+      "name": "sint24_8388607",
+      "type": "encode",
+      "input": 8388607,
+      "expected_bytes": "7affff7f"
+    },
+    {
+      "//": "Unsigned int24 uses type code 0x72",
+      "name": "uint24_8388608",
+      "type": "encode",
+      "input": 8388608,
+      "expected_bytes": "72000080"
+    },
+    {
+      "name": "uint24_16777215",
+      "type": "encode",
+      "input": 16777215,
+      "expected_bytes": "72ffffff"
+    },
+    {
+      "//": "Signed int32 uses type code 0x7b",
+      "name": "sint32_16777216",
+      "type": "encode",
+      "input": 16777216,
+      "expected_bytes": "7b00000001"
+    },
+    {
+      "name": "sint32_2147483647",
+      "type": "encode",
+      "input": 2147483647,
+      "expected_bytes": "7bffffff7f"
+    },
+    {
+      "//": "Unsigned int32 uses type code 0x73",
+      "name": "uint32_2147483648",
+      "type": "encode",
+      "input": 2147483648,
+      "expected_bytes": "7300000080"
+    },
+    {
+      "name": "uint32_4294967295",
+      "type": "encode",
+      "input": 4294967295,
+      "expected_bytes": "73ffffffff"
+    },
+    {
+      "//": "Signed int40 uses type code 0x7c",
+      "name": "sint40_4294967296",
+      "type": "encode",
+      "input": 4294967296,
+      "expected_bytes": "7c0000000001"
+    },
+    {
+      "name": "sint40_549755813887",
+      "type": "encode",
+      "input": 549755813887,
+      "expected_bytes": "7cffffffff7f"
+    },
+    {
+      "//": "Unsigned int40 uses type code 0x74",
+      "name": "uint40_549755813888",
+      "type": "encode",
+      "input": 549755813888,
+      "expected_bytes": "740000000080"
+    },
+    {
+      "name": "uint40_1099511627775",
+      "type": "encode",
+      "input": 1099511627775,
+      "expected_bytes": "74ffffffffff"
+    },
+    {
+      "//": "Signed int48 uses type code 0x7d",
+      "name": "sint48_1099511627776",
+      "type": "encode",
+      "input": 1099511627776,
+      "expected_bytes": "7d000000000001"
+    },
+    {
+      "//": "Example from spec: 0x123456789abc",
+      "name": "sint48_20015998343868",
+      "type": "encode",
+      "input": 20015998343868,
+      "expected_bytes": "7dbc9a78563412"
+    },
+    {
+      "//": "Unsigned int48 uses type code 0x75",
+      "name": "uint48_140737488355328",
+      "type": "encode",
+      "input": 140737488355328,
+      "expected_bytes": "75000000000080"
+    },
+    {
+      "//": "Signed int56 uses type code 0x7e",
+      "name": "sint56_281474976710656",
+      "type": "encode",
+      "input": 281474976710656,
+      "expected_bytes": "7e00000000000001"
+    },
+    {
+      "//": "Unsigned int56 uses type code 0x76",
+      "name": "uint56_36028797018963968",
+      "type": "encode",
+      "input": 36028797018963968,
+      "expected_bytes": "7600000000000080"
+    },
+    {
+      "//": "Signed int64 uses type code 0x7f",
+      "name": "sint64_72057594037927936",
+      "type": "encode",
+      "input": 72057594037927936,
+      "expected_bytes": "7f0000000000000001"
+    },
+    {
+      "name": "sint64_max",
+      "type": "encode",
+      "input": 9223372036854775807,
+      "expected_bytes": "7fffffffffffffff7f"
+    },
+    {
+      "name": "sint64_min",
+      "type": "encode",
+      "input": -9223372036854775808,
+      "expected_bytes": "7f0000000000000080"
+    },
+    {
+      "//": "Unsigned int64 uses type code 0x77 (values > INT64_MAX)",
+      "name": "uint64_9223372036854775808",
+      "type": "encode",
+      "input": {"$number": "9223372036854775808"},
+      "expected_bytes": "770000000000000080"
+    },
+    {
+      "//": "Example from spec: 0xded0d0d0dedadada",
+      "name": "uint64_example",
+      "type": "encode",
+      "input": {"$number": "16064616592295173850"},
+      "expected_bytes": "77dadadaded0d0d0de"
+    },
+    {
+      "name": "uint64_max",
+      "type": "encode",
+      "input": {"$number": "18446744073709551615"},
+      "expected_bytes": "77ffffffffffffffff"
+    },
+    {
+      "//": "Decode tests - verify various encodings decode correctly",
+      "name": "decode_smallint_50_direct",
+      "type": "decode",
+      "input_bytes": "32",
+      "expected_value": 50
+    },
+    {
+      "//": "Small int encoded as sint8 should decode to same value",
+      "name": "decode_50_as_sint8",
+      "type": "decode",
+      "input_bytes": "7832",
+      "expected_value": 50
+    },
+    {
+      "//": "Small int encoded as uint8 should decode to same value",
+      "name": "decode_50_as_uint8",
+      "type": "decode",
+      "input_bytes": "7032",
+      "expected_value": 50
+    },
+    {
+      "//": "Small int encoded as sint16 should decode to same value",
+      "name": "decode_50_as_sint16",
+      "type": "decode",
+      "input_bytes": "793200",
+      "expected_value": 50
+    },
+    {
+      "//": "120 encoded as uint16 should decode correctly",
+      "name": "decode_120_as_uint16",
+      "type": "decode",
+      "input_bytes": "717800",
+      "expected_value": 120
+    },
+    {
+      "//": "Round-trip tests for integer boundaries",
+      "name": "roundtrip_int_0",
+      "type": "roundtrip",
+      "input": 0
+    },
+    {
+      "name": "roundtrip_int_100",
+      "type": "roundtrip",
+      "input": 100
+    },
+    {
+      "name": "roundtrip_int_neg100",
+      "type": "roundtrip",
+      "input": -100
+    },
+    {
+      "name": "roundtrip_int_1000",
+      "type": "roundtrip",
+      "input": 1000
+    },
+    {
+      "name": "roundtrip_int_max_safe",
+      "type": "roundtrip",
+      "input": 9007199254740991
+    }
+  ]
+}

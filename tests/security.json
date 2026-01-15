@@ -1,0 +1,172 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Security-related tests for handling malicious or malformed input",
+  "tests": [
+    {
+      "//": "Duplicate key detection - exact duplicate",
+      "name": "duplicate_key_simple",
+      "type": "decode_error",
+      "input_bytes": "9a8161016161029b",
+      "expected_error": "duplicate_key"
+    },
+    {
+      "//": "Duplicate key with longer key name",
+      "name": "duplicate_key_longer",
+      "type": "decode_error",
+      "input_bytes": "9a834142430183414243029b",
+      "expected_error": "duplicate_key"
+    },
+    {
+      "//": "Invalid UTF-8 sequences in strings",
+      "name": "invalid_utf8_continuation_without_start",
+      "type": "decode_error",
+      "input_bytes": "680480",
+      "expected_error": "invalid_utf8"
+    },
+    {
+      "//": "Incomplete 2-byte UTF-8 sequence",
+      "name": "invalid_utf8_incomplete_2byte",
+      "type": "decode_error",
+      "input_bytes": "6804c0",
+      "expected_error": "invalid_utf8"
+    },
+    {
+      "//": "Incomplete 3-byte UTF-8 sequence",
+      "name": "invalid_utf8_incomplete_3byte",
+      "type": "decode_error",
+      "input_bytes": "6808e080",
+      "expected_error": "invalid_utf8"
+    },
+    {
+      "//": "Incomplete 4-byte UTF-8 sequence",
+      "name": "invalid_utf8_incomplete_4byte",
+      "type": "decode_error",
+      "input_bytes": "680cf08080",
+      "expected_error": "invalid_utf8"
+    },
+    {
+      "//": "Overlong UTF-8 encoding of NUL",
+      "name": "invalid_utf8_overlong_nul",
+      "type": "decode_error",
+      "input_bytes": "6808c080",
+      "expected_error": "invalid_utf8"
+    },
+    {
+      "//": "Overlong 3-byte UTF-8 encoding",
+      "name": "invalid_utf8_overlong_3byte",
+      "type": "decode_error",
+      "input_bytes": "680ce08080",
+      "expected_error": "invalid_utf8"
+    },
+    {
+      "//": "UTF-16 surrogate (invalid in UTF-8)",
+      "name": "invalid_utf8_surrogate",
+      "type": "decode_error",
+      "input_bytes": "680ceda080",
+      "expected_error": "invalid_utf8"
+    },
+    {
+      "//": "Codepoint above U+10FFFF",
+      "name": "invalid_utf8_above_max",
+      "type": "decode_error",
+      "input_bytes": "6810f4908080",
+      "expected_error": "invalid_utf8"
+    },
+    {
+      "//": "Empty chunk with continuation bit set - invalid (potential DoS)",
+      "name": "empty_chunk_with_continuation",
+      "type": "decode_error",
+      "input_bytes": "6802",
+      "expected_error": "empty_chunk_continuation"
+    },
+    {
+      "//": "Empty chunk without continuation is valid (empty long string)",
+      "name": "empty_chunk_without_continuation",
+      "type": "decode",
+      "input_bytes": "6800",
+      "expected_value": ""
+    },
+    {
+      "//": "Valid string chunking round-trip",
+      "name": "roundtrip_valid_chunked_string",
+      "type": "roundtrip",
+      "input": "this is a test string that might get chunked"
+    },
+    {
+      "//": "Small integer boundary tests - verify encoding size",
+      "name": "boundary_neg101_uses_2_bytes",
+      "type": "encode",
+      "input": -101,
+      "expected_bytes": "789b"
+    },
+    {
+      "//": "-100 uses single byte (small integer)",
+      "name": "boundary_neg100_uses_1_byte",
+      "type": "encode",
+      "input": -100,
+      "expected_bytes": "9c"
+    },
+    {
+      "//": "100 uses single byte (small integer)",
+      "name": "boundary_100_uses_1_byte",
+      "type": "encode",
+      "input": 100,
+      "expected_bytes": "64"
+    },
+    {
+      "//": "101 uses 2 bytes (sint8)",
+      "name": "boundary_101_uses_2_bytes",
+      "type": "encode",
+      "input": 101,
+      "expected_bytes": "7865"
+    },
+    {
+      "//": "Short string boundary tests",
+      "name": "boundary_string_15_uses_short_encoding",
+      "type": "encode",
+      "input": "123456789012345",
+      "expected_bytes": "8f313233343536373839303132333435"
+    },
+    {
+      "//": "16-byte string uses long encoding",
+      "name": "boundary_string_16_uses_long_encoding",
+      "type": "encode",
+      "input": "1234567890123456",
+      "expected_bytes": "684031323334353637383930313233343536"
+    },
+    {
+      "//": "Unicode strings should round-trip correctly",
+      "name": "roundtrip_unicode_cjk",
+      "type": "roundtrip",
+      "input": "\u65e5\u672c\u8a9e\u30c6\u30b9\u30c8"
+    },
+    {
+      "name": "roundtrip_unicode_emoji",
+      "type": "roundtrip",
+      "input": "\ud83d\ude00\ud83c\udf89\ud83c\udf0d"
+    },
+    {
+      "//": "Deep nesting round-trip (within reasonable limits)",
+      "name": "roundtrip_deep_array_nesting",
+      "type": "roundtrip",
+      "input": [[[[[[[[[[1]]]]]]]]]]
+    },
+    {
+      "name": "roundtrip_deep_object_nesting",
+      "type": "roundtrip",
+      "input": {"a": {"b": {"c": {"d": {"e": {"f": {"g": {"h": {"i": {"j": 1}}}}}}}}}}
+    },
+    {
+      "//": "Large but valid structures",
+      "name": "roundtrip_array_many_elements",
+      "type": "roundtrip",
+      "input": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    },
+    {
+      "name": "roundtrip_object_many_keys",
+      "type": "roundtrip",
+      "input": {"a": 1, "b": 2, "c": 3, "d": 4, "e": 5, "f": 6, "g": 7, "h": 8, "i": 9, "j": 10}
+    }
+  ]
+}

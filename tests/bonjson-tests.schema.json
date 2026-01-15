@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bonjson.org/tests/bonjson-tests.schema.json",
+  "title": "BONJSON Test Specification",
+  "description": "Schema for BONJSON cross-implementation test specifications",
+  "type": "object",
+  "required": ["type", "version", "tests"],
+  "properties": {
+    "type": {
+      "type": "string",
+      "description": "Format identifier for this test specification",
+      "const": "bonjson-test"
+    },
+    "version": {
+      "type": "string",
+      "description": "Test specification version (full semver: MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD])",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$"
+    },
+    "tests": {
+      "type": "array",
+      "description": "Array of test cases",
+      "items": {
+        "$ref": "#/$defs/testCase"
+      }
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "testCase": {
+      "type": "object",
+      "required": ["name", "type"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Unique identifier for the test case (compared case-insensitively for duplicates)",
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$"
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of test to perform",
+          "enum": [
+            "encode",
+            "decode",
+            "roundtrip",
+            "encode_error",
+            "decode_error"
+          ]
+        },
+        "input": {
+          "description": "Input value for encode/roundtrip tests. Can be any JSON value or a special marker object."
+        },
+        "input_bytes": {
+          "type": "string",
+          "description": "Input bytes for decode/decode_error tests (hex string, spaces allowed)",
+          "pattern": "^[0-9a-fA-F ]*$"
+        },
+        "expected_bytes": {
+          "type": "string",
+          "description": "Expected output bytes for encode tests (hex string, spaces allowed)",
+          "pattern": "^[0-9a-fA-F ]*$"
+        },
+        "expected_value": {
+          "description": "Expected output value for decode tests. Can be any JSON value or a special marker object."
+        },
+        "expected_error": {
+          "type": "string",
+          "description": "Expected error type for error tests",
+          "enum": [
+            "truncated",
+            "trailing_bytes",
+            "invalid_type_code",
+            "invalid_utf8",
+            "nul_character",
+            "duplicate_key",
+            "unclosed_container",
+            "invalid_data",
+            "value_out_of_range",
+            "too_many_chunks",
+            "empty_chunk_continuation",
+            "max_depth_exceeded",
+            "max_string_length_exceeded"
+          ]
+        },
+        "options": {
+          "type": "object",
+          "description": "Optional test configuration",
+          "properties": {
+            "allow_nul": {
+              "type": "boolean",
+              "description": "Allow NUL characters in strings"
+            },
+            "allow_nan_infinity": {
+              "type": "boolean",
+              "description": "Allow NaN and Infinity values"
+            },
+            "allow_trailing_bytes": {
+              "type": "boolean",
+              "description": "Allow unconsumed bytes after decoding (default: false)"
+            },
+            "max_depth": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Maximum container nesting depth (non-negative)"
+            },
+            "max_string_length": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Maximum string length (non-negative)"
+            },
+            "max_chunks": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Maximum number of string chunks (non-negative)"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "type": { "const": "encode" } }
+          },
+          "then": {
+            "required": ["input", "expected_bytes"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "type": { "const": "decode" } }
+          },
+          "then": {
+            "required": ["input_bytes", "expected_value"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "type": { "const": "roundtrip" } }
+          },
+          "then": {
+            "required": ["input"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "type": { "const": "encode_error" } }
+          },
+          "then": {
+            "required": ["input", "expected_error"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "type": { "const": "decode_error" } }
+          },
+          "then": {
+            "required": ["input_bytes", "expected_error"]
+          }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "specialValue": {
+      "type": "object",
+      "description": "Special value marker for numeric values that cannot be safely represented in JSON",
+      "properties": {
+        "$number": {
+          "type": "string",
+          "description": "Numeric value as string (case-insensitive): NaN, Infinity, -Infinity, hex float (0x...p...), or decimal"
+        }
+      },
+      "required": ["$number"],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,162 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Container (array and object) encoding tests",
+  "tests": [
+    {
+      "//": "Array with different value types",
+      "name": "array_with_string_int_null",
+      "type": "encode",
+      "input": ["a", 1, null],
+      "expected_bytes": "998161016d9b"
+    },
+    {
+      "//": "Nested empty arrays",
+      "name": "array_nested_empty",
+      "type": "encode",
+      "input": [[]],
+      "expected_bytes": "99999b9b"
+    },
+    {
+      "//": "Array with nested object",
+      "name": "array_with_object",
+      "type": "encode",
+      "input": [{"a": 1}],
+      "expected_bytes": "999a8161019b9b"
+    },
+    {
+      "//": "Object with integer value",
+      "name": "object_with_int",
+      "type": "encode",
+      "input": {"a": 1},
+      "expected_bytes": "9a8161019b"
+    },
+    {
+      "//": "Object with negative small int value",
+      "name": "object_with_neg_int",
+      "type": "encode",
+      "input": {"a": -1},
+      "expected_bytes": "9a8161ff9b"
+    },
+    {
+      "//": "Object with larger int value (requires int16)",
+      "name": "object_with_int16",
+      "type": "encode",
+      "input": {"a": 1000},
+      "expected_bytes": "9a816179e8039b"
+    },
+    {
+      "//": "Object with int64 value",
+      "name": "object_with_int64",
+      "type": "encode",
+      "input": {"a": 1152921504606846976},
+      "expected_bytes": "9a81617f00000000000000109b"
+    },
+    {
+      "//": "Object with negative int64 value",
+      "name": "object_with_neg_int64",
+      "type": "encode",
+      "input": {"a": -1152921504606846976},
+      "expected_bytes": "9a81617f00000000000000f09b"
+    },
+    {
+      "//": "Object with float16 value",
+      "name": "object_with_float16",
+      "type": "encode",
+      "input": {"a": 1.25},
+      "expected_bytes": "9a81616aa03f9b"
+    },
+    {
+      "//": "Object with float64 value",
+      "name": "object_with_float64",
+      "type": "encode",
+      "input": {"a": -5.923441e-50},
+      "expected_bytes": "9a81616c353cce818729b6b59b"
+    },
+    {
+      "//": "Object with string value",
+      "name": "object_with_string",
+      "type": "encode",
+      "input": {"a": "b"},
+      "expected_bytes": "9a816181629b"
+    },
+    {
+      "//": "Object with boolean false value",
+      "name": "object_with_false",
+      "type": "encode",
+      "input": {"a": false},
+      "expected_bytes": "9a81616e9b"
+    },
+    {
+      "//": "Object with null value",
+      "name": "object_with_null",
+      "type": "encode",
+      "input": {"a": null},
+      "expected_bytes": "9a81616d9b"
+    },
+    {
+      "//": "Object with nested empty object value",
+      "name": "object_with_nested_object",
+      "type": "encode",
+      "input": {"a": {}},
+      "expected_bytes": "9a81619a9b9b"
+    },
+    {
+      "//": "Object with nested empty array value",
+      "name": "object_with_nested_array",
+      "type": "encode",
+      "input": {"a": []},
+      "expected_bytes": "9a8161999b9b"
+    },
+    {
+      "//": "Array with multiple element types",
+      "name": "array_varied_elements",
+      "type": "encode",
+      "input": ["a", -1, "z"],
+      "expected_bytes": "998161ff817a9b"
+    },
+    {
+      "//": "Array with larger integers",
+      "name": "array_with_int16",
+      "type": "encode",
+      "input": ["a", 1000, "z"],
+      "expected_bytes": "99816179e803817a9b"
+    },
+    {
+      "//": "Complex nested structure (roundtrip since key order is unspecified)",
+      "name": "complex_nested_structure",
+      "type": "roundtrip",
+      "input": {
+        "number": 50,
+        "null": null,
+        "boolean": true,
+        "array": ["x", 1000, -1.25],
+        "object": {
+          "negative number": -100,
+          "long string": "1234567890123456789012345678901234567890"
+        }
+      }
+    },
+    {
+      "//": "Round-trip tests",
+      "name": "roundtrip_nested_arrays",
+      "type": "roundtrip",
+      "input": [[1, 2], [3, 4]]
+    },
+    {
+      "name": "roundtrip_nested_objects",
+      "type": "roundtrip",
+      "input": {"outer": {"inner": 42}}
+    },
+    {
+      "name": "roundtrip_mixed_nesting",
+      "type": "roundtrip",
+      "input": {"array": [1, {"nested": true}], "value": null}
+    },
+    {
+      "name": "roundtrip_deep_nesting",
+      "type": "roundtrip",
+      "input": {"a": {"b": {"c": {"d": {"e": 5}}}}}
+    }
+  ]
+}
