@@ -346,8 +346,10 @@ The `options` field is an optional JSON object that configures encoder/decoder b
 | `allow_nan_infinity`   | boolean | Allow NaN and Infinity values                          |
 | `allow_trailing_bytes` | boolean | Allow unconsumed bytes after decoding (default: false) |
 | `max_depth`            | integer | Maximum container nesting depth (non-negative)         |
+| `max_container_size`   | integer | Maximum elements in a container (non-negative)         |
 | `max_string_length`    | integer | Maximum string length in bytes (non-negative)          |
 | `max_chunks`           | integer | Maximum string chunks (non-negative)                   |
+| `max_document_size`    | integer | Maximum document size in bytes (non-negative)          |
 
 Option values **MUST** have the correct JSON type (boolean for boolean options, integer for integer options). Null is not a valid option value. An option with the wrong type (e.g., `"allow_nul": "true"` or `"allow_nul": null`) is a **STRUCTURAL ERROR**. Integer options **MUST** be non-negative; negative values are a **STRUCTURAL ERROR**.
 
@@ -469,21 +471,24 @@ Error Types
 
 The `expected_error` field uses standardized error type identifiers:
 
-| Error Type                   | Description                                |
-|------------------------------|--------------------------------------------|
-| `truncated`                  | Unexpected end of input data               |
-| `trailing_bytes`             | Unconsumed bytes after decoding            |
-| `invalid_type_code`          | Unrecognized or reserved type code         |
-| `invalid_utf8`               | Invalid UTF-8 byte sequence                |
-| `nul_character`              | NUL (0x00) byte in string                  |
-| `duplicate_key`              | Duplicate key in object                    |
-| `unclosed_container`         | Missing container end marker               |
-| `invalid_data`               | Generic invalid data (e.g., BigNumber NaN) |
-| `value_out_of_range`         | Value exceeds allowed range                |
-| `too_many_chunks`            | String exceeds chunk count limit           |
-| `empty_chunk_continuation`   | Zero-length chunk with continuation bit    |
-| `max_depth_exceeded`         | Container nesting too deep                 |
-| `max_string_length_exceeded` | String exceeds length limit                |
+| Error Type                      | Description                                |
+|---------------------------------|--------------------------------------------|
+| `truncated`                     | Unexpected end of input data               |
+| `trailing_bytes`                | Unconsumed bytes after decoding            |
+| `invalid_type_code`             | Unrecognized or reserved type code         |
+| `invalid_utf8`                  | Invalid UTF-8 byte sequence                |
+| `nul_character`                 | NUL (0x00) byte in string                  |
+| `duplicate_key`                 | Duplicate key in object                    |
+| `unclosed_container`            | Missing container end marker               |
+| `invalid_data`                  | Generic invalid data (e.g., BigNumber NaN) |
+| `value_out_of_range`            | Value exceeds allowed range                |
+| `non_canonical_length`          | Non-canonical (oversized) length encoding  |
+| `too_many_chunks`               | String exceeds chunk count limit           |
+| `empty_chunk_continuation`      | Zero-length chunk with continuation bit    |
+| `max_depth_exceeded`            | Container nesting too deep                 |
+| `max_string_length_exceeded`    | String exceeds length limit                |
+| `max_container_size_exceeded`   | Container has too many elements            |
+| `max_document_size_exceeded`    | Document exceeds size limit                |
 
 Implementations **MUST** map errors from their library to these standardized identifiers for test matching. If an implementation cannot distinguish between error types, it **MAY** treat any error as a successful match for error tests (verifying only that an error occurred, not its specific type).
 

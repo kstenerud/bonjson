@@ -167,6 +167,157 @@
       "name": "roundtrip_object_many_keys",
       "type": "roundtrip",
       "input": {"a": 1, "b": 2, "c": 3, "d": 4, "e": 5, "f": 6, "g": 7, "h": 8, "i": 9, "j": 10}
+    },
+    {
+      "//": "Trailing bytes - rejected by default",
+      "name": "trailing_bytes_after_integer",
+      "type": "decode_error",
+      "input_bytes": "00 ff",
+      "expected_error": "trailing_bytes"
+    },
+    {
+      "name": "trailing_bytes_after_string",
+      "type": "decode_error",
+      "input_bytes": "81 61 00",
+      "expected_error": "trailing_bytes"
+    },
+    {
+      "name": "trailing_bytes_after_object",
+      "type": "decode_error",
+      "input_bytes": "9a 9b ff",
+      "expected_error": "trailing_bytes"
+    },
+    {
+      "//": "Trailing bytes - allowed with option",
+      "name": "trailing_bytes_allowed",
+      "type": "decode",
+      "input_bytes": "00 ff ff ff",
+      "expected_value": 0,
+      "options": {"allow_trailing_bytes": true}
+    },
+    {
+      "//": "Non-canonical length encoding - length 0 encoded as 2 bytes instead of 1",
+      "name": "non_canonical_length_zero",
+      "type": "decode_error",
+      "input_bytes": "68 01 00",
+      "expected_error": "non_canonical_length"
+    },
+    {
+      "//": "Non-canonical length - small value encoded with extra bytes",
+      "name": "non_canonical_length_small_value",
+      "type": "decode_error",
+      "input_bytes": "68 05 00 00",
+      "expected_error": "non_canonical_length"
+    },
+    {
+      "//": "Maximum nesting depth exceeded",
+      "name": "max_depth_exceeded_arrays",
+      "type": "decode_error",
+      "input_bytes": "99 99 99 99 99 99 00 9b 9b 9b 9b 9b 9b",
+      "expected_error": "max_depth_exceeded",
+      "options": {"max_depth": 5}
+    },
+    {
+      "name": "max_depth_exceeded_objects",
+      "type": "decode_error",
+      "input_bytes": "9a 80 9a 80 9a 80 9a 80 9a 80 9a 80 00 9b 9b 9b 9b 9b 9b",
+      "expected_error": "max_depth_exceeded",
+      "options": {"max_depth": 5}
+    },
+    {
+      "//": "At the limit is OK (depth 5 means 5 nested containers allowed)",
+      "name": "max_depth_at_limit",
+      "type": "decode",
+      "input_bytes": "99 99 99 99 99 00 9b 9b 9b 9b 9b",
+      "expected_value": [[[[[0]]]]],
+      "options": {"max_depth": 5}
+    },
+    {
+      "//": "Maximum string length exceeded",
+      "name": "max_string_length_exceeded_short",
+      "type": "decode_error",
+      "input_bytes": "8b 68 65 6c 6c 6f 20 77 6f 72 6c 64",
+      "expected_error": "max_string_length_exceeded",
+      "options": {"max_string_length": 10}
+    },
+    {
+      "name": "max_string_length_exceeded_long",
+      "type": "decode_error",
+      "input_bytes": "68 2c 68 65 6c 6c 6f 20 77 6f 72 6c 64",
+      "expected_error": "max_string_length_exceeded",
+      "options": {"max_string_length": 10}
+    },
+    {
+      "//": "At the limit is OK",
+      "name": "max_string_length_at_limit",
+      "type": "decode",
+      "input_bytes": "8a 68 65 6c 6c 6f 77 6f 72 6c 64",
+      "expected_value": "helloworld",
+      "options": {"max_string_length": 10}
+    },
+    {
+      "//": "Too many chunks",
+      "name": "too_many_chunks",
+      "type": "decode_error",
+      "input_bytes": "68 06 61 06 62 06 63 06 64 04 65",
+      "expected_error": "too_many_chunks",
+      "options": {"max_chunks": 4}
+    },
+    {
+      "//": "At the limit is OK",
+      "name": "chunks_at_limit",
+      "type": "decode",
+      "input_bytes": "68 06 61 06 62 06 63 04 64",
+      "expected_value": "abcd",
+      "options": {"max_chunks": 4}
+    },
+    {
+      "//": "Maximum container size exceeded - array",
+      "name": "max_container_size_exceeded_array",
+      "type": "decode_error",
+      "input_bytes": "99 00 01 02 03 04 05 9b",
+      "expected_error": "max_container_size_exceeded",
+      "options": {"max_container_size": 5}
+    },
+    {
+      "//": "Maximum container size exceeded - object (each key-value pair counts as 1)",
+      "name": "max_container_size_exceeded_object",
+      "type": "decode_error",
+      "input_bytes": "9a 81 61 00 81 62 01 81 63 02 81 64 03 81 65 04 81 66 05 9b",
+      "expected_error": "max_container_size_exceeded",
+      "options": {"max_container_size": 5}
+    },
+    {
+      "//": "At the limit is OK - array",
+      "name": "container_size_at_limit_array",
+      "type": "decode",
+      "input_bytes": "99 00 01 02 03 04 9b",
+      "expected_value": [0, 1, 2, 3, 4],
+      "options": {"max_container_size": 5}
+    },
+    {
+      "//": "At the limit is OK - object",
+      "name": "container_size_at_limit_object",
+      "type": "decode",
+      "input_bytes": "9a 81 61 00 81 62 01 81 63 02 81 64 03 81 65 04 9b",
+      "expected_value": {"a": 0, "b": 1, "c": 2, "d": 3, "e": 4},
+      "options": {"max_container_size": 5}
+    },
+    {
+      "//": "Maximum document size exceeded",
+      "name": "max_document_size_exceeded",
+      "type": "decode_error",
+      "input_bytes": "99 00 01 02 03 04 05 06 07 08 09 9b",
+      "expected_error": "max_document_size_exceeded",
+      "options": {"max_document_size": 10}
+    },
+    {
+      "//": "At the limit is OK",
+      "name": "document_size_at_limit",
+      "type": "decode",
+      "input_bytes": "99 00 01 02 03 9b",
+      "expected_value": [0, 1, 2, 3],
+      "options": {"max_document_size": 6}
     }
   ]
 }
