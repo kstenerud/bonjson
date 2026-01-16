@@ -1,0 +1,12 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Test file B in directory",
+  "tests": [
+    {
+      "name": "test_from_b",
+      "type": "roundtrip",
+      "input": "from file B"
+    }
+  ]
+}

@@ -7,7 +7,7 @@
       "//": "Duplicate key detection - exact duplicate",
       "name": "duplicate_key_simple",
       "type": "decode_error",
-      "input_bytes": "9a8161016161029b",
+      "input_bytes": "9a8161018161029b",
       "expected_error": "duplicate_key"
     },
     {
@@ -233,27 +233,20 @@
       "options": {"max_depth": 5}
     },
     {
-      "//": "Maximum string length exceeded",
-      "name": "max_string_length_exceeded_short",
+      "//": "Maximum string length exceeded - 25-byte string with limit 20",
+      "name": "max_string_length_exceeded",
       "type": "decode_error",
-      "input_bytes": "8b 68 65 6c 6c 6f 20 77 6f 72 6c 64",
+      "input_bytes": "68 64 61 62 63 64 65 66 67 68 69 6a 6b 6c 6d 6e 6f 70 71 72 73 74 75 76 77 78 79",
       "expected_error": "max_string_length_exceeded",
-      "options": {"max_string_length": 10}
+      "options": {"max_string_length": 20}
     },
     {
-      "name": "max_string_length_exceeded_long",
-      "type": "decode_error",
-      "input_bytes": "68 2c 68 65 6c 6c 6f 20 77 6f 72 6c 64",
-      "expected_error": "max_string_length_exceeded",
-      "options": {"max_string_length": 10}
-    },
-    {
-      "//": "At the limit is OK",
+      "//": "At the limit is OK - 20-byte string with limit 20",
       "name": "max_string_length_at_limit",
       "type": "decode",
-      "input_bytes": "8a 68 65 6c 6c 6f 77 6f 72 6c 64",
-      "expected_value": "helloworld",
-      "options": {"max_string_length": 10}
+      "input_bytes": "68 50 61 62 63 64 65 66 67 68 69 6a 6b 6c 6d 6e 6f 70 71 72 73 74",
+      "expected_value": "abcdefghijklmnopqrst",
+      "options": {"max_string_length": 20}
     },
     {
       "//": "Too many chunks",

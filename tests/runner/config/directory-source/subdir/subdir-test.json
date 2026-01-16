@@ -1,0 +1,12 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Test file in subdirectory (only processed with recursive: true)",
+  "tests": [
+    {
+      "name": "test_from_subdir",
+      "type": "roundtrip",
+      "input": "from subdirectory"
+    }
+  ]
+}

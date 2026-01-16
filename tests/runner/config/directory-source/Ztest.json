@@ -1,0 +1,12 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Uppercase Z to test alphabetical ordering (should come before lowercase files)",
+  "tests": [
+    {
+      "name": "test_from_ztest",
+      "type": "roundtrip",
+      "input": "from file Ztest (uppercase)"
+    }
+  ]
+}

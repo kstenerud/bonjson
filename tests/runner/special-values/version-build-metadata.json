@@ -1,0 +1,12 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0+build.123",
+  "//": "Version with build metadata",
+  "tests": [
+    {
+      "name": "build_metadata_test",
+      "type": "roundtrip",
+      "input": "build metadata"
+    }
+  ]
+}

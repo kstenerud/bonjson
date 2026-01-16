@@ -1,0 +1,19 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Tests for object comparison (order-independent)",
+  "tests": [
+    {
+      "//": "Objects with same keys in different order should be equal",
+      "name": "object_order_independent",
+      "type": "roundtrip",
+      "input": {"z": 1, "a": 2, "m": 3}
+    },
+    {
+      "//": "Nested objects",
+      "name": "nested_object_comparison",
+      "type": "roundtrip",
+      "input": {"outer": {"z": 1, "a": 2}, "other": "value"}
+    }
+  ]
+}

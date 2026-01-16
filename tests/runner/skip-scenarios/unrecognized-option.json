@@ -1,0 +1,20 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Tests with unrecognized options should be skipped with a warning",
+  "tests": [
+    {
+      "//": "This test should be skipped due to unrecognized option",
+      "name": "unrecognized_option_test",
+      "type": "roundtrip",
+      "input": "test",
+      "options": {"unknown_option": true}
+    },
+    {
+      "//": "This test should run normally (no unrecognized options)",
+      "name": "normal_test",
+      "type": "roundtrip",
+      "input": "test"
+    }
+  ]
+}

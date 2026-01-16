@@ -1,0 +1,9 @@
+{
+  "type": "bonjson-test-config",
+  "version": "1.0.0",
+  "//": "Top-level comment",
+  "//note": "Another comment key",
+  "sources": [
+    {"//": "Comment in source object", "path": "./directory-source/test-a.json"}
+  ]
+}

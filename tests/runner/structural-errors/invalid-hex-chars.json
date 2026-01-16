@@ -1,0 +1,12 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "tests": [
+    {
+      "name": "invalid_hex_chars",
+      "type": "decode",
+      "input_bytes": "6g",
+      "expected_value": null
+    }
+  ]
+}

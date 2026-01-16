@@ -1,0 +1,6 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "An empty tests array is valid per the specification",
+  "tests": []
+}

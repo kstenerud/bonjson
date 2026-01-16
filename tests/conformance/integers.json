@@ -103,29 +103,26 @@
       "expected_bytes": "7880"
     },
     {
-      "//": "Unsigned int8 (128-255) uses type code 0x70",
-      "name": "uint8_128",
-      "type": "encode",
-      "input": 128,
-      "expected_bytes": "7080"
+      "//": "Values 128-255 can be encoded as uint8 (0x70) or sint16 (0x79)",
+      "//note": "Roundtrip tests verify correctness; decode tests verify specific encodings",
+      "name": "roundtrip_128",
+      "type": "roundtrip",
+      "input": 128
     },
     {
-      "name": "uint8_180",
-      "type": "encode",
-      "input": 180,
-      "expected_bytes": "70b4"
+      "name": "roundtrip_180",
+      "type": "roundtrip",
+      "input": 180
     },
     {
-      "name": "uint8_200",
-      "type": "encode",
-      "input": 200,
-      "expected_bytes": "70c8"
+      "name": "roundtrip_200",
+      "type": "roundtrip",
+      "input": 200
     },
     {
-      "name": "uint8_255",
-      "type": "encode",
-      "input": 255,
-      "expected_bytes": "70ff"
+      "name": "roundtrip_255",
+      "type": "roundtrip",
+      "input": 255
     },
     {
       "//": "Signed int16 uses type code 0x79 (little-endian)",
@@ -159,17 +156,15 @@
       "expected_bytes": "790080"
     },
     {
-      "//": "Unsigned int16 uses type code 0x71",
-      "name": "uint16_32768",
-      "type": "encode",
-      "input": 32768,
-      "expected_bytes": "710080"
+      "//": "Values 32768-65535 can be encoded as uint16 (0x71) or sint24 (0x7a)",
+      "name": "roundtrip_32768",
+      "type": "roundtrip",
+      "input": 32768
     },
     {
-      "name": "uint16_65535",
-      "type": "encode",
-      "input": 65535,
-      "expected_bytes": "71ffff"
+      "name": "roundtrip_65535",
+      "type": "roundtrip",
+      "input": 65535
     },
     {
       "//": "Signed int24 uses type code 0x7a",
@@ -185,17 +180,15 @@
       "expected_bytes": "7affff7f"
     },
     {
-      "//": "Unsigned int24 uses type code 0x72",
-      "name": "uint24_8388608",
-      "type": "encode",
-      "input": 8388608,
-      "expected_bytes": "72000080"
+      "//": "Values 8388608-16777215 can be encoded as uint24 (0x72) or sint32 (0x7b)",
+      "name": "roundtrip_8388608",
+      "type": "roundtrip",
+      "input": 8388608
     },
     {
-      "name": "uint24_16777215",
-      "type": "encode",
-      "input": 16777215,
-      "expected_bytes": "72ffffff"
+      "name": "roundtrip_16777215",
+      "type": "roundtrip",
+      "input": 16777215
     },
     {
       "//": "Signed int32 uses type code 0x7b",
@@ -211,17 +204,15 @@
       "expected_bytes": "7bffffff7f"
     },
     {
-      "//": "Unsigned int32 uses type code 0x73",
-      "name": "uint32_2147483648",
-      "type": "encode",
-      "input": 2147483648,
-      "expected_bytes": "7300000080"
+      "//": "Values 2147483648-4294967295 can be encoded as uint32 (0x73) or sint40 (0x7c)",
+      "name": "roundtrip_2147483648",
+      "type": "roundtrip",
+      "input": 2147483648
     },
     {
-      "name": "uint32_4294967295",
-      "type": "encode",
-      "input": 4294967295,
-      "expected_bytes": "73ffffffff"
+      "name": "roundtrip_4294967295",
+      "type": "roundtrip",
+      "input": 4294967295
     },
     {
       "//": "Signed int40 uses type code 0x7c",
@@ -237,17 +228,15 @@
       "expected_bytes": "7cffffffff7f"
     },
     {
-      "//": "Unsigned int40 uses type code 0x74",
-      "name": "uint40_549755813888",
-      "type": "encode",
-      "input": 549755813888,
-      "expected_bytes": "740000000080"
+      "//": "Values 549755813888-1099511627775 can be encoded as uint40 (0x74) or sint48 (0x7d)",
+      "name": "roundtrip_549755813888",
+      "type": "roundtrip",
+      "input": 549755813888
     },
     {
-      "name": "uint40_1099511627775",
-      "type": "encode",
-      "input": 1099511627775,
-      "expected_bytes": "74ffffffffff"
+      "name": "roundtrip_1099511627775",
+      "type": "roundtrip",
+      "input": 1099511627775
     },
     {
       "//": "Signed int48 uses type code 0x7d",
@@ -264,11 +253,10 @@
       "expected_bytes": "7dbc9a78563412"
     },
     {
-      "//": "Unsigned int48 uses type code 0x75",
-      "name": "uint48_140737488355328",
-      "type": "encode",
-      "input": 140737488355328,
-      "expected_bytes": "75000000000080"
+      "//": "Value 140737488355328 can be encoded as uint48 (0x75) or sint56 (0x7e)",
+      "name": "roundtrip_140737488355328",
+      "type": "roundtrip",
+      "input": 140737488355328
     },
     {
       "//": "Signed int56 uses type code 0x7e",
@@ -278,11 +266,10 @@
       "expected_bytes": "7e00000000000001"
     },
     {
-      "//": "Unsigned int56 uses type code 0x76",
-      "name": "uint56_36028797018963968",
-      "type": "encode",
-      "input": 36028797018963968,
-      "expected_bytes": "7600000000000080"
+      "//": "Value 36028797018963968 can be encoded as uint56 (0x76) or sint64 (0x7f)",
+      "name": "roundtrip_36028797018963968",
+      "type": "roundtrip",
+      "input": 36028797018963968
     },
     {
       "//": "Signed int64 uses type code 0x7f",
@@ -304,7 +291,7 @@
       "expected_bytes": "7f0000000000000080"
     },
     {
-      "//": "Unsigned int64 uses type code 0x77 (values > INT64_MAX)",
+      "//": "Unsigned int64 (values > INT64_MAX) must use type code 0x77",
       "name": "uint64_9223372036854775808",
       "type": "encode",
       "input": {"$number": "9223372036854775808"},
@@ -314,7 +301,7 @@
       "//": "Example from spec: 0xded0d0d0dedadada",
       "name": "uint64_example",
       "type": "encode",
-      "input": {"$number": "16064616592295173850"},
+      "input": {"$number": "16055562267086478042"},
       "expected_bytes": "77dadadaded0d0d0de"
     },
     {
@@ -324,7 +311,7 @@
       "expected_bytes": "77ffffffffffffffff"
     },
     {
-      "//": "Decode tests - verify various encodings decode correctly",
+      "//": "=== Decode tests - verify decoder accepts all valid encodings ===",
       "name": "decode_smallint_50_direct",
       "type": "decode",
       "input_bytes": "32",
@@ -357,6 +344,91 @@
       "type": "decode",
       "input_bytes": "717800",
       "expected_value": 120
+    },
+    {
+      "//": "Decode tests for unsigned integer encodings",
+      "name": "decode_uint8_128",
+      "type": "decode",
+      "input_bytes": "7080",
+      "expected_value": 128
+    },
+    {
+      "name": "decode_uint8_180",
+      "type": "decode",
+      "input_bytes": "70b4",
+      "expected_value": 180
+    },
+    {
+      "name": "decode_uint8_200",
+      "type": "decode",
+      "input_bytes": "70c8",
+      "expected_value": 200
+    },
+    {
+      "name": "decode_uint8_255",
+      "type": "decode",
+      "input_bytes": "70ff",
+      "expected_value": 255
+    },
+    {
+      "name": "decode_uint16_32768",
+      "type": "decode",
+      "input_bytes": "710080",
+      "expected_value": 32768
+    },
+    {
+      "name": "decode_uint16_65535",
+      "type": "decode",
+      "input_bytes": "71ffff",
+      "expected_value": 65535
+    },
+    {
+      "name": "decode_uint24_8388608",
+      "type": "decode",
+      "input_bytes": "72000080",
+      "expected_value": 8388608
+    },
+    {
+      "name": "decode_uint24_16777215",
+      "type": "decode",
+      "input_bytes": "72ffffff",
+      "expected_value": 16777215
+    },
+    {
+      "name": "decode_uint32_2147483648",
+      "type": "decode",
+      "input_bytes": "7300000080",
+      "expected_value": 2147483648
+    },
+    {
+      "name": "decode_uint32_4294967295",
+      "type": "decode",
+      "input_bytes": "73ffffffff",
+      "expected_value": 4294967295
+    },
+    {
+      "name": "decode_uint40_549755813888",
+      "type": "decode",
+      "input_bytes": "740000000080",
+      "expected_value": 549755813888
+    },
+    {
+      "name": "decode_uint40_1099511627775",
+      "type": "decode",
+      "input_bytes": "74ffffffffff",
+      "expected_value": 1099511627775
+    },
+    {
+      "name": "decode_uint48_140737488355328",
+      "type": "decode",
+      "input_bytes": "75000000000080",
+      "expected_value": 140737488355328
+    },
+    {
+      "name": "decode_uint56_36028797018963968",
+      "type": "decode",
+      "input_bytes": "7600000000000080",
+      "expected_value": 36028797018963968
     },
     {
       "//": "Round-trip tests for integer boundaries",

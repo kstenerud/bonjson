@@ -1,0 +1,21 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Common typos in option names should cause tests to be skipped",
+  "tests": [
+    {
+      "//": "Typo: alow_nul instead of allow_nul",
+      "name": "typo_alow_nul",
+      "type": "roundtrip",
+      "input": "hello\u0000world",
+      "options": {"alow_nul": true}
+    },
+    {
+      "//": "Typo: maxDepth instead of max_depth",
+      "name": "typo_camel_case",
+      "type": "roundtrip",
+      "input": [[1]],
+      "options": {"maxDepth": 10}
+    }
+  ]
+}

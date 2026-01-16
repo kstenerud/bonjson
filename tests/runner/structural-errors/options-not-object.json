@@ -1,0 +1,12 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "tests": [
+    {
+      "name": "options_is_array",
+      "type": "roundtrip",
+      "input": "test",
+      "options": ["allow_nul"]
+    }
+  ]
+}

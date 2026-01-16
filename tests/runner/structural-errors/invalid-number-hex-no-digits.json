@@ -1,0 +1,11 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "tests": [
+    {
+      "name": "hex_no_digits",
+      "type": "roundtrip",
+      "input": {"$number": "0x"}
+    }
+  ]
+}

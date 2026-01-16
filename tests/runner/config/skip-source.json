@@ -1,0 +1,9 @@
+{
+  "type": "bonjson-test-config",
+  "version": "1.0.0",
+  "//": "Configuration with skipped source",
+  "sources": [
+    {"path": "./directory-source/test-a.json"},
+    {"skip": true, "//": "Temporarily disabled for testing", "path": "./directory-source/test-b.json"}
+  ]
+}

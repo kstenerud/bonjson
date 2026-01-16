@@ -1,0 +1,10 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "tests": [
+    {
+      "name": "roundtrip_no_input",
+      "type": "roundtrip"
+    }
+  ]
+}

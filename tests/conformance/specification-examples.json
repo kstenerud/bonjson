@@ -27,7 +27,7 @@
       "name": "spec_short_string_15bytes",
       "type": "encode",
       "input": "15 byte string!",
-      "expected_bytes": "8f313520627974652073747269636721"
+      "expected_bytes": "8f3135206279746520737472696e6721"
     },
     {
       "//": "Long String examples from spec",
@@ -81,11 +81,17 @@
       "expected_bytes": "9c"
     },
     {
-      "//": "Integer examples from spec",
+      "//": "Integer examples from spec - 180 can be uint8 or sint16",
       "name": "spec_int_180",
-      "type": "encode",
-      "input": 180,
-      "expected_bytes": "70b4"
+      "type": "roundtrip",
+      "input": 180
+    },
+    {
+      "//": "Decode test: 180 encoded as uint8 (spec example)",
+      "name": "decode_spec_int_180_uint8",
+      "type": "decode",
+      "input_bytes": "70b4",
+      "expected_value": 180
     },
     {
       "name": "spec_int_neg1000",
@@ -94,10 +100,17 @@
       "expected_bytes": "7918fc"
     },
     {
+      "//": "32768 can be uint16 or sint24",
       "name": "spec_int_32768",
-      "type": "encode",
-      "input": 32768,
-      "expected_bytes": "710080"
+      "type": "roundtrip",
+      "input": 32768
+    },
+    {
+      "//": "Decode test: 32768 encoded as uint16 (spec example)",
+      "name": "decode_spec_int_32768_uint16",
+      "type": "decode",
+      "input_bytes": "710080",
+      "expected_value": 32768
     },
     {
       "//": "0x123456789abc",
@@ -116,7 +129,7 @@
       "//": "0xded0d0d0dedadada",
       "name": "spec_uint64_example",
       "type": "encode",
-      "input": {"$number": "16064616592295173850"},
+      "input": {"$number": "16055562267086478042"},
       "expected_bytes": "77dadadaded0d0d0de"
     },
     {
@@ -131,7 +144,7 @@
       "name": "spec_float32",
       "type": "encode",
       "input": 39.875,
-      "expected_bytes": "6b00b81f42"
+      "expected_bytes": "6b00801f42"
     },
     {
       "//": "Float64 example from spec",

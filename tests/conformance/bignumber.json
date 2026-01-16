@@ -1,0 +1,47 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "BigNumber encoding tests for values that cannot be represented as IEEE 754 floats",
+  "//note": "BigNumber roundtrip tests may decode to different types (big.Int, big.Float, float64, string) depending on the implementation. These tests verify the value survives encoding/decoding, not the specific type returned.",
+  "tests": [
+    {
+      "//": "=== BigNumber zero encoding ===",
+      "//note": "BigNumber zero has sigLen=0, special value=0 (header byte 0x00)",
+      "name": "decode_bignumber_zero",
+      "type": "decode",
+      "input_bytes": "6900",
+      "expected_value": 0
+    },
+    {
+      "//": "=== High precision decimals (roundtrip) ===",
+      "//note": "These values have more precision than float64 can represent exactly",
+      "name": "bignumber_high_precision",
+      "type": "roundtrip",
+      "input": {"$number": "1.23456789012345678901234567890"}
+    },
+    {
+      "//": "Very small exponent beyond float64 range",
+      "name": "bignumber_tiny_exponent",
+      "type": "roundtrip",
+      "input": {"$number": "1e-1000"}
+    },
+    {
+      "//": "Negative exponent within float64 range but high precision",
+      "name": "roundtrip_bignumber_negative_exponent",
+      "type": "roundtrip",
+      "input": {"$number": "1.23456789012345678901234567890e-50"}
+    },
+    {
+      "//": "Many decimal places",
+      "name": "roundtrip_bignumber_many_decimals",
+      "type": "roundtrip",
+      "input": {"$number": "0.123456789012345678901234567890123456789"}
+    },
+    {
+      "//": "Value that looks like it could be float64 but has too many sig digits",
+      "name": "roundtrip_bignumber_looks_like_float",
+      "type": "roundtrip",
+      "input": {"$number": "3.141592653589793238462643383279"}
+    }
+  ]
+}

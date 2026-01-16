@@ -1,0 +1,36 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Tests all five test types to verify the runner handles each correctly",
+  "tests": [
+    {
+      "name": "encode_test",
+      "type": "encode",
+      "input": 42,
+      "expected_bytes": "2a"
+    },
+    {
+      "name": "decode_test",
+      "type": "decode",
+      "input_bytes": "2a",
+      "expected_value": 42
+    },
+    {
+      "name": "roundtrip_test",
+      "type": "roundtrip",
+      "input": "hello"
+    },
+    {
+      "name": "encode_error_test",
+      "type": "encode_error",
+      "input": {"$number": "NaN"},
+      "expected_error": "invalid_data"
+    },
+    {
+      "name": "decode_error_test",
+      "type": "decode_error",
+      "input_bytes": "79 e8",
+      "expected_error": "truncated"
+    }
+  ]
+}

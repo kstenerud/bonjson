@@ -1,0 +1,9 @@
+{
+  "type": "bonjson-test-config",
+  "version": "1.0.0",
+  "//": "Basic valid configuration file",
+  "sources": [
+    {"path": "./directory-source/test-a.json"},
+    {"path": "./directory-source/test-b.json"}
+  ]
+}

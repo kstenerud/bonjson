@@ -1,0 +1,25 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Tests for negative zero handling (IEEE 754: -0.0 is distinct from 0.0)",
+  "tests": [
+    {
+      "//": "Negative zero using hex float notation",
+      "name": "negative_zero_hex",
+      "type": "roundtrip",
+      "input": {"$number": "-0x0p+0"}
+    },
+    {
+      "//": "Negative zero using decimal notation",
+      "name": "negative_zero_decimal",
+      "type": "roundtrip",
+      "input": {"$number": "-0.0"}
+    },
+    {
+      "//": "Positive zero for comparison",
+      "name": "positive_zero",
+      "type": "roundtrip",
+      "input": {"$number": "0x0p+0"}
+    }
+  ]
+}

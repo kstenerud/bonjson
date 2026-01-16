@@ -1,0 +1,10 @@
+{
+  "type": "bonjson-test-config",
+  "version": "1.0.0",
+  "//": "Duplicate paths should only be processed once",
+  "sources": [
+    {"path": "./directory-source/test-a.json"},
+    {"path": "./directory-source/test-a.json"},
+    {"path": "./directory-source/test-b.json"}
+  ]
+}

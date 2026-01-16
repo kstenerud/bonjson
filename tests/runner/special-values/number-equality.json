@@ -1,0 +1,28 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Tests for numeric equality (mathematical equality, not type equality)",
+  "tests": [
+    {
+      "//": "1.0 (float) equals 1 (integer) mathematically",
+      "name": "float_int_equality",
+      "type": "decode",
+      "input_bytes": "01",
+      "expected_value": {"$number": "1.0"}
+    },
+    {
+      "//": "100 encoded as smallint, compared to float",
+      "name": "smallint_float_equality",
+      "type": "decode",
+      "input_bytes": "64",
+      "expected_value": {"$number": "100.0"}
+    },
+    {
+      "//": "Scientific notation equals plain number",
+      "name": "scientific_plain_equality",
+      "type": "decode",
+      "input_bytes": "64",
+      "expected_value": {"$number": "1e2"}
+    }
+  ]
+}

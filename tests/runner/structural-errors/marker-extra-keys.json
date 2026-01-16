@@ -1,0 +1,11 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "tests": [
+    {
+      "name": "marker_with_extra",
+      "type": "roundtrip",
+      "input": {"$number": "1.5", "extra": "field"}
+    }
+  ]
+}

@@ -43,14 +43,14 @@
       "name": "array_mixed",
       "type": "encode",
       "input": [1, "x", null],
-      "expected_bytes": "99018178016d9b"
+      "expected_bytes": "990181786d9b"
     },
     {
       "//": "Simple object with key-value pairs",
       "name": "object_simple",
       "type": "encode",
       "input": {"b": 0, "test": "x"},
-      "expected_bytes": "9a8162008474657374817809b"
+      "expected_bytes": "9a816200847465737481789b"
     },
     {
       "//": "Null round-trips correctly",

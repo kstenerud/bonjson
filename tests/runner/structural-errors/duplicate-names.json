@@ -1,0 +1,16 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "tests": [
+    {
+      "name": "test_one",
+      "type": "roundtrip",
+      "input": 1
+    },
+    {
+      "name": "Test_One",
+      "type": "roundtrip",
+      "input": 2
+    }
+  ]
+}

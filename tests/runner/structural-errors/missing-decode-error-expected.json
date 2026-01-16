@@ -1,0 +1,11 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "tests": [
+    {
+      "name": "decode_error_no_expected",
+      "type": "decode_error",
+      "input_bytes": "65"
+    }
+  ]
+}

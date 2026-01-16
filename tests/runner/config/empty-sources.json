@@ -1,0 +1,6 @@
+{
+  "type": "bonjson-test-config",
+  "version": "1.0.0",
+  "//": "Empty sources array is valid (zero tests executed)",
+  "sources": []
+}

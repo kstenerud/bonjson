@@ -1,0 +1,12 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Basic test file with standard version for compatibility testing",
+  "tests": [
+    {
+      "name": "simple_test",
+      "type": "roundtrip",
+      "input": "version test"
+    }
+  ]
+}

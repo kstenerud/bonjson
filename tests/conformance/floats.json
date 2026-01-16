@@ -15,7 +15,7 @@
       "name": "float32_39_875",
       "type": "encode",
       "input": 39.875,
-      "expected_bytes": "6b00b81f42"
+      "expected_bytes": "6b00801f42"
     },
     {
       "//": "Float64 uses type code 0x6c - 1.234 requires full precision",
@@ -107,6 +107,82 @@
       "name": "roundtrip_float_integer_value",
       "type": "roundtrip",
       "input": 42.0
+    },
+    {
+      "//": "=== Negative zero tests ===",
+      "name": "decode_float16_negative_zero",
+      "type": "decode",
+      "input_bytes": "6a0080",
+      "expected_value": {"$number": "-0.0"}
+    },
+    {
+      "name": "decode_float32_negative_zero",
+      "type": "decode",
+      "input_bytes": "6b00000080",
+      "expected_value": {"$number": "-0.0"}
+    },
+    {
+      "name": "decode_float64_negative_zero",
+      "type": "decode",
+      "input_bytes": "6c0000000000000080",
+      "expected_value": {"$number": "-0.0"}
+    },
+    {
+      "//": "=== Float precision boundary tests ===",
+      "//note": "Values that overflow bfloat16 precision but fit float32",
+      "name": "roundtrip_float_bfloat16_boundary",
+      "type": "roundtrip",
+      "input": 1.0078125
+    },
+    {
+      "//": "Value with more precision than bfloat16 can represent",
+      "name": "roundtrip_float_needs_float32",
+      "type": "roundtrip",
+      "input": 1.00390625
+    },
+    {
+      "//": "Value that requires float64 precision",
+      "name": "roundtrip_float_needs_float64",
+      "type": "roundtrip",
+      "input": 1.0000001192092896
+    },
+    {
+      "//": "=== Subnormal float tests ===",
+      "name": "roundtrip_float64_subnormal",
+      "type": "roundtrip",
+      "input": {"$number": "5e-324"}
+    },
+    {
+      "//": "Smallest positive normal float64",
+      "name": "roundtrip_float64_min_normal",
+      "type": "roundtrip",
+      "input": {"$number": "2.2250738585072014e-308"}
+    },
+    {
+      "//": "=== Float special encoding tests ===",
+      "//note": "Verify decoder accepts float values encoded in larger formats",
+      "name": "decode_1_125_as_float64",
+      "type": "decode",
+      "input_bytes": "6c000000000000f23f",
+      "expected_value": 1.125
+    },
+    {
+      "name": "decode_1_25_as_float32",
+      "type": "decode",
+      "input_bytes": "6b0000a03f",
+      "expected_value": 1.25
+    },
+    {
+      "//": "Large magnitude that fits in float64",
+      "name": "roundtrip_float_large_magnitude",
+      "type": "roundtrip",
+      "input": {"$number": "1e300"}
+    },
+    {
+      "//": "Small magnitude that fits in float64",
+      "name": "roundtrip_float_small_magnitude",
+      "type": "roundtrip",
+      "input": {"$number": "1e-300"}
     }
   ]
 }

@@ -1,0 +1,7 @@
+{
+  "type": "bonjson-test-config",
+  "version": "1.0.0",
+  "sources": [
+    {"path": ""}
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Tests for trailing bytes handling",
+  "tests": [
+    {
+      "//": "Trailing bytes should cause error by default",
+      "name": "trailing_bytes_error",
+      "type": "decode_error",
+      "input_bytes": "6d 00",
+      "expected_error": "trailing_bytes"
+    },
+    {
+      "//": "Trailing bytes allowed with option",
+      "name": "trailing_bytes_allowed",
+      "type": "decode",
+      "input_bytes": "6d 00",
+      "expected_value": null,
+      "options": {"allow_trailing_bytes": true}
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Tests with unrecognized error types should be skipped with a warning",
+  "tests": [
+    {
+      "//": "This test should be skipped due to unrecognized error type",
+      "name": "unrecognized_error_type_test",
+      "type": "decode_error",
+      "input_bytes": "65",
+      "expected_error": "future_error_type"
+    },
+    {
+      "//": "This test should run normally",
+      "name": "recognized_error_type_test",
+      "type": "decode_error",
+      "input_bytes": "65",
+      "expected_error": "invalid_type_code"
+    }
+  ]
+}

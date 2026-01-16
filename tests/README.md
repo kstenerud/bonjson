@@ -16,15 +16,24 @@ tests/
 ├── README.md                        # This file
 ├── bonjson-tests.schema.json        # JSON Schema for test files
 ├── bonjson-test-config.schema.json  # JSON Schema for config files
-├── basic-types.json                 # Primitive type encoding tests
-├── integers.json                    # Integer encoding at all sizes
-├── floats.json                      # Float encoding tests
-├── strings.json                     # String encoding (short, long, chunked)
-├── containers.json                  # Arrays and objects
-├── bignumber.json                   # BigNumber encoding tests
-├── errors.json                      # Error handling tests
-├── security.json                    # Security-related tests
-└── specification-examples.json      # Examples from the specification
+├── conformance/                     # BONJSON conformance test suite
+│   ├── config.json                  # Test configuration file
+│   ├── basic-types.json             # Primitive type encoding tests
+│   ├── integers.json                # Integer encoding at all sizes
+│   ├── floats.json                  # Float encoding tests
+│   ├── strings.json                 # String encoding (short, long, chunked)
+│   ├── containers.json              # Arrays and objects
+│   ├── bignumber.json               # BigNumber encoding tests
+│   ├── errors.json                  # Error handling tests
+│   ├── security.json                # Security-related tests
+│   └── specification-examples.json  # Examples from the specification
+└── runner/                          # Tests for test runner implementations
+    ├── README.md                    # Documentation for runner tests
+    ├── valid/                       # Tests that should pass
+    ├── structural-errors/           # Tests that should cause errors
+    ├── skip-scenarios/              # Tests that should be skipped
+    ├── config/                      # Config file processing tests
+    └── special-values/              # Edge cases for value parsing
 ```
 
 ## Test Case Format
@@ -316,6 +325,50 @@ When adding new tests:
 4. Add a `//` comment explaining non-obvious tests
 5. Validate against the schema before committing (note: schema requires lowercase `type` values)
 6. Ensure the test passes on at least one implementation
+
+## Tests to Avoid
+
+These conformance tests are meant to verify BONJSON format correctness across all implementations. Avoid tests that are inherently language or implementation-specific:
+
+### 1. Type representation in generic containers
+
+**Don't test** what type is returned when decoding into a generic type like `interface{}`, `any`, `Object`, or `dynamic`.
+
+Different languages return different types for the same BONJSON value:
+- A BigNumber might decode to `float64`, `string`, `BigInt`, `Decimal`, or `BigInteger` depending on the language
+- An integer might decode to `int64`, `number`, `long`, or `BigInt`
+
+These are valid implementation choices, not format errors.
+
+### 2. Encode tests for values with multiple valid encodings
+
+**Don't use `encode` tests** for values that have multiple valid byte representations.
+
+For example, the integer `180` can validly be encoded as:
+- `70 b4` (uint8)
+- `79 b4 00` (sint16)
+
+Both are correct per the BONJSON specification. Instead, use:
+- **`roundtrip`** tests to verify the value survives encoding/decoding
+- **`decode`** tests to verify the implementation accepts all valid encodings
+
+### 3. Tests requiring parsing of extreme values
+
+**Don't assume** test runners can parse arbitrary numeric strings.
+
+Values like `"1e1000"` or 100-digit integers may overflow standard parsing functions in some languages. If such values are essential to test, ensure they're used in `decode` tests with pre-encoded bytes rather than `roundtrip` tests that require parsing.
+
+### 4. Unrealistic configuration limits
+
+**Use realistic limits** when testing configurable options.
+
+For example, don't test `max_string_length: 10` with short strings (0-15 bytes) - no real implementation would set limits that low, and checking limits on every short string would be wasteful. Test with long strings and limits > 16 bytes instead.
+
+### 5. Implementation-specific error distinctions
+
+**Accept equivalent errors** when the distinction is semantic rather than format-based.
+
+For example, "truncated data" and "unclosed container" might be the same error in implementations that don't track container state separately. Test for the behavior (rejection of invalid input) rather than specific error taxonomy.
 
 ## Type Code Reference
 

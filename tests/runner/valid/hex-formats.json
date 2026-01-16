@@ -1,0 +1,49 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Tests various valid hex string formats",
+  "tests": [
+    {
+      "//": "Lowercase hex without spaces",
+      "name": "hex_lowercase_compact",
+      "type": "decode",
+      "input_bytes": "856865",
+      "expected_value": "he"
+    },
+    {
+      "//": "Uppercase hex without spaces",
+      "name": "hex_uppercase_compact",
+      "type": "decode",
+      "input_bytes": "856865",
+      "expected_value": "he"
+    },
+    {
+      "//": "Mixed case hex",
+      "name": "hex_mixed_case",
+      "type": "decode",
+      "input_bytes": "85 68 65 6C 6c 6F",
+      "expected_value": "hello"
+    },
+    {
+      "//": "Hex with spaces",
+      "name": "hex_with_spaces",
+      "type": "decode",
+      "input_bytes": "85 68 65 6c 6c 6f",
+      "expected_value": "hello"
+    },
+    {
+      "//": "Hex with multiple spaces",
+      "name": "hex_multiple_spaces",
+      "type": "decode",
+      "input_bytes": "85  68  65  6c  6c  6f",
+      "expected_value": "hello"
+    },
+    {
+      "//": "Empty hex string (zero bytes)",
+      "name": "hex_empty",
+      "type": "decode_error",
+      "input_bytes": "",
+      "expected_error": "truncated"
+    }
+  ]
+}

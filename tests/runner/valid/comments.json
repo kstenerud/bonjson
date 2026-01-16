@@ -1,0 +1,17 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Document-level comment",
+  "//note": "Multiple comment keys are allowed",
+  "//see_also": "basic-test-types.json",
+  "tests": [
+    {
+      "//": "Test-level comment",
+      "//explanation": "Multiple comments in test case too",
+      "name": "test_with_comments",
+      "type": "encode",
+      "input": null,
+      "expected_bytes": "6d"
+    }
+  ]
+}

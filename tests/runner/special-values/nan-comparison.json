@@ -1,0 +1,36 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Tests that NaN equals NaN for testing purposes (contrary to IEEE 754)",
+  "tests": [
+    {
+      "//": "NaN should decode to NaN and compare equal",
+      "name": "nan_decode_comparison",
+      "type": "decode",
+      "input_bytes": "6c 7f f8 00 00 00 00 00 00",
+      "expected_value": {"$number": "NaN"},
+      "options": {"allow_nan_infinity": true}
+    },
+    {
+      "//": "NaN roundtrip with allow_nan_infinity",
+      "name": "nan_roundtrip",
+      "type": "roundtrip",
+      "input": {"$number": "NaN"},
+      "options": {"allow_nan_infinity": true}
+    },
+    {
+      "//": "Infinity roundtrip with allow_nan_infinity",
+      "name": "infinity_roundtrip",
+      "type": "roundtrip",
+      "input": {"$number": "Infinity"},
+      "options": {"allow_nan_infinity": true}
+    },
+    {
+      "//": "Negative infinity roundtrip",
+      "name": "neg_infinity_roundtrip",
+      "type": "roundtrip",
+      "input": {"$number": "-Infinity"},
+      "options": {"allow_nan_infinity": true}
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "tests": [
+    {
+      "name": "encode_no_input",
+      "type": "encode",
+      "expected_bytes": "6d"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "tests": [
+    {
+      "name": "empty_number",
+      "type": "roundtrip",
+      "input": {"$number": ""}
+    }
+  ]
+}

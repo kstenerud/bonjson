@@ -1,0 +1,12 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0-alpha",
+  "//": "Pre-release version (should work with 1.0.0 runner)",
+  "tests": [
+    {
+      "name": "prerelease_test",
+      "type": "roundtrip",
+      "input": "prerelease"
+    }
+  ]
+}

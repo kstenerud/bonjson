@@ -1,0 +1,16 @@
+{
+  "type": "bonjson-test-config",
+  "version": "1.0.0",
+  "//": "BONJSON conformance test suite",
+  "sources": [
+    {"path": "./basic-types.json"},
+    {"path": "./integers.json"},
+    {"path": "./floats.json"},
+    {"path": "./strings.json"},
+    {"path": "./bignumber.json"},
+    {"path": "./containers.json"},
+    {"path": "./specification-examples.json"},
+    {"path": "./errors.json"},
+    {"path": "./security.json"}
+  ]
+}

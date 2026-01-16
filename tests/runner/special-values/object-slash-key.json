@@ -1,0 +1,28 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Tests that // keys inside data values are preserved (not treated as comments)",
+  "tests": [
+    {
+      "//": "This is a comment at the test level",
+      "name": "object_with_slash_key",
+      "type": "roundtrip",
+      "input": {"//": "This is NOT a comment - it is real data"}
+    },
+    {
+      "name": "object_with_slash_comment_key",
+      "type": "roundtrip",
+      "input": {"//comment": "Also real data"}
+    },
+    {
+      "name": "nested_slash_key",
+      "type": "roundtrip",
+      "input": {"outer": {"//": "nested data with slash key"}}
+    },
+    {
+      "name": "array_with_slash_object",
+      "type": "roundtrip",
+      "input": [{"//": "inside array"}]
+    }
+  ]
+}

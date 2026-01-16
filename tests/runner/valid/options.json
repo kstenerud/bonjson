@@ -1,0 +1,74 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Tests with various valid options",
+  "tests": [
+    {
+      "//": "Boolean option allow_nul",
+      "name": "option_allow_nul",
+      "type": "roundtrip",
+      "input": "hello\u0000world",
+      "options": {"allow_nul": true}
+    },
+    {
+      "//": "Boolean option allow_nan_infinity",
+      "name": "option_allow_nan_infinity",
+      "type": "roundtrip",
+      "input": {"$number": "NaN"},
+      "options": {"allow_nan_infinity": true}
+    },
+    {
+      "//": "Integer option max_depth",
+      "name": "option_max_depth",
+      "type": "roundtrip",
+      "input": [[1]],
+      "options": {"max_depth": 10}
+    },
+    {
+      "//": "Integer option max_string_length",
+      "name": "option_max_string_length",
+      "type": "roundtrip",
+      "input": "short",
+      "options": {"max_string_length": 1000}
+    },
+    {
+      "//": "Integer option max_chunks",
+      "name": "option_max_chunks",
+      "type": "roundtrip",
+      "input": "test",
+      "options": {"max_chunks": 100}
+    },
+    {
+      "//": "Integer option max_container_size",
+      "name": "option_max_container_size",
+      "type": "roundtrip",
+      "input": [1, 2, 3],
+      "options": {"max_container_size": 100}
+    },
+    {
+      "//": "Integer option max_document_size",
+      "name": "option_max_document_size",
+      "type": "roundtrip",
+      "input": "test",
+      "options": {"max_document_size": 10000}
+    },
+    {
+      "//": "Multiple options combined",
+      "name": "option_multiple",
+      "type": "roundtrip",
+      "input": {"key": "value"},
+      "options": {
+        "max_depth": 10,
+        "max_string_length": 1000
+      }
+    },
+    {
+      "//": "Zero is valid for integer options",
+      "name": "option_zero_depth",
+      "type": "encode_error",
+      "input": [1],
+      "options": {"max_depth": 0},
+      "expected_error": "max_depth_exceeded"
+    }
+  ]
+}

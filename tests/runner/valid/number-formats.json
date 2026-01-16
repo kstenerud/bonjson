@@ -1,0 +1,116 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Tests $number marker with various formats",
+  "tests": [
+    {
+      "//": "Large integer beyond JSON safe range",
+      "name": "number_large_int",
+      "type": "encode",
+      "input": {"$number": "18446744073709551615"},
+      "expected_bytes": "77 ff ff ff ff ff ff ff ff"
+    },
+    {
+      "//": "Hex integer",
+      "name": "number_hex_int",
+      "type": "roundtrip",
+      "input": {"$number": "0xff"}
+    },
+    {
+      "//": "Hex integer uppercase",
+      "name": "number_hex_int_upper",
+      "type": "roundtrip",
+      "input": {"$number": "0XFF"}
+    },
+    {
+      "//": "Negative hex integer",
+      "name": "number_neg_hex_int",
+      "type": "roundtrip",
+      "input": {"$number": "-0x10"}
+    },
+    {
+      "//": "Hex float (pi)",
+      "name": "number_hex_float_pi",
+      "type": "roundtrip",
+      "input": {"$number": "0x1.921fb54442d18p+1"}
+    },
+    {
+      "//": "Hex float uppercase",
+      "name": "number_hex_float_upper",
+      "type": "roundtrip",
+      "input": {"$number": "0X1.0P+0"}
+    },
+    {
+      "//": "Hex float no integer part",
+      "name": "number_hex_float_no_int",
+      "type": "roundtrip",
+      "input": {"$number": "0x.8p1"}
+    },
+    {
+      "//": "Hex float no fractional part",
+      "name": "number_hex_float_no_frac",
+      "type": "roundtrip",
+      "input": {"$number": "0x1p0"}
+    },
+    {
+      "//": "Scientific notation lowercase e",
+      "name": "number_scientific_lower",
+      "type": "roundtrip",
+      "input": {"$number": "1.5e10"}
+    },
+    {
+      "//": "Scientific notation uppercase E",
+      "name": "number_scientific_upper",
+      "type": "roundtrip",
+      "input": {"$number": "1.5E10"}
+    },
+    {
+      "//": "Decimal float",
+      "name": "number_decimal_float",
+      "type": "roundtrip",
+      "input": {"$number": "1.5"}
+    },
+    {
+      "//": "NaN lowercase",
+      "name": "number_nan_lower",
+      "type": "encode_error",
+      "input": {"$number": "nan"},
+      "expected_error": "invalid_data"
+    },
+    {
+      "//": "NaN uppercase",
+      "name": "number_nan_upper",
+      "type": "encode_error",
+      "input": {"$number": "NAN"},
+      "expected_error": "invalid_data"
+    },
+    {
+      "//": "NaN mixed case",
+      "name": "number_nan_mixed",
+      "type": "encode_error",
+      "input": {"$number": "NaN"},
+      "expected_error": "invalid_data"
+    },
+    {
+      "//": "Infinity lowercase",
+      "name": "number_infinity_lower",
+      "type": "encode_error",
+      "input": {"$number": "infinity"},
+      "expected_error": "invalid_data"
+    },
+    {
+      "//": "Infinity uppercase",
+      "name": "number_infinity_upper",
+      "type": "encode_error",
+      "input": {"$number": "INFINITY"},
+      "expected_error": "invalid_data"
+    },
+    {
+      "//": "-Infinity",
+      "name": "number_neg_infinity",
+      "type": "encode_error",
+      "input": {"$number": "-Infinity"},
+      "expected_error": "invalid_data"
+    }
+  ]
+}

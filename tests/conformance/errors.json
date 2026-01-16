@@ -324,13 +324,6 @@
       "expected_error": "invalid_data"
     },
     {
-      "//": "BigNumber significand too large (max 8 bytes)",
-      "name": "bignumber_significand_too_large",
-      "type": "decode_error",
-      "input_bytes": "6948000000000000000000",
-      "expected_error": "value_out_of_range"
-    },
-    {
       "//": "Encoding errors - NaN and Infinity rejected by default",
       "name": "encode_nan",
       "type": "encode_error",
