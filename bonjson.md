@@ -21,6 +21,10 @@ Contents
 - [BONJSON: Binary Object Notation for JSON](#bonjson-binary-object-notation-for-json)
   - [Contents](#contents)
   - [Terms and Conventions](#terms-and-conventions)
+  - [Compliance Levels](#compliance-levels)
+    - [Basic Compliance](#basic-compliance)
+    - [Secure Compliance](#secure-compliance)
+    - [Compliance Documentation](#compliance-documentation)
   - [Types](#types)
   - [Structure](#structure)
   - [Encoding](#encoding)
@@ -51,13 +55,16 @@ Contents
   - [Interoperability Considerations](#interoperability-considerations)
     - [Value Ranges](#value-ranges)
   - [Security Rules](#security-rules)
+    - [Resource Limits](#resource-limits)
     - [Long Field Lengths](#long-field-lengths)
     - [Chunking Restrictions](#chunking-restrictions)
-    - [Invalid Unicode and UTF-8](#invalid-unicode-and-utf-8)
+    - [Invalid UTF-8](#invalid-utf-8)
     - [NUL Codepoint Restriction](#nul-codepoint-restriction)
+    - [Unicode Normalization](#unicode-normalization)
     - [Values incompatible with JSON](#values-incompatible-with-json)
     - [Out-of-range Values](#out-of-range-values)
     - [Duplicate object keys](#duplicate-object-keys)
+    - [Trailing Data](#trailing-data)
   - [Convenience Considerations](#convenience-considerations)
   - [Filename Extensions and MIME Type](#filename-extensions-and-mime-type)
   - [Full Example](#full-example)
@@ -79,7 +86,54 @@ Terms and Conventions
 | **CAN**          | Refers to a possibility which **MUST** be accommodated by the implementation.                    |
 | **CANNOT**       | Refers to a situation which **MUST NOT** be allowed by the implementation.                       |
 
+**Additional Conventions**:
+
+ * All bit diagrams in this document are drawn with the most significant bit (MSB) on the left and the least significant bit (LSB) on the right.
+
 -----------------------------------------------------------------------------------------------------------------------
+
+
+
+Compliance Levels
+-----------------
+
+BONJSON defines two compliance levels to accommodate different implementation environments:
+
+### Basic Compliance
+
+Basic compliance is suitable for resource-constrained environments (embedded systems, WASM, implementations without Unicode libraries) where full Unicode normalization is not feasible.
+
+A **basic** decoder:
+
+* **MUST** validate UTF-8 encoding (reject [invalid UTF-8](#invalid-utf-8))
+* **MUST** perform [duplicate key](#duplicate-object-keys) detection using byte-for-byte comparison of the raw (non-normalized) UTF-8 strings
+* **MUST** clearly document that it does not perform Unicode normalization
+
+A **basic** encoder:
+
+* **SHOULD** produce [NFC-normalized](https://unicode.org/reports/tr15/#Norm_Forms) strings when possible
+
+**Warning**: Basic compliance is vulnerable to key collision attacks on platforms that auto-normalize strings (such as Swift and Objective-C). See [Unicode Normalization](#unicode-normalization) for details.
+
+
+### Secure Compliance
+
+Secure compliance provides protection against Unicode-based key collision attacks and is **RECOMMENDED** for all implementations that can support it.
+
+A **secure** decoder:
+
+* **MUST** validate UTF-8 encoding (reject [invalid UTF-8](#invalid-utf-8))
+* **MUST** normalize strings to [NFC](https://unicode.org/reports/tr15/#Norm_Forms) before performing [duplicate key](#duplicate-object-keys) detection
+* **MUST** return NFC-normalized strings to the application
+
+A **secure** encoder:
+
+* **SHOULD** produce NFC-normalized strings
+
+
+### Compliance Documentation
+
+All implementations **MUST** document which compliance level they support. Implementations **MAY** offer both levels as a configuration option.
 
 
 
@@ -127,6 +181,14 @@ BONJSON follows the same structural rules as [JSON](#json-standards), as illustr
                     ├─>─[value]──┤
                     ╰─<─<─<─<─<──╯
 
+**Structural validity rules**:
+
+* A document **MUST** contain exactly one top-level value. An empty document (zero bytes) is invalid.
+* Every container (array or object) **MUST** be terminated by a `container end` marker (`0x9b`). A document that ends with an unclosed container is invalid.
+* A `container end` marker **MUST NOT** appear outside of a container. If `0x9b` appears as the first byte of a document (or otherwise when no container is open), the document is invalid.
+
+**Note**: For robustness, decoders **MAY** offer an option to recover partial data from truncated documents (see [Convenience Considerations](#convenience-considerations)).
+
 
 
 Encoding
@@ -165,12 +227,16 @@ Every value is composed of an 8-bit type code, and in some cases also a payload:
 | 9b        |                              | Container | [Container end](#containers)               |
 | 9c - ff   |                              | Number    | [Integers -100 through -1](#small-integer) |
 
+**Note**: Decoders **MUST** reject documents containing reserved type codes.
+
 
 
 Strings
 -------
 
-Strings are sequences of UTF-8 characters, and can be encoded in two ways:
+Strings are UTF-8 encoded sequences of Unicode codepoints, and can be encoded in two ways.
+
+**Note**: Encoders **SHOULD** produce [NFC-normalized](https://unicode.org/reports/tr15/#Norm_Forms) strings. See [Compliance Levels](#compliance-levels) and [Unicode Normalization](#unicode-normalization) for details.
 
 
 ### Short String
@@ -204,7 +270,7 @@ A `string chunk` is comprised of a [length field](#length-field), followed by th
 
     [length] [bytes]
 
-Chunking continues until the end of a chunk whose length field's [`continuation bit`](#length-field-payload-format) is 0.
+Chunking continues until the end of a chunk whose length field's [`continuation bit`](#length-field-payload-format) is 0. If a chunk has a continuation bit of 1, another chunk **MUST** follow; a document that ends after such a chunk is invalid.
 
 A chunk with length 0 **MUST** have a [`continuation bit`](#length-field-payload-format) of 0. Allowing otherwise would open up the decoder to DOS attacks.
 
@@ -234,7 +300,11 @@ Numbers can be encoded using various integer and floating point forms. Encoders 
 
 All primitive numeric types are encoded exactly as they would appear in memory on little endian architectures.
 
-**Note**: `NaN` and `infinity` values **MUST NOT** be present in a document since they are not allowed in [JSON](#json-standards).
+**Notes**:
+
+ * `NaN` and `infinity` are not valid BONJSON values. See [Values incompatible with JSON](#values-incompatible-with-json).
+ * Decoders **MUST** accept any valid numeric encoding for a value, even if it is not the most compact representation. Only the mathematical value matters, not the encoding used to represent it.
+ * A value such as `1.0` **MAY** be encoded as an integer (`0x01`) or as a float (`6b 00 00 80 3f`). Decoders **MUST** treat these as equivalent.
 
 
 ### Small Integer
@@ -276,6 +346,8 @@ Encoders **SHOULD** favor _signed_ over _unsigned_ when both types would encode 
 ### 16-bit Float
 
 16-bit float is encoded as a little-endian 16-bit [bfloat16](https://en.wikipedia.org/wiki/Bfloat16_floating-point_format) following the [type code](#type-codes) (`0x6a`).
+
+Bfloat16 is a truncated form of IEEE 754 binary32, consisting of 1 sign bit, 8 exponent bits, and 7 significand bits. It preserves the full exponent range of binary32 (±3.4 × 10³⁸) while reducing precision. Conversion to/from binary32 involves simply truncating or zero-extending the significand.
 
 **Example**:
 
@@ -327,11 +399,11 @@ The final value is derived as: `sign` × `significand` × 10^`exponent`
 
 #### Special Big Number Encodings
 
-When the `significand length` field is 0 (regardless of the contents of the `exponent length` field), then there are never any `significand` or `exponent` bytes (the entire encoded value occupies a single byte).
+When the `significand length` field is 0, the `exponent length` field is repurposed to encode special values (listed in the table below), and there are no `significand` or `exponent` bytes following the header. In this case, the entire big number encoding occupies only two bytes: the type code and the header byte.
 
-Instead, the `exponent length` field's bits represent the special values listed in the following table (with the `negative` bit representing the sign as usual).
+The `negative` bit represents the sign as usual.
 
-**Note**: Most of these special values are invalid in BONJSON due to [JSON](#json-standards)'s value restrictions against infinity and NaN. If JSON is ever updated to support such values, this is how they would be encoded.
+**Note**: These special values are invalid by default. See [Values incompatible with JSON](#values-incompatible-with-json) for details and configuration options.
 
 | Exponent Length Bits | Meaning            | Valid in BONJSON |
 | -------------------- | ------------------ | ---------------- |
@@ -382,7 +454,7 @@ An object consists of an `object start` (`0x9a`), an optional collection of name
 **Notes**:
 
 * Names **MUST** be [strings](#strings).
-* Names **MUST NOT** be [null](#null).
+* Every name **MUST** be followed by a value. A document that ends after a name but before its corresponding value is invalid.
 
 **Example**:
 
@@ -445,7 +517,6 @@ The upper `header` bits contain `payload` data (when there's room)
 
 * Header bits shown as `0` and `1` are the bit patterns of the `count` field. It can be trivially decoded using a `ctz` (count trailing zeroes) compiler intrinsic on the bitwise-inverted header.
 * Header bits shown as `.` are the lower bits of the `payload`.
-* This encoding allows a length of 0 with continuation 0 to be encoded as byte `0x00`, enabling zero-copy optimizations for NUL-terminated strings.
 
 The `count` field serves two purposes:
 
@@ -458,7 +529,9 @@ The entire encoded stream is stored in little endian byte order so that it can b
 
 Consequently, the `header` occupies the lowest byte when the encoded data is loaded into a register, and the `payload bytes` progressively fill the higher bytes in typical little-endian ordering. Once loaded, one simply shifts the register right by `count` bits to eliminate the `count` field and yield the `payload`.
 
-This encoding has the same size overhead as [LEB128](https://en.wikipedia.org/wiki/LEB128) (1 bit per byte), but is far more efficient to decode because the full size of the field can be determined from the first byte, and the overhead bits can be elimitated in a single shift operation.
+This encoding has the same size overhead as [LEB128](https://en.wikipedia.org/wiki/LEB128) (1 bit per byte), but is far more efficient to decode because the full size of the field can be determined from the first byte, and the overhead bits can be eliminated in a single shift operation.
+
+**Note**: Unlike [numeric values](#numbers), length fields **MUST** use the most compact encoding possible. Encoders **MUST NOT** produce non-canonical (oversized) length encodings, and decoders **MUST** reject documents containing non-canonical length encodings. A length encoding is canonical if and only if it uses the minimum number of bytes required per the header table above. For example, length 0 with continuation 0 (payload 0) **MUST** be encoded as `00` (1 byte), not `01 00` (2 bytes).
 
 
 ### Length Field Payload Format
@@ -469,7 +542,7 @@ A length field `payload` is itself composed of two components:
     -----------
     ... L L L C
     ╰─┴─┼─┴─╯ ╰─> Continuation bit (1 means another chunk follows this one)
-        ╰───────> Length (up to 0x7FFFFFFFFFFFFF)
+        ╰───────> Length (up to 0x7FFFFFFFFFFFFFFF)
 
 The low bit of the `payload` is the `continuation bit`. When this bit is 1, there is another `length field` following the data chunk that this `length field` refers to.
 
@@ -478,7 +551,7 @@ The low bit of the `payload` is the `continuation bit`. When this bit is 1, ther
 
 **For payloads containing 0 to 56 bits of data:**
 
-* Determine the 1-based `position` of the _highest_ 1-bit (1-56) of the `payload` (consider `0` to have bit position 1).
+* Determine the 1-based `position` of the _highest_ 1-bit (1-56) of the `payload`. If the `payload` is 0, use position 1.
 * The overhead tradeoff is 7 bits per byte, so our `extra bytes count` (0-7) is `floor((position - 1) / 7)`.
 * Copy your `payload` to a 64-bit `register`.
 * Shift `register` left by `extra bytes count` + 1. This makes room for the `count` field (a terminating 0 bit plus `extra bytes count` trailing 1 bits).
@@ -557,6 +630,8 @@ JavaScript in particular can natively handle:
  * 64 bit floating point values
  * 53 bit integer values (plus the sign)
 
+**Warning**: [Big numbers](#big-number) can encode values with exponents up to ±8 million. Converting such values to decimal strings or performing arbitrary-precision arithmetic could consume excessive memory or CPU. Decoders **MUST** impose limits on numeric range as specified in [Resource Limits](#resource-limits).
+
 
 
 Security Rules
@@ -564,42 +639,69 @@ Security Rules
 
 All data formats contain technically feasible coding sequences that could result in exploitable weaknesses if certain invariants aren't artificially enforced. [JSON is particularly bad in this regard](https://bishopfox.com/blog/json-interoperability-vulnerabilities). BONJSON mitigates these by being cautious, rejecting dangerous sequences by default. However, since JSON is so old, systems have inevitably arisen that rely upon such broken behaviors.
 
-BONJSON handles this by choosing opinionated, secure default behaviors while allowing informed users to deliberatly disable such security protections when necessary.
+BONJSON handles this by choosing opinionated, secure default behaviors while allowing informed users to deliberately disable such security protections when necessary.
 
 **Note**: By "rejecting", it is meant that the entire document is rejected as a consequence of rejecting the unacceptable data (as opposed to just ignoring or replacing the unacceptable data).
 
 
+### Resource Limits
+
+Decoders **MUST** enforce limits on resource consumption to prevent denial-of-service attacks. The following limits **SHOULD** be configurable, with secure defaults:
+
+| Resource               | Recommended Default  | Notes                                                                                              |
+| ---------------------- | -------------------- | -------------------------------------------------------------------------------------------------- |
+| Maximum document size  | 2,000,000,000 bytes  | Total size of the encoded document                                                                 |
+| Maximum nesting depth  | 512                  | Arrays and objects nested within each other (root value is depth 0, first container is depth 1)    |
+| Maximum container size | 1,000,000 elements   | Elements in a single array, or key-value pairs in a single object (each pair counts as one)        |
+| Maximum string length  | 10,000,000 bytes     | Encoded byte length, before any normalization. See [Long Field Lengths](#long-field-lengths)       |
+| Maximum chunk count    | 100                  | Per string; a single-chunk string counts as 1. See [Chunking Restrictions](#chunking-restrictions) |
+| Numeric range          | 64-bit float/integer | See [Value Ranges](#value-ranges)                                                                  |
+
+Implementations **SHOULD** support at minimum 64-bit IEEE 754 floats and 64-bit signed and unsigned integers. JavaScript environments are limited to 53-bit integer precision; implementations targeting JavaScript **SHOULD** document this limitation.
+
+Implementations **MUST** document their default limits and any configuration options they provide.
+
+**Warning**: Choosing excessively high limits (or no limits) can make implementations vulnerable to resource exhaustion attacks. Even seemingly reasonable limits can be dangerous in combination (e.g., 1000 nesting depth × 1000 elements per level = 1 billion total nodes).
+
+
 ### Long Field Lengths
 
-Any data format that includes length fields is by definition open to abuse. BONJSON decoders **MUST** provide protection against this, such as:
+Any data format that includes length fields is by definition open to abuse. BONJSON decoders **MUST** provide protection against this:
 
-* Maximum lengths (ideally user-configurable with sane defaults) for potentially long data types (such as [strings](#long-string)) as a protection against DOS attacks.
-* Sanity check: Does a length field contain a value greater than the remaining document length (if known)?
+* Enforce maximum string length limits as specified in [Resource Limits](#resource-limits).
+* If the document length is known, decoders **MUST** reject any length field that specifies a value exceeding the remaining document length.
 
 
 ### Chunking Restrictions
 
-Allowing unlimited [chunking](#string-chunk) opens the door for abusive DOS payloads (chunk bombs). Decoders **MUST** mitigate against this.
+Allowing unlimited [chunking](#string-chunk) opens the door for abusive DOS payloads (chunk bombs). Decoders **MUST** enforce maximum chunk count limits as specified in [Resource Limits](#resource-limits).
 
-Possible mitigation options that decoders **MAY** offer:
+Decoders **MAY** also offer additional mitigation options:
 
-* Limit the maximum number of chunks allowed in a single value (to prevent abuses like a long series of length-1 chunks). If this option is available, it **SHOULD** default to 100.
 * Limit chunks even more after a certain amount of data has been received (to prevent sending a large amount of normal data, followed by abusive chunks).
 * Refuse chunking entirely (reject any chunk that contains a [continuation bit](#length-field-payload-format) of 1).
 
 
-### Invalid Unicode and UTF-8
+### Invalid UTF-8
 
-Although [JSON](#json-standards) technically supports the entire range of Unicode codepoints from 0 to 0x10ffff, many of these are actually invalid (such as surrogates in UTF-8, reserved codepoints, and codepoints marked as permanently invalid). Further information about how these can become security nightmares is available at [RFC 3629, section 10](https://www.rfc-editor.org/rfc/rfc3629#section-10), [Unicode Technical Report #36](https://www.unicode.org/reports/tr36/tr36-15.html), and [Corrigendum #1: UTF-8 Shortest Form](https://www.unicode.org/versions/corrigendum1.html) (overlong UTF-8 encodings were famously involved in the 2001 exploit of IIS web severs by encoding "../" as `2F C0 AE 2E 2F` instead of the `2F 2E 2E 2F` encoding that the servers were guarding against).
+BONJSON strings are encoded as UTF-8. Invalid UTF-8 sequences have been involved in numerous security exploits and **MUST** be rejected by default.
 
-BONJSON codecs **MUST** by default reject documents containing invalid Unicode or UTF-8, but for compatibility with JSON and broken data sources the following configuration options **MAY** be offered:
+Invalid UTF-8 sequences include:
+
+* Overlong encodings (using more bytes than necessary to encode a codepoint)
+* Sequences that decode to values greater than U+10FFFF
+* Sequences that decode to surrogate codepoints (U+D800-U+DFFF)
+* Invalid continuation bytes
+* Truncated multi-byte sequences
+
+Further information about how invalid UTF-8 can become a security nightmare is available at [RFC 3629, section 10](https://www.rfc-editor.org/rfc/rfc3629#section-10), [Unicode Technical Report #36](https://www.unicode.org/reports/tr36/tr36-15.html), and [Corrigendum #1: UTF-8 Shortest Form](https://www.unicode.org/versions/corrigendum1.html). Overlong UTF-8 encodings were famously involved in the 2001 exploit of IIS web servers by encoding "../" as `C0 AE 2E 2F` instead of the expected `2E 2E 2F`.
+
+For compatibility with broken data sources, decoders **MAY** offer the following configuration options:
 
 * Reject the document (this **MUST** be the default behavior)
-* Replace invalid characters: substitute with the REPLACEMENT CHARACTER U+FFFD (less secure, and could become exploitable)
-* Delete invalid characters from the string (an even less secure option that is proven to lead to many exploitable weaknesses)
-* Ignore invalid characters (the least secure option that has been involved in countless security incidents)
-
-**Note**: Not all languages/platforms are able to completely offer the options above. Any peculiar behaviors with regards to Unicode and UTF-8 support that might prove surprising **MUST** be documented. For example, some platforms may only offer the ability to check for invalid UTF-8 sequences, but not for reserved/invalid Unicode codepoints that came from valid UTF-8 sequences.
+* Replace invalid sequences with the REPLACEMENT CHARACTER U+FFFD (less secure)
+* Delete invalid sequences from the string (even less secure)
+* Pass through invalid sequences unchanged (dangerous and **NOT RECOMMENDED**)
 
 
 ### NUL Codepoint Restriction
@@ -609,15 +711,31 @@ Because the `NUL` (U+0000) codepoint can so easily be exploited, it **MUST** be 
 Decoders **MAY** offer a configuration option to allow `NUL`, but the default behavior **MUST** be to reject.
 
 
+### Unicode Normalization
+
+[Unicode normalization](https://unicode.org/reports/tr15/) ensures that equivalent character sequences are represented consistently. Without normalization, strings that appear identical to users (such as "café" using precomposed `U+00E9` vs "café" using `U+0065 U+0301`) would be treated as different, which creates security vulnerabilities.
+
+Some platforms (notably Swift and Objective-C) automatically normalize strings when using them as dictionary keys. This means two keys that passed a byte-for-byte duplicate check could still collide in the application's native map, allowing an attacker to control which value is kept.
+
+The handling of Unicode normalization depends on the [compliance level](#compliance-levels):
+
+* **Secure compliance**: Decoders normalize strings to [NFC](https://unicode.org/reports/tr15/#Norm_Forms) before performing [duplicate key](#duplicate-object-keys) detection. This prevents the attack described above.
+* **Basic compliance**: Decoders perform byte-for-byte comparison without normalization. This is vulnerable to key collision attacks on auto-normalizing platforms.
+
+**Important**: For [chunked strings](#string-chunk), NFC normalization **MUST** be applied after the complete string has been assembled, not per-chunk. Normalizing per-chunk would fail to compose characters that span chunk boundaries (e.g., a base character in one chunk and its combining mark in the next).
+
+**Note**: Length fields in the encoded document refer to the byte length of the original (non-normalized) UTF-8 data. After NFC normalization, the resulting string may have a different byte length. For example, `café` encoded with a decomposed `é` (U+0065 U+0301) occupies 6 bytes, but after NFC normalization becomes 5 bytes (using precomposed U+00E9). This is expected behavior.
+
+
 ### Values incompatible with JSON
 
-NaN and infinity are unrepresentable in JSON, but are technically possible to encode in BONJSON because it stores the binary floating point values directly.
+NaN and infinity are unrepresentable in JSON, but are technically possible to encode in BONJSON because it stores binary floating point values directly and [big numbers](#big-number) have special exponent encodings for these values.
 
-Codecs **MUST** by default reject such values, and **MAY** offer the following configuration options:
+Codecs **MUST** by default reject NaN and infinity values regardless of encoding (whether in [float](#16-bit-float) bit patterns or [big number](#big-number) special encodings), and **MAY** offer the following configuration options:
 
 * Reject the document (this **MUST** be the default behavior)
-* Stringify the value ("NaN", "infinity", "-infinity")
-* Allow the value (Passing the decoded data to a JSON encoder may fail)
+* Stringify the value ("NaN", "infinity", or "-infinity")
+* Allow the value (passing the decoded data to a JSON encoder may fail or produce different results)
 
 
 ### Out-of-range Values
@@ -631,13 +749,24 @@ Decoders **MAY** offer an option to stringify such values, replacing the numeric
 
 Duplicate [object](#object) keys (the same key appearing multiple times in the same object) are being actively exploited in the wild to compromise security and exfiltrate data. Allowing duplicate keys is **extremely** dangerous. However, some systems must allow it for interoperability reasons.
 
+**Note**: Key equality is determined by byte-for-byte comparison of UTF-8 encoded strings. For [secure compliance](#secure-compliance), strings are NFC-normalized before comparison. For [basic compliance](#basic-compliance), raw (non-normalized) strings are compared. See [Unicode Normalization](#unicode-normalization) for security implications.
+
 Decoders **MAY** offer the following configuration options:
 
 * Reject documents containing duplicate keys (this **MUST** be the default option)
 * Keep the first instance, ignoring duplicate keys (dangerous and possible to exploit in the right circumstances)
-* Keep the last instance, replacing any already received keys (extrememely dangerous and actively exploited)
+* Keep the last instance, replacing any already received keys (extremely dangerous and actively exploited)
 
 If no configuration options are provided, documents containing duplicate keys **MUST** be rejected.
+
+
+### Trailing Data
+
+A BONJSON document consists of exactly one top-level value. Decoders **MUST** by default reject documents that contain extra data after the end of the root value.
+
+Decoders **MAY** offer a configuration option to accept documents with trailing data, but this option **MUST** default to rejecting such documents.
+
+If a decoder is configured to accept trailing data, it **SHOULD** return the number of bytes consumed so that the caller can process any remaining data.
 
 
 
@@ -724,6 +853,8 @@ Full Example
 Formal BONJSON Grammar
 ----------------------
 
+The following [Dogma](https://github.com/kstenerud/dogma/blob/master/v1/dogma_v1.0.md) grammar is **normative**. In case of any discrepancy between the prose descriptions in this document and the formal grammar, the grammar takes precedence.
+
 ```dogma
 dogma_v1 utf-8
 - identifier  = bonjson
@@ -796,7 +927,7 @@ f16(v)            = sized(16, f32(v)); # bfloat16
 f32(v)            = float(32, v);
 f64(v)            = float(64, v);
 
-char_string       = unicode(C,L,M,N,P,S,Z);
+char_string       = unicode(Cc,Cf,Co,Cn,L,M,N,P,S,Z); # Category C minus Cs (surrogates)
 ```
 
 
@@ -815,6 +946,6 @@ Any discussions about JSON are done within the context of the ECMA and RFC speci
 License
 -------
 
-Copyright (c) 2024 Karl Stenerud. All rights reserved.
+Copyright (c) 2025 Karl Stenerud. All rights reserved.
 
-Distributed under the [Creative Commons Attribution License](https://creativecommons.org/licenses/by/4.0/legalcode) ([license deed](https://creativecommons.org/licenses/by/4.0).
+Distributed under the [Creative Commons Attribution License](https://creativecommons.org/licenses/by/4.0/legalcode) ([license deed](https://creativecommons.org/licenses/by/4.0)).
