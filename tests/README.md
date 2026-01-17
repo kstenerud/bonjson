@@ -83,6 +83,38 @@ Any key starting with `//` is ignored by test runners. The primary convention is
 }
 ```
 
+### Comment-Only Entries (Section Dividers)
+
+Test entries that contain **only** keys starting with `//` are treated as comment blocks and silently skipped by test runners. This allows organizing tests into logical sections:
+
+```json
+{
+  "tests": [
+    {
+      "//": "=== Integer encoding tests ===",
+      "//note": "These tests verify correct integer type selection"
+    },
+    {
+      "name": "int8_positive",
+      "type": "encode",
+      "input": 100,
+      "expected_bytes": "64"
+    },
+    {
+      "//": "=== Negative integers ==="
+    },
+    {
+      "name": "int8_negative",
+      "type": "encode",
+      "input": -1,
+      "expected_bytes": "ff"
+    }
+  ]
+}
+```
+
+If an entry contains any non-comment keys (keys not starting with `//`), it must include the required `name` and `type` fields.
+
 ## Test Types
 
 Test type values are case-insensitive.

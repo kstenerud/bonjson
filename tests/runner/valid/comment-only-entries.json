@@ -1,0 +1,40 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Tests that comment-only entries (section dividers) are properly skipped",
+  "tests": [
+    {
+      "//": "=== Section 1: Basic tests ==="
+    },
+    {
+      "name": "test_after_section_divider",
+      "type": "encode",
+      "input": null,
+      "expected_bytes": "6d"
+    },
+    {
+      "//": "=== Section 2: More tests ===",
+      "//note": "Section dividers can have multiple comment keys"
+    },
+    {
+      "name": "test_after_multi_comment_divider",
+      "type": "encode",
+      "input": true,
+      "expected_bytes": "6f"
+    },
+    {
+      "//": "Single line section divider"
+    },
+    {
+      "//": "=== Final section ===",
+      "//note": "This is the last section",
+      "//see_also": "Other test files"
+    },
+    {
+      "name": "test_at_end",
+      "type": "encode",
+      "input": false,
+      "expected_bytes": "6e"
+    }
+  ]
+}

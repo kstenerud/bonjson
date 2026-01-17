@@ -18,16 +18,34 @@
     },
     "tests": {
       "type": "array",
-      "description": "Array of test cases",
+      "description": "Array of test cases (or comment-only section dividers)",
       "items": {
-        "$ref": "#/$defs/testCase"
+        "$ref": "#/$defs/testEntry"
       }
     }
   },
   "additionalProperties": true,
   "$defs": {
+    "testEntry": {
+      "description": "Either a test case or a comment-only section divider",
+      "oneOf": [
+        { "$ref": "#/$defs/commentBlock" },
+        { "$ref": "#/$defs/testCase" }
+      ]
+    },
+    "commentBlock": {
+      "type": "object",
+      "description": "Comment-only entry used as a section divider. All property names must start with '//'.",
+      "propertyNames": {
+        "pattern": "^//"
+      },
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
     "testCase": {
       "type": "object",
+      "description": "A test case with required name and type fields",
       "required": ["name", "type"],
       "properties": {
         "name": {

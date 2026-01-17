@@ -1,0 +1,12 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "//": "Entry has comment keys but also has non-comment keys, so it must have name and type",
+  "tests": [
+    {
+      "//": "This looks like a section divider but has a non-comment key",
+      "type": "roundtrip",
+      "input": "test"
+    }
+  ]
+}

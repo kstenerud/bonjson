@@ -39,6 +39,7 @@ Contains test files that a correct test runner should process successfully. Use 
 |------|-------|
 | `basic-test-types.json` | All five test types (encode, decode, roundtrip, encode_error, decode_error) |
 | `comments.json` | Comment keys at document and test levels |
+| `comment-only-entries.json` | Comment-only entries (section dividers) are properly skipped |
 | `hex-formats.json` | Hex strings with spaces, mixed case, empty |
 | `number-formats.json` | `$number` with various formats (hex, scientific, special values) |
 | `empty-tests.json` | Valid file with empty tests array |
@@ -72,6 +73,7 @@ Contains test files that should cause the test runner to exit with a STRUCTURAL 
 | `options-not-object.json` | Options field is not an object |
 | `missing-test-name.json` | Test without name |
 | `missing-test-type.json` | Test without type |
+| `mixed-comment-missing-name.json` | Entry with comment and non-comment keys but missing name |
 | `missing-encode-input.json` | Encode test without input |
 | `missing-encode-expected-bytes.json` | Encode test without expected_bytes |
 | `missing-decode-input-bytes.json` | Decode test without input_bytes |
