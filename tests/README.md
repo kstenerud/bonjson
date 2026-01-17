@@ -2,12 +2,23 @@
 
 This directory contains cross-implementation test specifications for BONJSON. These tests serve as a "gold standard" for verifying that any BONJSON implementation correctly handles encoding, decoding, and error cases.
 
+Everything is set up to make it easy for an agent to build. An agent will need to:
+- Vendor in this repository
+- Generate a test runner and validate against the tests in `runner`
+- Validate the codec against the tests in `conformance`
+
 ## Purpose
 
 - **Single source of truth**: Define tests once, use across all implementations
 - **Consistency**: Ensure all implementations handle edge cases identically
 - **Validation**: New implementations can verify correctness against these tests
 - **Regression prevention**: Changes to the spec are reflected in tests
+
+There are two directories under this one that contain tests for specific purposes:
+- runner: Use these to validate the correct behavior of the test runner against the spec [bonjson-tests.md](../bonjson-tests.md).
+- conformance: Use these to validate the correct behavior of the codec against the spec [bonjson.md](../bonjson.md).
+
+Note: Universal tests can't be exhaustive because each language and platform will have its own ideosyncrasies. You will have to write your own tests to cover things specific to your implementation. These tests are designed to get you 80% of the way there.
 
 ## File Organization
 
