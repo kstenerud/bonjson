@@ -140,7 +140,7 @@
       "expected_bytes": "6a903f"
     },
     {
-      "//": "Float32 example from spec (0x1.3f7p5 = 39.875)",
+      "//": "Float32 encoding test (spec example uses 0x1.3f7p5 which is ~39.93)",
       "name": "spec_float32",
       "type": "encode",
       "input": 39.875,

@@ -4,17 +4,17 @@
   "//": "Tests various valid hex string formats",
   "tests": [
     {
-      "//": "Lowercase hex without spaces",
+      "//": "Lowercase hex without spaces (0x82 = 2-byte string)",
       "name": "hex_lowercase_compact",
       "type": "decode",
-      "input_bytes": "856865",
+      "input_bytes": "826865",
       "expected_value": "he"
     },
     {
-      "//": "Uppercase hex without spaces",
+      "//": "Uppercase hex without spaces (0x82 = 2-byte string)",
       "name": "hex_uppercase_compact",
       "type": "decode",
-      "input_bytes": "856865",
+      "input_bytes": "826865",
       "expected_value": "he"
     },
     {

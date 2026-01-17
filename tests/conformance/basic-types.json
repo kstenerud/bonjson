@@ -46,11 +46,17 @@
       "expected_bytes": "990181786d9b"
     },
     {
-      "//": "Simple object with key-value pairs",
-      "name": "object_simple",
+      "//": "Object with single key-value pair (deterministic encoding)",
+      "name": "object_single_key",
       "type": "encode",
-      "input": {"b": 0, "test": "x"},
-      "expected_bytes": "9a816200847465737481789b"
+      "input": {"a": 1},
+      "expected_bytes": "9a8161019b"
+    },
+    {
+      "//": "Object with multiple keys (key order is implementation-defined)",
+      "name": "object_multiple_keys",
+      "type": "roundtrip",
+      "input": {"b": 0, "test": "x"}
     },
     {
       "//": "Null round-trips correctly",

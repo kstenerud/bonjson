@@ -300,27 +300,28 @@
     },
     {
       "//": "BigNumber NaN/Infinity (rejected by default)",
-      "name": "bignumber_nan_quiet",
-      "type": "decode_error",
-      "input_bytes": "690200000000000000000000",
-      "expected_error": "invalid_data"
-    },
-    {
-      "name": "bignumber_nan_signaling",
-      "type": "decode_error",
-      "input_bytes": "690300000000000000000000",
-      "expected_error": "invalid_data"
-    },
-    {
+      "//note": "When sig_len=0, exp_len encodes: 00=zero, 01=infinity, 10=NaN quiet, 11=NaN signaling",
       "name": "bignumber_infinity_positive",
       "type": "decode_error",
-      "input_bytes": "690400000000000000000000",
+      "input_bytes": "6902",
       "expected_error": "invalid_data"
     },
     {
       "name": "bignumber_infinity_negative",
       "type": "decode_error",
-      "input_bytes": "690500000000000000000000",
+      "input_bytes": "6903",
+      "expected_error": "invalid_data"
+    },
+    {
+      "name": "bignumber_nan_quiet",
+      "type": "decode_error",
+      "input_bytes": "6904",
+      "expected_error": "invalid_data"
+    },
+    {
+      "name": "bignumber_nan_signaling",
+      "type": "decode_error",
+      "input_bytes": "6906",
       "expected_error": "invalid_data"
     },
     {

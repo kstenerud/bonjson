@@ -203,10 +203,10 @@
       "expected_error": "non_canonical_length"
     },
     {
-      "//": "Non-canonical length - small value encoded with extra bytes",
+      "//": "Non-canonical length - payload 2 (length 1) encoded with 2 bytes instead of 1",
       "name": "non_canonical_length_small_value",
       "type": "decode_error",
-      "input_bytes": "68 05 00 00",
+      "input_bytes": "68 09 00 61",
       "expected_error": "non_canonical_length"
     },
     {
