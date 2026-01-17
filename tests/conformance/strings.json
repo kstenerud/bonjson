@@ -237,6 +237,38 @@
       "type": "decode",
       "input_bytes": "68 16 68656c6c6f 18 e4b896e7958c",
       "expected_value": "hello世界"
+    },
+    {
+      "//": "Multi-byte character ends exactly at chunk boundary",
+      "//note": "Chunk1: '世' (E4 B8 96), Chunk2: 'A'. Len1=(3<<2)|2=0x0e, Len2=(1<<2)|0=0x04",
+      "name": "decode_chunked_unicode_exact_boundary",
+      "type": "decode",
+      "input_bytes": "68 0e e4b896 04 41",
+      "expected_value": "世A"
+    },
+    {
+      "//": "4-byte emoji ends exactly at chunk boundary",
+      "//note": "Chunk1: '😀' (F0 9F 98 80), Chunk2: '!' (21). Len1=(4<<2)|2=0x12, Len2=(1<<2)|0=0x04",
+      "name": "decode_chunked_emoji_exact_boundary",
+      "type": "decode",
+      "input_bytes": "68 12 f09f9880 04 21",
+      "expected_value": "😀!"
+    },
+    {
+      "//": "Two multi-byte characters, each in its own chunk",
+      "//note": "Chunk1: '日' (E6 97 A5), Chunk2: '本' (E6 9C AC). Each 3 bytes.",
+      "name": "decode_chunked_two_unicode_chars",
+      "type": "decode",
+      "input_bytes": "68 0e e697a5 0c e69cac",
+      "expected_value": "日本"
+    },
+    {
+      "//": "Many small chunks with ASCII",
+      "//note": "Tests chunk handling with 10 single-byte chunks",
+      "name": "decode_chunked_10_single_bytes",
+      "type": "decode",
+      "input_bytes": "68 06 30 06 31 06 32 06 33 06 34 06 35 06 36 06 37 06 38 04 39",
+      "expected_value": "0123456789"
     }
   ]
 }

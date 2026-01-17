@@ -440,6 +440,60 @@
       "input_bytes": "83 61 62 80",
       "expected_error": "invalid_utf8"
     },
+
+    {
+      "//": "=== UTF-8 split across chunk boundaries ===",
+      "//note": "Each chunk must contain valid UTF-8. Splitting a multi-byte character across chunks is invalid."
+    },
+    {
+      "//": "2-byte UTF-8 char split: 'ü' (U+00FC = C3 BC) split after first byte",
+      "//note2": "Chunk1: length=1, cont=1 → 0x06, data=C3. Chunk2: length=1, cont=0 → 0x04, data=BC",
+      "name": "invalid_utf8_chunk_split_2byte",
+      "type": "decode_error",
+      "input_bytes": "68 06 c3 04 bc",
+      "expected_error": "invalid_utf8"
+    },
+    {
+      "//": "3-byte UTF-8 char split: '世' (U+4E16 = E4 B8 96) split after first byte",
+      "//note2": "Chunk1: length=1, cont=1 → 0x06, data=E4. Chunk2: length=2, cont=0 → 0x08, data=B896",
+      "name": "invalid_utf8_chunk_split_3byte_1",
+      "type": "decode_error",
+      "input_bytes": "68 06 e4 08 b896",
+      "expected_error": "invalid_utf8"
+    },
+    {
+      "//": "3-byte UTF-8 char split after 2 bytes: '世' (E4 B8 | 96)",
+      "//note2": "Chunk1: length=2, cont=1 → 0x0a, data=E4B8. Chunk2: length=1, cont=0 → 0x04, data=96",
+      "name": "invalid_utf8_chunk_split_3byte_2",
+      "type": "decode_error",
+      "input_bytes": "68 0a e4b8 04 96",
+      "expected_error": "invalid_utf8"
+    },
+    {
+      "//": "4-byte UTF-8 emoji split: '😀' (U+1F600 = F0 9F 98 80) split after first byte",
+      "//note2": "Chunk1: length=1, cont=1 → 0x06, data=F0. Chunk2: length=3, cont=0 → 0x0c, data=9F9880",
+      "name": "invalid_utf8_chunk_split_4byte_1",
+      "type": "decode_error",
+      "input_bytes": "68 06 f0 0c 9f9880",
+      "expected_error": "invalid_utf8"
+    },
+    {
+      "//": "4-byte UTF-8 emoji split in middle: '😀' (F0 9F | 98 80)",
+      "//note2": "Chunk1: length=2, cont=1 → 0x0a, data=F09F. Chunk2: length=2, cont=0 → 0x08, data=9880",
+      "name": "invalid_utf8_chunk_split_4byte_2",
+      "type": "decode_error",
+      "input_bytes": "68 0a f09f 08 9880",
+      "expected_error": "invalid_utf8"
+    },
+    {
+      "//": "Valid string then invalid UTF-8 in next chunk",
+      "//note2": "Chunk1: 'hi' (2 bytes) with cont. Chunk2: lone continuation byte 0x80",
+      "name": "invalid_utf8_second_chunk",
+      "type": "decode_error",
+      "input_bytes": "68 0a 6869 04 80",
+      "expected_error": "invalid_utf8"
+    },
+
     {
       "//": "=== Malformed BigNumber headers ===",
       "//note": "BigNumber header: [sig_len:5][exp_len:2][negative:1]",
