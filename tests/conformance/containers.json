@@ -157,6 +157,72 @@
       "name": "roundtrip_deep_nesting",
       "type": "roundtrip",
       "input": {"a": {"b": {"c": {"d": {"e": 5}}}}}
+    },
+    {
+      "//": "=== Object key edge cases ===",
+      "name": "object_empty_string_key",
+      "type": "roundtrip",
+      "input": {"": 1}
+    },
+    {
+      "//": "Empty string key with complex value",
+      "name": "object_empty_string_key_array_value",
+      "type": "roundtrip",
+      "input": {"": [1, 2, 3]}
+    },
+    {
+      "//": "Long string key (16+ bytes uses long string encoding)",
+      "name": "object_long_string_key",
+      "type": "roundtrip",
+      "input": {"this is a long key": 42}
+    },
+    {
+      "//": "Very long key (32 bytes)",
+      "name": "object_very_long_string_key",
+      "type": "roundtrip",
+      "input": {"12345678901234567890123456789012": "value"}
+    },
+    {
+      "//": "Unicode object key - Japanese",
+      "name": "object_unicode_key_japanese",
+      "type": "roundtrip",
+      "input": {"\u65e5\u672c\u8a9e": "Japanese"}
+    },
+    {
+      "//": "Unicode object key - Emoji",
+      "name": "object_unicode_key_emoji",
+      "type": "roundtrip",
+      "input": {"\ud83d\ude00": "smiley"}
+    },
+    {
+      "//": "Unicode object key - Mixed",
+      "name": "object_unicode_key_mixed",
+      "type": "roundtrip",
+      "input": {"Hello \u4e16\u754c \ud83c\udf0d": "mixed"}
+    },
+    {
+      "//": "Multiple objects with various key types",
+      "name": "object_mixed_key_types",
+      "type": "roundtrip",
+      "input": {"": 0, "a": 1, "this is a long key name": 2, "\u65e5\u672c": 3}
+    },
+    {
+      "//": "Object key that looks like a number",
+      "name": "object_numeric_string_key",
+      "type": "roundtrip",
+      "input": {"123": "numeric looking key"}
+    },
+    {
+      "//": "Object key with spaces",
+      "name": "object_key_with_spaces",
+      "type": "roundtrip",
+      "input": {"key with spaces": "value"}
+    },
+    {
+      "//": "Nested objects with unicode keys",
+      "name": "object_nested_unicode_keys",
+      "type": "roundtrip",
+      "input": {"\u65e5\u672c": {"\u8a9e": {"value": 42}}}
     }
   ]
 }

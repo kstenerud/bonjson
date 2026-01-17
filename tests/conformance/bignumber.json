@@ -42,6 +42,67 @@
       "name": "roundtrip_bignumber_looks_like_float",
       "type": "roundtrip",
       "input": {"$number": "3.141592653589793238462643383279"}
+    },
+    {
+      "//": "=== Negative BigNumber tests ===",
+      "//note": "Negative integer within int64 range",
+      "name": "roundtrip_bignumber_negative",
+      "type": "roundtrip",
+      "input": {"$number": "-9007199254740993"}
+    },
+    {
+      "//": "Negative high precision decimal",
+      "name": "roundtrip_bignumber_negative_decimal",
+      "type": "roundtrip",
+      "input": {"$number": "-1.23456789012345678901234567890"}
+    },
+    {
+      "//": "Negative with tiny exponent",
+      "name": "roundtrip_bignumber_negative_tiny_exponent",
+      "type": "roundtrip",
+      "input": {"$number": "-1e-500"}
+    },
+    {
+      "//": "=== BigNumber zero roundtrip ===",
+      "name": "roundtrip_bignumber_zero",
+      "type": "roundtrip",
+      "input": {"$number": "0"}
+    },
+    {
+      "//": "=== BigNumber with negative exponent ===",
+      "name": "roundtrip_bignumber_negative_exponent",
+      "type": "roundtrip",
+      "input": {"$number": "1.5e-100"}
+    },
+    {
+      "//": "Small value with negative exponent requiring BigNumber precision",
+      "name": "roundtrip_bignumber_precise_small",
+      "type": "roundtrip",
+      "input": {"$number": "1.234567890123456789e-200"}
+    },
+    {
+      "//": "=== Large exponent tests ===",
+      "//note": "Values with large exponents that require BigNumber encoding",
+      "//note2": "Tests like 1e1000 are removed as they overflow float64 when decoded to interface{}"
+    },
+    {
+      "//": "Large negative exponent",
+      "name": "roundtrip_bignumber_large_negative_exponent",
+      "type": "roundtrip",
+      "input": {"$number": "1e-1000"}
+    },
+    {
+      "//": "=== Values at float64 boundary ===",
+      "//note": "Values that are just beyond float64 precision",
+      "name": "roundtrip_bignumber_beyond_float64_precision",
+      "type": "roundtrip",
+      "input": {"$number": "9007199254740993"}
+    },
+    {
+      "//": "Negative value beyond float64 precision",
+      "name": "roundtrip_bignumber_negative_beyond_float64",
+      "type": "roundtrip",
+      "input": {"$number": "-9007199254740993"}
     }
   ]
 }

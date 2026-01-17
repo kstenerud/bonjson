@@ -342,6 +342,212 @@
       "type": "encode_error",
       "input": {"$number": "-Infinity"},
       "expected_error": "invalid_data"
+    },
+    {
+      "//": "=== Non-string object keys (must be rejected) ===",
+      "//note": "Object keys must be strings. Any other type as a key is invalid.",
+      "name": "object_key_integer",
+      "type": "decode_error",
+      "input_bytes": "9a 01 00 9b",
+      "expected_error": "invalid_object_key"
+    },
+    {
+      "name": "object_key_null",
+      "type": "decode_error",
+      "input_bytes": "9a 6d 00 9b",
+      "expected_error": "invalid_object_key"
+    },
+    {
+      "name": "object_key_true",
+      "type": "decode_error",
+      "input_bytes": "9a 6f 00 9b",
+      "expected_error": "invalid_object_key"
+    },
+    {
+      "name": "object_key_false",
+      "type": "decode_error",
+      "input_bytes": "9a 6e 00 9b",
+      "expected_error": "invalid_object_key"
+    },
+    {
+      "name": "object_key_array",
+      "type": "decode_error",
+      "input_bytes": "9a 99 9b 00 9b",
+      "expected_error": "invalid_object_key"
+    },
+    {
+      "name": "object_key_object",
+      "type": "decode_error",
+      "input_bytes": "9a 9a 9b 00 9b",
+      "expected_error": "invalid_object_key"
+    },
+    {
+      "name": "object_key_float16",
+      "type": "decode_error",
+      "input_bytes": "9a 6a 00 00 00 9b",
+      "expected_error": "invalid_object_key"
+    },
+    {
+      "name": "object_key_float32",
+      "type": "decode_error",
+      "input_bytes": "9a 6b 00 00 00 00 00 9b",
+      "expected_error": "invalid_object_key"
+    },
+    {
+      "name": "object_key_float64",
+      "type": "decode_error",
+      "input_bytes": "9a 6c 00 00 00 00 00 00 00 00 00 9b",
+      "expected_error": "invalid_object_key"
+    },
+    {
+      "//": "=== Additional invalid UTF-8 patterns ===",
+      "name": "invalid_utf8_fe_byte",
+      "type": "decode_error",
+      "input_bytes": "81 fe",
+      "expected_error": "invalid_utf8"
+    },
+    {
+      "name": "invalid_utf8_ff_byte",
+      "type": "decode_error",
+      "input_bytes": "81 ff",
+      "expected_error": "invalid_utf8"
+    },
+    {
+      "//": "Two-byte sequence followed by invalid continuation (0x00 instead of 0x80-0xbf)",
+      "name": "invalid_utf8_bad_continuation",
+      "type": "decode_error",
+      "input_bytes": "82 c2 00",
+      "expected_error": "invalid_utf8"
+    },
+    {
+      "//": "Two-byte sequence followed by another start byte instead of continuation",
+      "name": "invalid_utf8_start_instead_of_continuation",
+      "type": "decode_error",
+      "input_bytes": "82 c2 c2",
+      "expected_error": "invalid_utf8"
+    },
+    {
+      "//": "Lone continuation byte 0xbf",
+      "name": "invalid_utf8_lone_continuation_bf",
+      "type": "decode_error",
+      "input_bytes": "81 bf",
+      "expected_error": "invalid_utf8"
+    },
+    {
+      "//": "Valid UTF-8 followed by invalid in same string",
+      "name": "invalid_utf8_valid_then_invalid",
+      "type": "decode_error",
+      "input_bytes": "83 61 62 80",
+      "expected_error": "invalid_utf8"
+    },
+    {
+      "//": "=== Malformed BigNumber headers ===",
+      "//note": "BigNumber header: [sig_len:5][exp_len:2][negative:1]",
+      "name": "bignumber_max_sig_len_truncated",
+      "type": "decode_error",
+      "input_bytes": "69 f8",
+      "expected_error": "truncated"
+    },
+    {
+      "//": "Significand claims 5 bytes but only 2 provided",
+      "name": "bignumber_sig_partial",
+      "type": "decode_error",
+      "input_bytes": "69 28 01 02",
+      "expected_error": "truncated"
+    },
+    {
+      "//": "Exponent claims 2 bytes but only 1 provided (sig_len=1, exp_len=2)",
+      "name": "bignumber_exp_partial",
+      "type": "decode_error",
+      "input_bytes": "69 0c 01 02",
+      "expected_error": "truncated"
+    },
+    {
+      "//": "=== Standalone container end marker (invalid at top level) ===",
+      "name": "standalone_container_end",
+      "type": "decode_error",
+      "input_bytes": "9b",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "//": "=== Empty input ===",
+      "name": "empty_input",
+      "type": "decode_error",
+      "input_bytes": "",
+      "expected_error": "truncated"
+    },
+    {
+      "//": "=== Malformed object structures ===",
+      "//note": "Object with key but missing value before end marker",
+      "name": "object_key_without_value",
+      "type": "decode_error",
+      "input_bytes": "9a 81 61 9b",
+      "expected_error": "truncated"
+    },
+    {
+      "//": "Object with long string key but missing value",
+      "name": "object_long_key_without_value",
+      "type": "decode_error",
+      "input_bytes": "9a 68 40 6b6579206e616d6520686572652121 9b",
+      "expected_error": "truncated"
+    },
+    {
+      "//": "Object truncated after key (no value, no end)",
+      "name": "object_truncated_after_key",
+      "type": "decode_error",
+      "input_bytes": "9a 81 61",
+      "expected_error": "truncated"
+    },
+    {
+      "//": "Object with value but missing key",
+      "name": "object_value_without_key",
+      "type": "decode_error",
+      "input_bytes": "9a 01 9b",
+      "expected_error": "invalid_object_key"
+    },
+    {
+      "//": "=== Container end edge cases ===",
+      "//note": "Extra container end marker after valid array",
+      "name": "double_container_end_array",
+      "type": "decode_error",
+      "input_bytes": "99 9b 9b",
+      "expected_error": "trailing_bytes"
+    },
+    {
+      "//": "Extra container end after array with element",
+      "name": "double_container_end_array_with_element",
+      "type": "decode_error",
+      "input_bytes": "99 01 9b 9b",
+      "expected_error": "trailing_bytes"
+    },
+    {
+      "//": "Extra container end after valid object",
+      "name": "double_container_end_object",
+      "type": "decode_error",
+      "input_bytes": "9a 9b 9b",
+      "expected_error": "trailing_bytes"
+    },
+    {
+      "//": "Container end inside array value position",
+      "name": "container_end_as_array_element",
+      "type": "decode_error",
+      "input_bytes": "99 01 9b 02 9b",
+      "expected_error": "trailing_bytes"
+    },
+    {
+      "//": "=== Length field edge cases ===",
+      "//note": "Non-canonical length encoding - value 63 encoded with trailing zero byte",
+      "name": "non_canonical_length_63_with_extra_byte",
+      "type": "decode_error",
+      "input_bytes": "68 f9 00",
+      "expected_error": "non_canonical_length"
+    },
+    {
+      "//": "Length field claiming more data than available",
+      "name": "length_exceeds_data",
+      "type": "decode_error",
+      "input_bytes": "68 80 61",
+      "expected_error": "truncated"
     }
   ]
 }

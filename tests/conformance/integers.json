@@ -455,6 +455,142 @@
       "name": "roundtrip_int_max_safe",
       "type": "roundtrip",
       "input": 9007199254740991
+    },
+    {
+      "//": "=== Negative integer boundary encode tests ===",
+      "//note": "Testing minimum values for each signed integer size",
+      "name": "sint24_neg8388608",
+      "type": "encode",
+      "input": -8388608,
+      "expected_bytes": "7a000080"
+    },
+    {
+      "name": "sint32_neg2147483648",
+      "type": "encode",
+      "input": -2147483648,
+      "expected_bytes": "7b00000080"
+    },
+    {
+      "name": "sint40_neg549755813888",
+      "type": "encode",
+      "input": -549755813888,
+      "expected_bytes": "7c0000000080"
+    },
+    {
+      "name": "sint48_neg140737488355328",
+      "type": "encode",
+      "input": -140737488355328,
+      "expected_bytes": "7d000000000080"
+    },
+    {
+      "name": "sint56_neg36028797018963968",
+      "type": "encode",
+      "input": -36028797018963968,
+      "expected_bytes": "7e00000000000080"
+    },
+    {
+      "//": "=== Negative boundary roundtrip tests ===",
+      "name": "roundtrip_sint24_min",
+      "type": "roundtrip",
+      "input": -8388608
+    },
+    {
+      "name": "roundtrip_sint32_min",
+      "type": "roundtrip",
+      "input": -2147483648
+    },
+    {
+      "name": "roundtrip_sint40_min",
+      "type": "roundtrip",
+      "input": -549755813888
+    },
+    {
+      "name": "roundtrip_sint48_min",
+      "type": "roundtrip",
+      "input": -140737488355328
+    },
+    {
+      "name": "roundtrip_sint56_min",
+      "type": "roundtrip",
+      "input": -36028797018963968
+    },
+    {
+      "//": "=== Decode tolerance tests ===",
+      "//note": "Decoders should accept values encoded in larger-than-necessary formats",
+      "name": "decode_0_as_sint8",
+      "type": "decode",
+      "input_bytes": "7800",
+      "expected_value": 0
+    },
+    {
+      "name": "decode_0_as_sint16",
+      "type": "decode",
+      "input_bytes": "790000",
+      "expected_value": 0
+    },
+    {
+      "name": "decode_0_as_sint32",
+      "type": "decode",
+      "input_bytes": "7b00000000",
+      "expected_value": 0
+    },
+    {
+      "name": "decode_0_as_sint64",
+      "type": "decode",
+      "input_bytes": "7f0000000000000000",
+      "expected_value": 0
+    },
+    {
+      "name": "decode_0_as_uint8",
+      "type": "decode",
+      "input_bytes": "7000",
+      "expected_value": 0
+    },
+    {
+      "name": "decode_0_as_uint16",
+      "type": "decode",
+      "input_bytes": "710000",
+      "expected_value": 0
+    },
+    {
+      "name": "decode_0_as_uint32",
+      "type": "decode",
+      "input_bytes": "7300000000",
+      "expected_value": 0
+    },
+    {
+      "name": "decode_0_as_uint64",
+      "type": "decode",
+      "input_bytes": "770000000000000000",
+      "expected_value": 0
+    },
+    {
+      "//": "Small value in larger format",
+      "name": "decode_1_as_sint64",
+      "type": "decode",
+      "input_bytes": "7f0100000000000000",
+      "expected_value": 1
+    },
+    {
+      "//": "Negative value in larger format",
+      "name": "decode_neg1_as_sint64",
+      "type": "decode",
+      "input_bytes": "7fffffffffffffffff",
+      "expected_value": -1
+    },
+    {
+      "//": "100 encoded as sint16 (could fit in small int)",
+      "name": "decode_100_as_sint16",
+      "type": "decode",
+      "input_bytes": "796400",
+      "expected_value": 100
+    },
+    {
+      "//": "-100 encoded as sint16 (could fit in small int)",
+      "name": "decode_neg100_as_sint16",
+      "type": "decode",
+      "input_bytes": "799cff",
+      "expected_value": -100
     }
   ]
 }

@@ -183,6 +183,69 @@
       "name": "roundtrip_float_small_magnitude",
       "type": "roundtrip",
       "input": {"$number": "1e-300"}
+    },
+    {
+      "//": "=== Negative zero roundtrip and encode tests ===",
+      "name": "roundtrip_float_negative_zero",
+      "type": "roundtrip",
+      "input": {"$number": "-0.0"}
+    },
+    {
+      "//": "Negative zero should encode to a float type (not integer 0)",
+      "name": "encode_float_negative_zero",
+      "type": "encode",
+      "input": {"$number": "-0.0"},
+      "expected_bytes": "6a0080"
+    },
+    {
+      "//": "=== Additional precision boundary tests ===",
+      "//note": "Values that test the boundary between float sizes",
+      "name": "roundtrip_float_bfloat16_exact",
+      "type": "roundtrip",
+      "input": 1.5
+    },
+    {
+      "//": "Value requiring float32 precision",
+      "name": "roundtrip_float32_precision",
+      "type": "roundtrip",
+      "input": 1.00001
+    },
+    {
+      "//": "Value requiring full float64 precision",
+      "name": "roundtrip_float64_precision",
+      "type": "roundtrip",
+      "input": 1.0000000000000002
+    },
+    {
+      "//": "=== Float boundary values ===",
+      "name": "roundtrip_float64_max",
+      "type": "roundtrip",
+      "input": {"$number": "1.7976931348623157e+308"}
+    },
+    {
+      "//": "Negative max float64",
+      "name": "roundtrip_float64_neg_max",
+      "type": "roundtrip",
+      "input": {"$number": "-1.7976931348623157e+308"}
+    },
+    {
+      "//": "Smallest positive normalized float64",
+      "name": "roundtrip_float64_min_positive_normal",
+      "type": "roundtrip",
+      "input": {"$number": "2.2250738585072014e-308"}
+    },
+    {
+      "//": "=== Float values that could be integers ===",
+      "//note": "These whole numbers should still roundtrip correctly",
+      "name": "roundtrip_float_whole_number_large",
+      "type": "roundtrip",
+      "input": 1000000.0
+    },
+    {
+      "//": "Negative whole number as float",
+      "name": "roundtrip_float_whole_number_negative",
+      "type": "roundtrip",
+      "input": -42.0
     }
   ]
 }

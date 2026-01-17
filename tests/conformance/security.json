@@ -311,6 +311,166 @@
       "input_bytes": "99 00 01 02 03 9b",
       "expected_value": [0, 1, 2, 3],
       "options": {"max_document_size": 6}
+    },
+    {
+      "//": "=== NUL character handling ===",
+      "//note": "NUL (0x00) in strings is rejected by default",
+      "name": "nul_in_string_rejected",
+      "type": "decode_error",
+      "input_bytes": "82 61 00",
+      "expected_error": "nul_in_string"
+    },
+    {
+      "//": "NUL allowed with option",
+      "name": "nul_in_string_allowed",
+      "type": "decode",
+      "input_bytes": "82 61 00",
+      "expected_value": "a\u0000",
+      "options": {"allow_nul": true}
+    },
+    {
+      "//": "Multiple NUL characters allowed",
+      "name": "multiple_nul_allowed",
+      "type": "decode",
+      "input_bytes": "84 00 61 00 62",
+      "expected_value": "\u0000a\u0000b",
+      "options": {"allow_nul": true}
+    },
+    {
+      "//": "=== NaN/Infinity handling ===",
+      "//note": "BigNumber special values: sigLen=0, special=1 (Inf), special=2 (-Inf), special=3 (NaN)",
+      "name": "nan_rejected_default",
+      "type": "decode_error",
+      "input_bytes": "69 06",
+      "expected_error": "nan_not_allowed"
+    },
+    {
+      "//": "Positive Infinity rejected by default",
+      "name": "infinity_rejected_default",
+      "type": "decode_error",
+      "input_bytes": "69 02",
+      "expected_error": "infinity_not_allowed"
+    },
+    {
+      "//": "Negative Infinity rejected by default (expLen=1, neg=1)",
+      "name": "neg_infinity_rejected_default",
+      "type": "decode_error",
+      "input_bytes": "69 03",
+      "expected_error": "infinity_not_allowed"
+    },
+    {
+      "//": "NaN allowed with option",
+      "name": "nan_allowed",
+      "type": "decode",
+      "input_bytes": "69 06",
+      "expected_value": {"$number": "NaN"},
+      "options": {"nan_infinity": "allow"}
+    },
+    {
+      "//": "Positive Infinity allowed with option",
+      "name": "infinity_allowed",
+      "type": "decode",
+      "input_bytes": "69 02",
+      "expected_value": {"$number": "Infinity"},
+      "options": {"nan_infinity": "allow"}
+    },
+    {
+      "//": "Negative Infinity allowed with option (expLen=1, neg=1)",
+      "name": "neg_infinity_allowed",
+      "type": "decode",
+      "input_bytes": "69 03",
+      "expected_value": {"$number": "-Infinity"},
+      "options": {"nan_infinity": "allow"}
+    },
+    {
+      "//": "NaN converted to string with stringify option",
+      "name": "nan_stringify",
+      "type": "decode",
+      "input_bytes": "69 06",
+      "expected_value": "NaN",
+      "options": {"nan_infinity": "stringify"}
+    },
+    {
+      "//": "Positive Infinity converted to string with stringify option",
+      "name": "infinity_stringify",
+      "type": "decode",
+      "input_bytes": "69 02",
+      "expected_value": "Infinity",
+      "options": {"nan_infinity": "stringify"}
+    },
+    {
+      "//": "Negative Infinity converted to string with stringify option (expLen=1, neg=1)",
+      "name": "neg_infinity_stringify",
+      "type": "decode",
+      "input_bytes": "69 03",
+      "expected_value": "-Infinity",
+      "options": {"nan_infinity": "stringify"}
+    },
+    {
+      "//": "=== Duplicate key handling modes ===",
+      "//note": "keep_first silently ignores subsequent duplicates",
+      "name": "dup_key_keep_first",
+      "type": "decode",
+      "input_bytes": "9a 81 61 01 81 61 02 9b",
+      "expected_value": {"a": 1},
+      "options": {"duplicate_key": "keep_first"}
+    },
+    {
+      "//": "keep_last replaces with latest value",
+      "name": "dup_key_keep_last",
+      "type": "decode",
+      "input_bytes": "9a 81 61 01 81 61 02 9b",
+      "expected_value": {"a": 2},
+      "options": {"duplicate_key": "keep_last"}
+    },
+    {
+      "//": "Multiple duplicates with keep_first",
+      "name": "dup_key_keep_first_multiple",
+      "type": "decode",
+      "input_bytes": "9a 81 61 01 81 61 02 81 61 03 9b",
+      "expected_value": {"a": 1},
+      "options": {"duplicate_key": "keep_first"}
+    },
+    {
+      "//": "Multiple duplicates with keep_last",
+      "name": "dup_key_keep_last_multiple",
+      "type": "decode",
+      "input_bytes": "9a 81 61 01 81 61 02 81 61 03 9b",
+      "expected_value": {"a": 3},
+      "options": {"duplicate_key": "keep_last"}
+    },
+    {
+      "//": "=== Invalid UTF-8 handling modes ===",
+      "//note": "replace mode substitutes invalid bytes with U+FFFD",
+      "name": "invalid_utf8_replace",
+      "type": "decode",
+      "input_bytes": "84 61 80 62 63",
+      "expected_value": "a\ufffdbc",
+      "options": {"invalid_utf8": "replace"}
+    },
+    {
+      "//": "delete mode removes invalid bytes",
+      "name": "invalid_utf8_delete",
+      "type": "decode",
+      "input_bytes": "84 61 80 62 63",
+      "expected_value": "abc",
+      "options": {"invalid_utf8": "delete"}
+    },
+    {
+      "//": "Multiple invalid bytes with replace",
+      "name": "invalid_utf8_replace_multiple",
+      "type": "decode",
+      "input_bytes": "85 80 61 ff 62 fe",
+      "expected_value": "\ufffda\ufffdb\ufffd",
+      "options": {"invalid_utf8": "replace"}
+    },
+    {
+      "//": "Multiple invalid bytes with delete",
+      "name": "invalid_utf8_delete_multiple",
+      "type": "decode",
+      "input_bytes": "85 80 61 ff 62 fe",
+      "expected_value": "ab",
+      "options": {"invalid_utf8": "delete"}
     }
   ]
 }
