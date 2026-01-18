@@ -388,7 +388,8 @@
       "type": "decode",
       "input_bytes": "69 06",
       "expected_value": "NaN",
-      "options": {"nan_infinity": "stringify"}
+      "options": {"nan_infinity": "stringify"},
+      "requires": ["nan_infinity_stringify"]
     },
     {
       "//": "Positive Infinity converted to string with stringify option",
@@ -396,7 +397,8 @@
       "type": "decode",
       "input_bytes": "69 02",
       "expected_value": "Infinity",
-      "options": {"nan_infinity": "stringify"}
+      "options": {"nan_infinity": "stringify"},
+      "requires": ["nan_infinity_stringify"]
     },
     {
       "//": "Negative Infinity converted to string with stringify option (expLen=1, neg=1)",
@@ -404,7 +406,8 @@
       "type": "decode",
       "input_bytes": "69 03",
       "expected_value": "-Infinity",
-      "options": {"nan_infinity": "stringify"}
+      "options": {"nan_infinity": "stringify"},
+      "requires": ["nan_infinity_stringify"]
     },
     {
       "//": "=== Duplicate key handling modes ===",

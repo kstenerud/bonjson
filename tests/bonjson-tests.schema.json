@@ -99,6 +99,19 @@
             "max_string_length_exceeded"
           ]
         },
+        "requires": {
+          "type": "array",
+          "description": "Capabilities required to run this test. Implementations should skip tests requiring capabilities they don't support.",
+          "items": {
+            "type": "string",
+            "enum": [
+              "arbitrary_precision_bignumber",
+              "bignumber_exponent_gt_127",
+              "bignumber_exponent_lt_neg128",
+              "nan_infinity_stringify"
+            ]
+          }
+        },
         "options": {
           "type": "object",
           "description": "Optional test configuration",

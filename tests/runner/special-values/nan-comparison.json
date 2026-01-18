@@ -5,9 +5,10 @@
   "tests": [
     {
       "//": "NaN should decode to NaN and compare equal",
+      "//note": "Quiet NaN (0x7ff8000000000000) in little-endian: 00 00 00 00 00 00 f8 7f",
       "name": "nan_decode_comparison",
       "type": "decode",
-      "input_bytes": "6c 7f f8 00 00 00 00 00 00",
+      "input_bytes": "6c 00 00 00 00 00 00 f8 7f",
       "expected_value": {"$number": "NaN"},
       "options": {"allow_nan_infinity": true}
     },

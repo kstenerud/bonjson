@@ -264,6 +264,33 @@ Available options:
 - `max_string_length`: Maximum string length
 - `max_chunks`: Maximum number of string chunks
 
+## Required Capabilities
+
+Some tests require capabilities that not all implementations support. Use the `requires` field to declare these dependencies. Implementations should skip tests requiring capabilities they don't support.
+
+```json
+{
+  "name": "bignumber_high_precision",
+  "type": "roundtrip",
+  "input": {"$number": "1.23456789012345678901234567890"},
+  "requires": ["arbitrary_precision_bignumber"]
+}
+```
+
+Available capabilities:
+
+| Capability | Description |
+|------------|-------------|
+| `arbitrary_precision_bignumber` | Support for BigNumber values with more than ~17 significant digits (exceeds float64 precision). Implementations using float64 for decoded BigNumbers will lose precision and should skip these tests. |
+| `bignumber_exponent_gt_127` | Support for BigNumber exponents greater than 127. Some implementations (e.g., Swift's Decimal) limit exponents to -128 to 127. |
+| `bignumber_exponent_lt_neg128` | Support for BigNumber exponents less than -128. Some implementations limit exponents to -128 to 127. |
+| `nan_infinity_stringify` | Support for converting NaN/Infinity float values to string representations during decoding. This is useful for JSON compatibility but not all implementations support it. |
+
+Test runners should:
+1. Define which capabilities their implementation supports
+2. Skip tests whose `requires` array contains unsupported capabilities
+3. Report skipped tests with the reason (missing capability)
+
 ## Implementing a Test Runner
 
 Each implementation needs a test runner that:
@@ -276,12 +303,22 @@ Each implementation needs a test runner that:
 ### Pseudocode
 
 ```
+// Define which capabilities this implementation supports
+supportedCapabilities = {"arbitrary_precision_bignumber", "bignumber_exponent_gt_127"}
+
 function runTests(specFile):
     spec = parseJSON(specFile)
 
     for test in spec.tests:
         // Skip comment keys
         if test starts with "//": continue
+
+        // Skip tests requiring unsupported capabilities
+        if test.requires:
+            for cap in test.requires:
+                if cap not in supportedCapabilities:
+                    skip(test.name, "requires " + cap)
+                    continue
 
         switch test.type:
             case "encode":

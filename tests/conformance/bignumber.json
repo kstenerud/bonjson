@@ -14,53 +14,97 @@
     },
     {
       "//": "=== High precision decimals (roundtrip) ===",
-      "//note": "These values have more precision than float64 can represent exactly",
+      "//note": "These values exceed float64 precision and require arbitrary precision support to roundtrip"
+    },
+    {
+      "//": "19 significant digits - exceeds float64 precision",
+      "name": "roundtrip_bignumber_19_digits",
+      "type": "roundtrip",
+      "input": {"$number": "1.234567890123456789"},
+      "requires": ["arbitrary_precision_bignumber"]
+    },
+    {
+      "//": "Negative 19-digit decimal",
+      "name": "roundtrip_bignumber_neg_19_digits",
+      "type": "roundtrip",
+      "input": {"$number": "-1.234567890123456789"},
+      "requires": ["arbitrary_precision_bignumber"]
+    },
+    {
+      "//": "19 digits with negative exponent within common range",
+      "name": "roundtrip_bignumber_19_digits_neg_exp",
+      "type": "roundtrip",
+      "input": {"$number": "1.234567890123456789e-50"},
+      "requires": ["arbitrary_precision_bignumber"]
+    },
+    {
+      "//": "Pi to 19 digits - exceeds float64 precision",
+      "name": "roundtrip_bignumber_pi_19",
+      "type": "roundtrip",
+      "input": {"$number": "3.141592653589793238"},
+      "requires": ["arbitrary_precision_bignumber"]
+    },
+    {
+      "//": "=== High precision decimals requiring arbitrary precision (roundtrip) ===",
+      "//note": "These values have more precision than 64-bit significand can represent"
+    },
+    {
+      "//": "30 significant digits - requires arbitrary precision",
       "name": "bignumber_high_precision",
       "type": "roundtrip",
-      "input": {"$number": "1.23456789012345678901234567890"}
+      "input": {"$number": "1.23456789012345678901234567890"},
+      "requires": ["arbitrary_precision_bignumber"]
     },
     {
       "//": "Very small exponent beyond float64 range",
       "name": "bignumber_tiny_exponent",
       "type": "roundtrip",
-      "input": {"$number": "1e-1000"}
+      "input": {"$number": "1e-1000"},
+      "requires": ["bignumber_exponent_lt_neg128"]
     },
     {
       "//": "Negative exponent within float64 range but high precision",
-      "name": "roundtrip_bignumber_negative_exponent",
+      "name": "roundtrip_bignumber_30_digits_neg_exp",
       "type": "roundtrip",
-      "input": {"$number": "1.23456789012345678901234567890e-50"}
+      "input": {"$number": "1.23456789012345678901234567890e-50"},
+      "requires": ["arbitrary_precision_bignumber"]
     },
     {
       "//": "Many decimal places",
       "name": "roundtrip_bignumber_many_decimals",
       "type": "roundtrip",
-      "input": {"$number": "0.123456789012345678901234567890123456789"}
+      "input": {"$number": "0.123456789012345678901234567890123456789"},
+      "requires": ["arbitrary_precision_bignumber"]
     },
     {
       "//": "Value that looks like it could be float64 but has too many sig digits",
       "name": "roundtrip_bignumber_looks_like_float",
       "type": "roundtrip",
-      "input": {"$number": "3.141592653589793238462643383279"}
+      "input": {"$number": "3.141592653589793238462643383279"},
+      "requires": ["arbitrary_precision_bignumber"]
     },
     {
       "//": "=== Negative BigNumber tests ===",
-      "//note": "Negative integer within int64 range",
+      "//note": "Negative integer within int64 range"
+    },
+    {
       "name": "roundtrip_bignumber_negative",
       "type": "roundtrip",
       "input": {"$number": "-9007199254740993"}
     },
     {
-      "//": "Negative high precision decimal",
+      "//": "Negative high precision decimal (requires arbitrary precision)",
       "name": "roundtrip_bignumber_negative_decimal",
       "type": "roundtrip",
-      "input": {"$number": "-1.23456789012345678901234567890"}
+      "input": {"$number": "-1.23456789012345678901234567890"},
+      "requires": ["arbitrary_precision_bignumber"]
     },
     {
       "//": "Negative with tiny exponent",
       "name": "roundtrip_bignumber_negative_tiny_exponent",
       "type": "roundtrip",
-      "input": {"$number": "-1e-500"}
+      "input": {"$number": "-1e-500"},
+      "requires": ["bignumber_exponent_lt_neg128"]
     },
     {
       "//": "=== BigNumber zero roundtrip ===",
@@ -69,16 +113,17 @@
       "input": {"$number": "0"}
     },
     {
-      "//": "=== BigNumber with negative exponent ===",
-      "name": "roundtrip_bignumber_negative_exponent",
+      "//": "=== BigNumber with negative exponent within common range ===",
+      "name": "roundtrip_bignumber_small_neg_exp",
       "type": "roundtrip",
       "input": {"$number": "1.5e-100"}
     },
     {
-      "//": "Small value with negative exponent requiring BigNumber precision",
+      "//": "Small value with negative exponent requiring extended range",
       "name": "roundtrip_bignumber_precise_small",
       "type": "roundtrip",
-      "input": {"$number": "1.234567890123456789e-200"}
+      "input": {"$number": "1.234567890123456789e-200"},
+      "requires": ["bignumber_exponent_lt_neg128"]
     },
     {
       "//": "=== Large exponent tests ===",
@@ -89,11 +134,14 @@
       "//": "Large negative exponent",
       "name": "roundtrip_bignumber_large_negative_exponent",
       "type": "roundtrip",
-      "input": {"$number": "1e-1000"}
+      "input": {"$number": "1e-1000"},
+      "requires": ["bignumber_exponent_lt_neg128"]
     },
     {
       "//": "=== Values at float64 boundary ===",
-      "//note": "Values that are just beyond float64 precision",
+      "//note": "Values that are just beyond float64 precision"
+    },
+    {
       "name": "roundtrip_bignumber_beyond_float64_precision",
       "type": "roundtrip",
       "input": {"$number": "9007199254740993"}
@@ -145,25 +193,29 @@
       "//": "First value requiring 2-byte exponent: 128 (expLen=2)",
       "name": "roundtrip_bignumber_exp_128",
       "type": "roundtrip",
-      "input": {"$number": "1e128"}
+      "input": {"$number": "1e128"},
+      "requires": ["bignumber_exponent_gt_127"]
     },
     {
       "//": "First negative value requiring 2-byte exponent: -129 (expLen=2)",
       "name": "roundtrip_bignumber_exp_neg129",
       "type": "roundtrip",
-      "input": {"$number": "1e-129"}
+      "input": {"$number": "1e-129"},
+      "requires": ["bignumber_exponent_lt_neg128"]
     },
     {
       "//": "Value requiring 2-byte exponent: 200 (expLen=2, beyond 1-byte range)",
       "name": "roundtrip_bignumber_exp_200",
       "type": "roundtrip",
-      "input": {"$number": "1e200"}
+      "input": {"$number": "1e200"},
+      "requires": ["bignumber_exponent_gt_127"]
     },
     {
       "//": "Large negative exponent requiring 2-byte encoding: -200 (expLen=2)",
       "name": "roundtrip_bignumber_exp_neg200",
       "type": "roundtrip",
-      "input": {"$number": "1e-200"}
+      "input": {"$number": "1e-200"},
+      "requires": ["bignumber_exponent_lt_neg128"]
     },
 
     {
