@@ -246,6 +246,66 @@
       "name": "roundtrip_float_whole_number_negative",
       "type": "roundtrip",
       "input": -42.0
+    },
+    {
+      "//": "=== Subnormal (denormalized) float tests ===",
+      "//note": "Subnormals have exponent bits all zero but non-zero mantissa"
+    },
+    {
+      "//": "Smallest positive subnormal float64 (2^-1074)",
+      "name": "decode_float64_min_subnormal",
+      "type": "decode",
+      "//note2": "Bits: 0x0000000000000001 (little-endian: 01 00 00 00 00 00 00 00)",
+      "input_bytes": "6c0100000000000000",
+      "expected_value": {"$number": "5e-324"}
+    },
+    {
+      "//": "Largest subnormal float64 (just below smallest normal)",
+      "name": "decode_float64_max_subnormal",
+      "type": "decode",
+      "//note2": "Bits: 0x000fffffffffffff (little-endian: ff ff ff ff ff ff 0f 00)",
+      "input_bytes": "6cffffffffffff0f00",
+      "expected_value": {"$number": "2.225073858507201e-308"}
+    },
+    {
+      "//": "Negative smallest subnormal",
+      "name": "decode_float64_neg_min_subnormal",
+      "type": "decode",
+      "//note2": "Bits: 0x8000000000000001 (little-endian: 01 00 00 00 00 00 00 80)",
+      "input_bytes": "6c0100000000000080",
+      "expected_value": {"$number": "-5e-324"}
+    },
+    {
+      "//": "Subnormal round-trip: smallest positive",
+      "name": "roundtrip_float64_min_subnormal",
+      "type": "roundtrip",
+      "input": {"$number": "5e-324"}
+    },
+    {
+      "//": "Subnormal round-trip: value in subnormal range",
+      "name": "roundtrip_float64_subnormal_mid",
+      "type": "roundtrip",
+      "input": {"$number": "1e-310"}
+    },
+    {
+      "//": "=== Float32 subnormals ===",
+      "//note": "Float32 subnormals are smaller than float64 can represent as subnormal"
+    },
+    {
+      "//": "Smallest positive subnormal float32 (2^-149)",
+      "name": "decode_float32_min_subnormal",
+      "type": "decode",
+      "//note2": "Bits: 0x00000001 (little-endian: 01 00 00 00)",
+      "input_bytes": "6b01000000",
+      "expected_value": {"$number": "0x1p-149"}
+    },
+    {
+      "//": "Largest subnormal float32",
+      "name": "decode_float32_max_subnormal",
+      "type": "decode",
+      "//note2": "Bits: 0x007fffff (little-endian: ff ff 7f 00)",
+      "input_bytes": "6bffff7f00",
+      "expected_value": {"$number": "0x1.fffffcp-127"}
     }
   ]
 }

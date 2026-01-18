@@ -223,6 +223,86 @@
       "name": "object_nested_unicode_keys",
       "type": "roundtrip",
       "input": {"\u65e5\u672c": {"\u8a9e": {"value": 42}}}
+    },
+    {
+      "//": "=== Empty container nesting tests ===",
+      "//note": "Various patterns of nested empty containers"
+    },
+    {
+      "//": "Array of empty arrays",
+      "name": "array_of_empty_arrays",
+      "type": "roundtrip",
+      "input": [[], [], []]
+    },
+    {
+      "//": "Array of empty objects",
+      "name": "array_of_empty_objects",
+      "type": "roundtrip",
+      "input": [{}, {}, {}]
+    },
+    {
+      "//": "Object with empty array values",
+      "name": "object_with_empty_array_values",
+      "type": "roundtrip",
+      "input": {"a": [], "b": [], "c": []}
+    },
+    {
+      "//": "Object with empty object values",
+      "name": "object_with_empty_object_values",
+      "type": "roundtrip",
+      "input": {"a": {}, "b": {}, "c": {}}
+    },
+    {
+      "//": "Deeply nested empty arrays",
+      "name": "deeply_nested_empty_arrays",
+      "type": "roundtrip",
+      "input": [[[[[[]]]]]]
+    },
+    {
+      "//": "Deeply nested empty objects",
+      "name": "deeply_nested_empty_objects",
+      "type": "roundtrip",
+      "input": {"a": {"b": {"c": {"d": {"e": {}}}}}}
+    },
+    {
+      "//": "Mixed empty containers",
+      "name": "mixed_empty_containers",
+      "type": "roundtrip",
+      "input": {"arr": [], "obj": {}, "nested": {"inner": []}}
+    },
+    {
+      "//": "Alternating empty arrays and objects",
+      "name": "alternating_empty_containers",
+      "type": "roundtrip",
+      "input": [{},[],{},[],{}]
+    },
+    {
+      "//": "Empty array encode verification",
+      "name": "encode_empty_array",
+      "type": "encode",
+      "input": [],
+      "expected_bytes": "999b"
+    },
+    {
+      "//": "Empty object encode verification",
+      "name": "encode_empty_object",
+      "type": "encode",
+      "input": {},
+      "expected_bytes": "9a9b"
+    },
+    {
+      "//": "Nested empty array encode verification",
+      "name": "encode_nested_empty_array",
+      "type": "encode",
+      "input": [[]],
+      "expected_bytes": "99 999b 9b"
+    },
+    {
+      "//": "Empty object in array encode verification",
+      "name": "encode_empty_object_in_array",
+      "type": "encode",
+      "input": [{}],
+      "expected_bytes": "99 9a9b 9b"
     }
   ]
 }

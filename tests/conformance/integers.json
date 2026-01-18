@@ -591,6 +591,108 @@
       "type": "decode",
       "input_bytes": "799cff",
       "expected_value": -100
+    },
+    {
+      "//": "=== Encoding alternatives: decoders MUST accept any valid encoding ===",
+      "//note": "Per spec: Decoders MUST accept any valid numeric encoding, even if not most compact"
+    },
+    {
+      "//": "127 encoded as uint8 (valid alternative to sint8)",
+      "name": "decode_127_as_uint8",
+      "type": "decode",
+      "input_bytes": "707f",
+      "expected_value": 127
+    },
+    {
+      "//": "127 encoded as sint16 (non-minimal but valid)",
+      "name": "decode_127_as_sint16",
+      "type": "decode",
+      "input_bytes": "797f00",
+      "expected_value": 127
+    },
+    {
+      "//": "127 encoded as uint16 (non-minimal but valid)",
+      "name": "decode_127_as_uint16",
+      "type": "decode",
+      "input_bytes": "717f00",
+      "expected_value": 127
+    },
+    {
+      "//": "255 encoded as uint8",
+      "name": "decode_255_as_uint8",
+      "type": "decode",
+      "input_bytes": "70ff",
+      "expected_value": 255
+    },
+    {
+      "//": "255 encoded as sint16 (must use 2 bytes for signed)",
+      "name": "decode_255_as_sint16",
+      "type": "decode",
+      "input_bytes": "79ff00",
+      "expected_value": 255
+    },
+    {
+      "//": "255 encoded as uint16 (non-minimal but valid)",
+      "name": "decode_255_as_uint16",
+      "type": "decode",
+      "input_bytes": "71ff00",
+      "expected_value": 255
+    },
+    {
+      "//": "32767 encoded as uint16 (valid alternative to sint16)",
+      "name": "decode_32767_as_uint16",
+      "type": "decode",
+      "input_bytes": "71ff7f",
+      "expected_value": 32767
+    },
+    {
+      "//": "32767 encoded as sint32 (non-minimal but valid)",
+      "name": "decode_32767_as_sint32",
+      "type": "decode",
+      "input_bytes": "7bff7f0000",
+      "expected_value": 32767
+    },
+    {
+      "//": "128 encoded as uint8 (smallest format for this value)",
+      "name": "decode_128_as_uint8",
+      "type": "decode",
+      "input_bytes": "7080",
+      "expected_value": 128
+    },
+    {
+      "//": "128 encoded as sint16 (needs 2 bytes for signed)",
+      "name": "decode_128_as_sint16",
+      "type": "decode",
+      "input_bytes": "798000",
+      "expected_value": 128
+    },
+    {
+      "//": "-128 encoded as sint8 (minimum sint8 value)",
+      "name": "decode_neg128_as_sint8",
+      "type": "decode",
+      "input_bytes": "7880",
+      "expected_value": -128
+    },
+    {
+      "//": "-128 encoded as sint16 (non-minimal but valid)",
+      "name": "decode_neg128_as_sint16",
+      "type": "decode",
+      "input_bytes": "7980ff",
+      "expected_value": -128
+    },
+    {
+      "//": "-129 encoded as sint16 (just beyond sint8 range)",
+      "name": "decode_neg129_as_sint16",
+      "type": "decode",
+      "input_bytes": "797fff",
+      "expected_value": -129
+    },
+    {
+      "//": "-129 encoded as sint32 (non-minimal but valid)",
+      "name": "decode_neg129_as_sint32",
+      "type": "decode",
+      "input_bytes": "7b7fffffff",
+      "expected_value": -129
     }
   ]
 }
