@@ -269,6 +269,32 @@
       "type": "decode",
       "input_bytes": "68 06 30 06 31 06 32 06 33 06 34 06 35 06 36 06 37 06 38 04 39",
       "expected_value": "0123456789"
+    },
+    {
+      "//": "=== Multi-byte length field chunk tests ===",
+      "//note": "Chunks > 63 bytes require 2-byte length fields. These tests verify correct handling.",
+      "//": "64-byte chunk with continuation + 2-byte final chunk",
+      "//note": "Chunk1: 64 bytes, cont=1, payload=(64<<1)|1=129, 2-byte: (129<<2)|1=517=0x0205. Chunk2: 2 bytes, cont=0, payload=4, 1-byte: 0x08",
+      "name": "decode_chunked_64byte_first_chunk",
+      "type": "decode",
+      "input_bytes": "68 0502 61616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161 08 6263",
+      "expected_value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabc"
+    },
+    {
+      "//": "Both chunks 64 bytes (both require 2-byte length fields)",
+      "//note": "Chunk1: 64 'a', cont=1, len=0x0502. Chunk2: 64 'b', cont=0, payload=(64<<1)|0=128, 2-byte: (128<<2)|1=513=0x0201",
+      "name": "decode_chunked_64byte_both_chunks",
+      "type": "decode",
+      "input_bytes": "68 0502 61616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161 0102 62626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262",
+      "expected_value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    {
+      "//": "Three chunks: 64 + 64 + 64 bytes (all require 2-byte length fields)",
+      "//note": "All chunks 64 bytes. First two have continuation=1 (0x0502), last has continuation=0 (0x0102)",
+      "name": "decode_chunked_64byte_three_chunks",
+      "type": "decode",
+      "input_bytes": "68 0502 61616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161 0502 62626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262 0102 63636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363",
+      "expected_value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
     }
   ]
 }
