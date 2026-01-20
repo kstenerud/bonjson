@@ -368,6 +368,32 @@
       "type": "decode",
       "input_bytes": "f0 0e f09f98 04 80",
       "expected_value": "\ud83d\ude00"
+    },
+
+    {
+      "//": "=== Non-canonical length encoding tests ===",
+      "//note": "Decoders MUST accept non-canonical (oversized) length encodings"
+    },
+    {
+      "//": "Empty string with non-canonical 2-byte length (payload 0 encoded as 01 00 instead of 00)",
+      "name": "noncanonical_length_empty_string_2byte",
+      "type": "decode",
+      "input_bytes": "f0 01 00",
+      "expected_value": ""
+    },
+    {
+      "//": "String 'a' with non-canonical 2-byte length (payload 2 encoded as 09 00 instead of 04)",
+      "name": "noncanonical_length_string_a_2byte",
+      "type": "decode",
+      "input_bytes": "f0 09 00 61",
+      "expected_value": "a"
+    },
+    {
+      "//": "Empty string with non-canonical 3-byte length (payload 0 encoded as 03 00 00)",
+      "name": "noncanonical_length_empty_string_3byte",
+      "type": "decode",
+      "input_bytes": "f0 03 00 00",
+      "expected_value": ""
     }
   ]
 }

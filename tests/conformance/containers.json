@@ -411,6 +411,53 @@
       "type": "decode",
       "input_bytes": "f9 06 e161 f8 08 65 66 04 e162 f8 08 67 68",
       "expected_value": {"a": [1, 2], "b": [3, 4]}
+    },
+
+    {
+      "//": "=== Non-canonical length encoding tests ===",
+      "//note": "Decoders MUST accept non-canonical (oversized) length encodings"
+    },
+    {
+      "//": "Empty array with non-canonical 2-byte length (payload 0 encoded as 01 00 instead of 00)",
+      "name": "noncanonical_length_empty_array_2byte",
+      "type": "decode",
+      "input_bytes": "f8 01 00",
+      "expected_value": []
+    },
+    {
+      "//": "Array [0] with non-canonical 2-byte length (payload 2 encoded as 09 00 instead of 04)",
+      "name": "noncanonical_length_array_1elem_2byte",
+      "type": "decode",
+      "input_bytes": "f8 09 00 64",
+      "expected_value": [0]
+    },
+    {
+      "//": "Empty array with non-canonical 3-byte length (payload 0 encoded as 03 00 00)",
+      "name": "noncanonical_length_empty_array_3byte",
+      "type": "decode",
+      "input_bytes": "f8 03 00 00",
+      "expected_value": []
+    },
+    {
+      "//": "Empty object with non-canonical 2-byte length (payload 0 encoded as 01 00 instead of 00)",
+      "name": "noncanonical_length_empty_object_2byte",
+      "type": "decode",
+      "input_bytes": "f9 01 00",
+      "expected_value": {}
+    },
+    {
+      "//": "Object {\"a\": 0} with non-canonical 2-byte length (payload 2 encoded as 09 00 instead of 04)",
+      "name": "noncanonical_length_object_1pair_2byte",
+      "type": "decode",
+      "input_bytes": "f9 09 00 e1 61 64",
+      "expected_value": {"a": 0}
+    },
+    {
+      "//": "Empty object with non-canonical 3-byte length (payload 0 encoded as 03 00 00)",
+      "name": "noncanonical_length_empty_object_3byte",
+      "type": "decode",
+      "input_bytes": "f9 03 00 00",
+      "expected_value": {}
     }
   ]
 }
