@@ -182,6 +182,10 @@ Having confidence in your data plumbing is paramount.
  * [⚙️ Rust Reference Implementation](https://github.com/kstenerud/rs-bonjson)
  * [⚙️ Swift Reference Implementation](https://github.com/kstenerud/swift-bonjson)
 
+### Tools
+
+ * [🛠️ Bonbon](https://github.com/kstenerud/bonbon): Cmdline tool to convert between JSON and BONJSON
+
 -------------------------------------------------------------------------------
 
 
