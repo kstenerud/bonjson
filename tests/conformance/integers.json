@@ -4,106 +4,106 @@
   "//": "Integer encoding tests covering all size variants",
   "tests": [
     {
-      "//": "Small integers (0-100) encode directly as their value",
+      "//": "Small integers (-100 to 100) encode as byte = value + 100",
       "name": "smallint_0",
       "type": "encode",
       "input": 0,
-      "expected_bytes": "00"
+      "expected_bytes": "64"
     },
     {
       "name": "smallint_1",
       "type": "encode",
       "input": 1,
-      "expected_bytes": "01"
+      "expected_bytes": "65"
     },
     {
       "name": "smallint_5",
       "type": "encode",
       "input": 5,
-      "expected_bytes": "05"
+      "expected_bytes": "69"
     },
     {
       "name": "smallint_10",
       "type": "encode",
       "input": 10,
-      "expected_bytes": "0a"
+      "expected_bytes": "6e"
     },
     {
       "name": "smallint_100",
       "type": "encode",
       "input": 100,
-      "expected_bytes": "64"
+      "expected_bytes": "c8"
     },
     {
-      "//": "Small negative integers (-100 to -1) encode as 0x9c to 0xff",
+      "//": "Small negative integers (-100 to -1) encode as value + 100",
       "name": "smallint_neg1",
       "type": "encode",
       "input": -1,
-      "expected_bytes": "ff"
+      "expected_bytes": "63"
     },
     {
       "name": "smallint_neg60",
       "type": "encode",
       "input": -60,
-      "expected_bytes": "c4"
+      "expected_bytes": "28"
     },
     {
       "name": "smallint_neg100",
       "type": "encode",
       "input": -100,
-      "expected_bytes": "9c"
+      "expected_bytes": "00"
     },
     {
-      "//": "Signed int8 (101-127, -101 to -128) uses type code 0x78",
+      "//": "Signed int8 (101-127, -101 to -128) uses type code 0xd8",
       "name": "sint8_101",
       "type": "encode",
       "input": 101,
-      "expected_bytes": "7865"
+      "expected_bytes": "d865"
     },
     {
       "name": "sint8_122",
       "type": "encode",
       "input": 122,
-      "expected_bytes": "787a"
+      "expected_bytes": "d87a"
     },
     {
       "name": "sint8_126",
       "type": "encode",
       "input": 126,
-      "expected_bytes": "787e"
+      "expected_bytes": "d87e"
     },
     {
       "name": "sint8_127",
       "type": "encode",
       "input": 127,
-      "expected_bytes": "787f"
+      "expected_bytes": "d87f"
     },
     {
       "name": "sint8_neg101",
       "type": "encode",
       "input": -101,
-      "expected_bytes": "789b"
+      "expected_bytes": "d89b"
     },
     {
       "name": "sint8_neg121",
       "type": "encode",
       "input": -121,
-      "expected_bytes": "7887"
+      "expected_bytes": "d887"
     },
     {
       "name": "sint8_neg127",
       "type": "encode",
       "input": -127,
-      "expected_bytes": "7881"
+      "expected_bytes": "d881"
     },
     {
       "name": "sint8_neg128",
       "type": "encode",
       "input": -128,
-      "expected_bytes": "7880"
+      "expected_bytes": "d880"
     },
     {
-      "//": "Values 128-255 can be encoded as uint8 (0x70) or sint16 (0x79)",
+      "//": "Values 128-255 can be encoded as uint8 (0xd0) or sint16 (0xd9)",
       "//note": "Roundtrip tests verify correctness; decode tests verify specific encodings",
       "name": "roundtrip_128",
       "type": "roundtrip",
@@ -125,38 +125,38 @@
       "input": 255
     },
     {
-      "//": "Signed int16 uses type code 0x79 (little-endian)",
+      "//": "Signed int16 uses type code 0xd9 (little-endian)",
       "name": "sint16_1000",
       "type": "encode",
       "input": 1000,
-      "expected_bytes": "79e803"
+      "expected_bytes": "d9e803"
     },
     {
       "name": "sint16_256",
       "type": "encode",
       "input": 256,
-      "expected_bytes": "790001"
+      "expected_bytes": "d90001"
     },
     {
       "name": "sint16_32767",
       "type": "encode",
       "input": 32767,
-      "expected_bytes": "79ff7f"
+      "expected_bytes": "d9ff7f"
     },
     {
       "name": "sint16_neg1000",
       "type": "encode",
       "input": -1000,
-      "expected_bytes": "7918fc"
+      "expected_bytes": "d918fc"
     },
     {
       "name": "sint16_neg32768",
       "type": "encode",
       "input": -32768,
-      "expected_bytes": "790080"
+      "expected_bytes": "d90080"
     },
     {
-      "//": "Values 32768-65535 can be encoded as uint16 (0x71) or sint24 (0x7a)",
+      "//": "Values 32768-65535 can be encoded as uint16 (0xd1) or sint24 (0xda)",
       "name": "roundtrip_32768",
       "type": "roundtrip",
       "input": 32768
@@ -167,20 +167,20 @@
       "input": 65535
     },
     {
-      "//": "Signed int24 uses type code 0x7a",
+      "//": "Signed int24 uses type code 0xda",
       "name": "sint24_65536",
       "type": "encode",
       "input": 65536,
-      "expected_bytes": "7a000001"
+      "expected_bytes": "da000001"
     },
     {
       "name": "sint24_8388607",
       "type": "encode",
       "input": 8388607,
-      "expected_bytes": "7affff7f"
+      "expected_bytes": "daffff7f"
     },
     {
-      "//": "Values 8388608-16777215 can be encoded as uint24 (0x72) or sint32 (0x7b)",
+      "//": "Values 8388608-16777215 can be encoded as uint24 (0xd2) or sint32 (0xdb)",
       "name": "roundtrip_8388608",
       "type": "roundtrip",
       "input": 8388608
@@ -191,20 +191,20 @@
       "input": 16777215
     },
     {
-      "//": "Signed int32 uses type code 0x7b",
+      "//": "Signed int32 uses type code 0xdb",
       "name": "sint32_16777216",
       "type": "encode",
       "input": 16777216,
-      "expected_bytes": "7b00000001"
+      "expected_bytes": "db00000001"
     },
     {
       "name": "sint32_2147483647",
       "type": "encode",
       "input": 2147483647,
-      "expected_bytes": "7bffffff7f"
+      "expected_bytes": "dbffffff7f"
     },
     {
-      "//": "Values 2147483648-4294967295 can be encoded as uint32 (0x73) or sint40 (0x7c)",
+      "//": "Values 2147483648-4294967295 can be encoded as uint32 (0xd3) or sint40 (0xdc)",
       "name": "roundtrip_2147483648",
       "type": "roundtrip",
       "input": 2147483648
@@ -215,20 +215,20 @@
       "input": 4294967295
     },
     {
-      "//": "Signed int40 uses type code 0x7c",
+      "//": "Signed int40 uses type code 0xdc",
       "name": "sint40_4294967296",
       "type": "encode",
       "input": 4294967296,
-      "expected_bytes": "7c0000000001"
+      "expected_bytes": "dc0000000001"
     },
     {
       "name": "sint40_549755813887",
       "type": "encode",
       "input": 549755813887,
-      "expected_bytes": "7cffffffff7f"
+      "expected_bytes": "dcffffffff7f"
     },
     {
-      "//": "Values 549755813888-1099511627775 can be encoded as uint40 (0x74) or sint48 (0x7d)",
+      "//": "Values 549755813888-1099511627775 can be encoded as uint40 (0xd4) or sint48 (0xdd)",
       "name": "roundtrip_549755813888",
       "type": "roundtrip",
       "input": 549755813888
@@ -239,195 +239,195 @@
       "input": 1099511627775
     },
     {
-      "//": "Signed int48 uses type code 0x7d",
+      "//": "Signed int48 uses type code 0xdd",
       "name": "sint48_1099511627776",
       "type": "encode",
       "input": 1099511627776,
-      "expected_bytes": "7d000000000001"
+      "expected_bytes": "dd000000000001"
     },
     {
       "//": "Example from spec: 0x123456789abc",
       "name": "sint48_20015998343868",
       "type": "encode",
       "input": 20015998343868,
-      "expected_bytes": "7dbc9a78563412"
+      "expected_bytes": "ddbc9a78563412"
     },
     {
-      "//": "Value 140737488355328 can be encoded as uint48 (0x75) or sint56 (0x7e)",
+      "//": "Value 140737488355328 can be encoded as uint48 (0xd5) or sint56 (0xde)",
       "name": "roundtrip_140737488355328",
       "type": "roundtrip",
       "input": 140737488355328
     },
     {
-      "//": "Signed int56 uses type code 0x7e",
+      "//": "Signed int56 uses type code 0xde",
       "name": "sint56_281474976710656",
       "type": "encode",
       "input": 281474976710656,
-      "expected_bytes": "7e00000000000001"
+      "expected_bytes": "de00000000000001"
     },
     {
-      "//": "Value 36028797018963968 can be encoded as uint56 (0x76) or sint64 (0x7f)",
+      "//": "Value 36028797018963968 can be encoded as uint56 (0xd6) or sint64 (0xdf)",
       "name": "roundtrip_36028797018963968",
       "type": "roundtrip",
       "input": 36028797018963968
     },
     {
-      "//": "Signed int64 uses type code 0x7f",
+      "//": "Signed int64 uses type code 0xdf",
       "name": "sint64_72057594037927936",
       "type": "encode",
       "input": 72057594037927936,
-      "expected_bytes": "7f0000000000000001"
+      "expected_bytes": "df0000000000000001"
     },
     {
       "name": "sint64_max",
       "type": "encode",
       "input": 9223372036854775807,
-      "expected_bytes": "7fffffffffffffff7f"
+      "expected_bytes": "dfffffffffffffff7f"
     },
     {
       "name": "sint64_min",
       "type": "encode",
       "input": -9223372036854775808,
-      "expected_bytes": "7f0000000000000080"
+      "expected_bytes": "df0000000000000080"
     },
     {
-      "//": "Unsigned int64 (values > INT64_MAX) must use type code 0x77",
+      "//": "Unsigned int64 (values > INT64_MAX) must use type code 0xd7",
       "name": "uint64_9223372036854775808",
       "type": "encode",
       "input": {"$number": "9223372036854775808"},
-      "expected_bytes": "770000000000000080"
+      "expected_bytes": "d70000000000000080"
     },
     {
       "//": "Example from spec: 0xded0d0d0dedadada",
       "name": "uint64_example",
       "type": "encode",
       "input": {"$number": "16055562267086478042"},
-      "expected_bytes": "77dadadaded0d0d0de"
+      "expected_bytes": "d7dadadaded0d0d0de"
     },
     {
       "name": "uint64_max",
       "type": "encode",
       "input": {"$number": "18446744073709551615"},
-      "expected_bytes": "77ffffffffffffffff"
+      "expected_bytes": "d7ffffffffffffffff"
     },
     {
       "//": "=== Decode tests - verify decoder accepts all valid encodings ===",
       "name": "decode_smallint_50_direct",
       "type": "decode",
-      "input_bytes": "32",
+      "input_bytes": "96",
       "expected_value": 50
     },
     {
       "//": "Small int encoded as sint8 should decode to same value",
       "name": "decode_50_as_sint8",
       "type": "decode",
-      "input_bytes": "7832",
+      "input_bytes": "d832",
       "expected_value": 50
     },
     {
       "//": "Small int encoded as uint8 should decode to same value",
       "name": "decode_50_as_uint8",
       "type": "decode",
-      "input_bytes": "7032",
+      "input_bytes": "d032",
       "expected_value": 50
     },
     {
       "//": "Small int encoded as sint16 should decode to same value",
       "name": "decode_50_as_sint16",
       "type": "decode",
-      "input_bytes": "793200",
+      "input_bytes": "d93200",
       "expected_value": 50
     },
     {
       "//": "120 encoded as uint16 should decode correctly",
       "name": "decode_120_as_uint16",
       "type": "decode",
-      "input_bytes": "717800",
+      "input_bytes": "d17800",
       "expected_value": 120
     },
     {
       "//": "Decode tests for unsigned integer encodings",
       "name": "decode_uint8_128",
       "type": "decode",
-      "input_bytes": "7080",
+      "input_bytes": "d080",
       "expected_value": 128
     },
     {
       "name": "decode_uint8_180",
       "type": "decode",
-      "input_bytes": "70b4",
+      "input_bytes": "d0b4",
       "expected_value": 180
     },
     {
       "name": "decode_uint8_200",
       "type": "decode",
-      "input_bytes": "70c8",
+      "input_bytes": "d0c8",
       "expected_value": 200
     },
     {
       "name": "decode_uint8_255",
       "type": "decode",
-      "input_bytes": "70ff",
+      "input_bytes": "d0ff",
       "expected_value": 255
     },
     {
       "name": "decode_uint16_32768",
       "type": "decode",
-      "input_bytes": "710080",
+      "input_bytes": "d10080",
       "expected_value": 32768
     },
     {
       "name": "decode_uint16_65535",
       "type": "decode",
-      "input_bytes": "71ffff",
+      "input_bytes": "d1ffff",
       "expected_value": 65535
     },
     {
       "name": "decode_uint24_8388608",
       "type": "decode",
-      "input_bytes": "72000080",
+      "input_bytes": "d2000080",
       "expected_value": 8388608
     },
     {
       "name": "decode_uint24_16777215",
       "type": "decode",
-      "input_bytes": "72ffffff",
+      "input_bytes": "d2ffffff",
       "expected_value": 16777215
     },
     {
       "name": "decode_uint32_2147483648",
       "type": "decode",
-      "input_bytes": "7300000080",
+      "input_bytes": "d300000080",
       "expected_value": 2147483648
     },
     {
       "name": "decode_uint32_4294967295",
       "type": "decode",
-      "input_bytes": "73ffffffff",
+      "input_bytes": "d3ffffffff",
       "expected_value": 4294967295
     },
     {
       "name": "decode_uint40_549755813888",
       "type": "decode",
-      "input_bytes": "740000000080",
+      "input_bytes": "d40000000080",
       "expected_value": 549755813888
     },
     {
       "name": "decode_uint40_1099511627775",
       "type": "decode",
-      "input_bytes": "74ffffffffff",
+      "input_bytes": "d4ffffffffff",
       "expected_value": 1099511627775
     },
     {
       "name": "decode_uint48_140737488355328",
       "type": "decode",
-      "input_bytes": "75000000000080",
+      "input_bytes": "d5000000000080",
       "expected_value": 140737488355328
     },
     {
       "name": "decode_uint56_36028797018963968",
       "type": "decode",
-      "input_bytes": "7600000000000080",
+      "input_bytes": "d600000000000080",
       "expected_value": 36028797018963968
     },
     {
@@ -462,31 +462,31 @@
       "name": "sint24_neg8388608",
       "type": "encode",
       "input": -8388608,
-      "expected_bytes": "7a000080"
+      "expected_bytes": "da000080"
     },
     {
       "name": "sint32_neg2147483648",
       "type": "encode",
       "input": -2147483648,
-      "expected_bytes": "7b00000080"
+      "expected_bytes": "db00000080"
     },
     {
       "name": "sint40_neg549755813888",
       "type": "encode",
       "input": -549755813888,
-      "expected_bytes": "7c0000000080"
+      "expected_bytes": "dc0000000080"
     },
     {
       "name": "sint48_neg140737488355328",
       "type": "encode",
       "input": -140737488355328,
-      "expected_bytes": "7d000000000080"
+      "expected_bytes": "dd000000000080"
     },
     {
       "name": "sint56_neg36028797018963968",
       "type": "encode",
       "input": -36028797018963968,
-      "expected_bytes": "7e00000000000080"
+      "expected_bytes": "de00000000000080"
     },
     {
       "//": "=== Negative boundary roundtrip tests ===",
@@ -519,77 +519,77 @@
       "//note": "Decoders should accept values encoded in larger-than-necessary formats",
       "name": "decode_0_as_sint8",
       "type": "decode",
-      "input_bytes": "7800",
+      "input_bytes": "d800",
       "expected_value": 0
     },
     {
       "name": "decode_0_as_sint16",
       "type": "decode",
-      "input_bytes": "790000",
+      "input_bytes": "d90000",
       "expected_value": 0
     },
     {
       "name": "decode_0_as_sint32",
       "type": "decode",
-      "input_bytes": "7b00000000",
+      "input_bytes": "db00000000",
       "expected_value": 0
     },
     {
       "name": "decode_0_as_sint64",
       "type": "decode",
-      "input_bytes": "7f0000000000000000",
+      "input_bytes": "df0000000000000000",
       "expected_value": 0
     },
     {
       "name": "decode_0_as_uint8",
       "type": "decode",
-      "input_bytes": "7000",
+      "input_bytes": "d000",
       "expected_value": 0
     },
     {
       "name": "decode_0_as_uint16",
       "type": "decode",
-      "input_bytes": "710000",
+      "input_bytes": "d10000",
       "expected_value": 0
     },
     {
       "name": "decode_0_as_uint32",
       "type": "decode",
-      "input_bytes": "7300000000",
+      "input_bytes": "d300000000",
       "expected_value": 0
     },
     {
       "name": "decode_0_as_uint64",
       "type": "decode",
-      "input_bytes": "770000000000000000",
+      "input_bytes": "d70000000000000000",
       "expected_value": 0
     },
     {
       "//": "Small value in larger format",
       "name": "decode_1_as_sint64",
       "type": "decode",
-      "input_bytes": "7f0100000000000000",
+      "input_bytes": "df0100000000000000",
       "expected_value": 1
     },
     {
       "//": "Negative value in larger format",
       "name": "decode_neg1_as_sint64",
       "type": "decode",
-      "input_bytes": "7fffffffffffffffff",
+      "input_bytes": "dfffffffffffffffff",
       "expected_value": -1
     },
     {
       "//": "100 encoded as sint16 (could fit in small int)",
       "name": "decode_100_as_sint16",
       "type": "decode",
-      "input_bytes": "796400",
+      "input_bytes": "d96400",
       "expected_value": 100
     },
     {
       "//": "-100 encoded as sint16 (could fit in small int)",
       "name": "decode_neg100_as_sint16",
       "type": "decode",
-      "input_bytes": "799cff",
+      "input_bytes": "d99cff",
       "expected_value": -100
     },
     {
@@ -600,98 +600,98 @@
       "//": "127 encoded as uint8 (valid alternative to sint8)",
       "name": "decode_127_as_uint8",
       "type": "decode",
-      "input_bytes": "707f",
+      "input_bytes": "d07f",
       "expected_value": 127
     },
     {
       "//": "127 encoded as sint16 (non-minimal but valid)",
       "name": "decode_127_as_sint16",
       "type": "decode",
-      "input_bytes": "797f00",
+      "input_bytes": "d97f00",
       "expected_value": 127
     },
     {
       "//": "127 encoded as uint16 (non-minimal but valid)",
       "name": "decode_127_as_uint16",
       "type": "decode",
-      "input_bytes": "717f00",
+      "input_bytes": "d17f00",
       "expected_value": 127
     },
     {
       "//": "255 encoded as uint8",
       "name": "decode_255_as_uint8",
       "type": "decode",
-      "input_bytes": "70ff",
+      "input_bytes": "d0ff",
       "expected_value": 255
     },
     {
       "//": "255 encoded as sint16 (must use 2 bytes for signed)",
       "name": "decode_255_as_sint16",
       "type": "decode",
-      "input_bytes": "79ff00",
+      "input_bytes": "d9ff00",
       "expected_value": 255
     },
     {
       "//": "255 encoded as uint16 (non-minimal but valid)",
       "name": "decode_255_as_uint16",
       "type": "decode",
-      "input_bytes": "71ff00",
+      "input_bytes": "d1ff00",
       "expected_value": 255
     },
     {
       "//": "32767 encoded as uint16 (valid alternative to sint16)",
       "name": "decode_32767_as_uint16",
       "type": "decode",
-      "input_bytes": "71ff7f",
+      "input_bytes": "d1ff7f",
       "expected_value": 32767
     },
     {
       "//": "32767 encoded as sint32 (non-minimal but valid)",
       "name": "decode_32767_as_sint32",
       "type": "decode",
-      "input_bytes": "7bff7f0000",
+      "input_bytes": "dbff7f0000",
       "expected_value": 32767
     },
     {
       "//": "128 encoded as uint8 (smallest format for this value)",
       "name": "decode_128_as_uint8",
       "type": "decode",
-      "input_bytes": "7080",
+      "input_bytes": "d080",
       "expected_value": 128
     },
     {
       "//": "128 encoded as sint16 (needs 2 bytes for signed)",
       "name": "decode_128_as_sint16",
       "type": "decode",
-      "input_bytes": "798000",
+      "input_bytes": "d98000",
       "expected_value": 128
     },
     {
       "//": "-128 encoded as sint8 (minimum sint8 value)",
       "name": "decode_neg128_as_sint8",
       "type": "decode",
-      "input_bytes": "7880",
+      "input_bytes": "d880",
       "expected_value": -128
     },
     {
       "//": "-128 encoded as sint16 (non-minimal but valid)",
       "name": "decode_neg128_as_sint16",
       "type": "decode",
-      "input_bytes": "7980ff",
+      "input_bytes": "d980ff",
       "expected_value": -128
     },
     {
       "//": "-129 encoded as sint16 (just beyond sint8 range)",
       "name": "decode_neg129_as_sint16",
       "type": "decode",
-      "input_bytes": "797fff",
+      "input_bytes": "d97fff",
       "expected_value": -129
     },
     {
       "//": "-129 encoded as sint32 (non-minimal but valid)",
       "name": "decode_neg129_as_sint32",
       "type": "decode",
-      "input_bytes": "7b7fffffff",
+      "input_bytes": "db7fffffff",
       "expected_value": -129
     }
   ]

@@ -4,53 +4,53 @@
   "//": "Basic type encoding tests for null, boolean, and simple values",
   "tests": [
     {
-      "//": "Null encodes to type code 0x6d",
+      "//": "Null encodes to type code 0xf5",
       "name": "null",
       "type": "encode",
       "input": null,
-      "expected_bytes": "6d"
+      "expected_bytes": "f5"
     },
     {
-      "//": "True encodes to type code 0x6f",
+      "//": "True encodes to type code 0xf7",
       "name": "bool_true",
       "type": "encode",
       "input": true,
-      "expected_bytes": "6f"
+      "expected_bytes": "f7"
     },
     {
-      "//": "False encodes to type code 0x6e",
+      "//": "False encodes to type code 0xf6",
       "name": "bool_false",
       "type": "encode",
       "input": false,
-      "expected_bytes": "6e"
+      "expected_bytes": "f6"
     },
     {
-      "//": "Empty array encodes to start (0x99) + end (0x9b)",
+      "//": "Empty array encodes to start (0xf8) + count chunk (0 elements → 0x00)",
       "name": "empty_array",
       "type": "encode",
       "input": [],
-      "expected_bytes": "999b"
+      "expected_bytes": "f800"
     },
     {
-      "//": "Empty object encodes to start (0x9a) + end (0x9b)",
+      "//": "Empty object encodes to start (0xf9) + count chunk (0 pairs → 0x00)",
       "name": "empty_object",
       "type": "encode",
       "input": {},
-      "expected_bytes": "9a9b"
+      "expected_bytes": "f900"
     },
     {
-      "//": "Simple array with mixed types",
+      "//": "Simple array with mixed types (3 elements → 0x0c)",
       "name": "array_mixed",
       "type": "encode",
       "input": [1, "x", null],
-      "expected_bytes": "990181786d9b"
+      "expected_bytes": "f80c65e178f5"
     },
     {
-      "//": "Object with single key-value pair (deterministic encoding)",
+      "//": "Object with single key-value pair (1 pair → 0x04)",
       "name": "object_single_key",
       "type": "encode",
       "input": {"a": 1},
-      "expected_bytes": "9a8161019b"
+      "expected_bytes": "f904e16165"
     },
     {
       "//": "Object with multiple keys (key order is implementation-defined)",

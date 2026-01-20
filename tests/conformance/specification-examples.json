@@ -8,38 +8,38 @@
       "name": "spec_short_string_empty",
       "type": "encode",
       "input": "",
-      "expected_bytes": "80"
+      "expected_bytes": "e0"
     },
     {
       "name": "spec_short_string_a",
       "type": "encode",
       "input": "A",
-      "expected_bytes": "8141"
+      "expected_bytes": "e141"
     },
     {
       "//": "Japanese 'ohayou' (good morning)",
       "name": "spec_short_string_japanese",
       "type": "encode",
       "input": "\u304a\u306f\u3088\u3046",
-      "expected_bytes": "8ce3818ae381afe38288e38186"
+      "expected_bytes": "ece3818ae381afe38288e38186"
     },
     {
       "name": "spec_short_string_15bytes",
       "type": "encode",
       "input": "15 byte string!",
-      "expected_bytes": "8f3135206279746520737472696e6721"
+      "expected_bytes": "ef3135206279746520737472696e6721"
     },
     {
       "//": "Long String examples from spec",
       "name": "spec_long_string_empty",
       "type": "decode",
-      "input_bytes": "6800",
+      "input_bytes": "f000",
       "expected_value": ""
     },
     {
       "name": "spec_long_string_astring",
       "type": "decode",
-      "input_bytes": "68206120737472696e67",
+      "input_bytes": "f0206120737472696e67",
       "expected_value": "a string"
     },
     {
@@ -47,38 +47,38 @@
       "name": "spec_long_string_64chars",
       "type": "encode",
       "input": "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ",
-      "expected_bytes": "6801025a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"
+      "expected_bytes": "f001025a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"
     },
     {
-      "//": "Small Integer examples from spec",
+      "//": "Small Integer examples from spec (value = type_code - 100)",
       "name": "spec_smallint_100",
       "type": "encode",
       "input": 100,
-      "expected_bytes": "64"
+      "expected_bytes": "c8"
     },
     {
       "name": "spec_smallint_5",
       "type": "encode",
       "input": 5,
-      "expected_bytes": "05"
+      "expected_bytes": "69"
     },
     {
       "name": "spec_smallint_0",
       "type": "encode",
       "input": 0,
-      "expected_bytes": "00"
+      "expected_bytes": "64"
     },
     {
       "name": "spec_smallint_neg60",
       "type": "encode",
       "input": -60,
-      "expected_bytes": "c4"
+      "expected_bytes": "28"
     },
     {
       "name": "spec_smallint_neg100",
       "type": "encode",
       "input": -100,
-      "expected_bytes": "9c"
+      "expected_bytes": "00"
     },
     {
       "//": "Integer examples from spec - 180 can be uint8 or sint16",
@@ -90,14 +90,14 @@
       "//": "Decode test: 180 encoded as uint8 (spec example)",
       "name": "decode_spec_int_180_uint8",
       "type": "decode",
-      "input_bytes": "70b4",
+      "input_bytes": "d0b4",
       "expected_value": 180
     },
     {
       "name": "spec_int_neg1000",
       "type": "encode",
       "input": -1000,
-      "expected_bytes": "7918fc"
+      "expected_bytes": "d918fc"
     },
     {
       "//": "32768 can be uint16 or sint24",
@@ -109,7 +109,7 @@
       "//": "Decode test: 32768 encoded as uint16 (spec example)",
       "name": "decode_spec_int_32768_uint16",
       "type": "decode",
-      "input_bytes": "710080",
+      "input_bytes": "d10080",
       "expected_value": 32768
     },
     {
@@ -117,62 +117,62 @@
       "name": "spec_int_large",
       "type": "encode",
       "input": 20015998343868,
-      "expected_bytes": "7dbc9a78563412"
+      "expected_bytes": "ddbc9a78563412"
     },
     {
       "name": "spec_int_min_int64",
       "type": "encode",
       "input": -9223372036854775808,
-      "expected_bytes": "7f0000000000000080"
+      "expected_bytes": "df0000000000000080"
     },
     {
       "//": "0xded0d0d0dedadada",
       "name": "spec_uint64_example",
       "type": "encode",
       "input": {"$number": "16055562267086478042"},
-      "expected_bytes": "77dadadaded0d0d0de"
+      "expected_bytes": "d7dadadaded0d0d0de"
     },
     {
       "//": "Float16 (bfloat16) example from spec",
       "name": "spec_float16",
       "type": "encode",
       "input": 1.125,
-      "expected_bytes": "6a903f"
+      "expected_bytes": "f2903f"
     },
     {
       "//": "Float32 encoding test (spec example uses 0x1.3f7p5 which is ~39.93)",
       "name": "spec_float32",
       "type": "encode",
       "input": 39.875,
-      "expected_bytes": "6b00801f42"
+      "expected_bytes": "f300801f42"
     },
     {
       "//": "Float64 example from spec",
       "name": "spec_float64",
       "type": "encode",
       "input": 1.234,
-      "expected_bytes": "6c5839b4c876bef33f"
+      "expected_bytes": "f45839b4c876bef33f"
     },
     {
       "//": "BigNumber decoding: 1.5 = 1 * 15 * 10^-1",
       "name": "spec_bignumber_1_5",
       "type": "decode",
-      "input_bytes": "690aff0f",
+      "input_bytes": "f10aff0f",
       "expected_value": {"$number": "1.5"}
     },
     {
       "//": "BigNumber decoding: -0 = -1 * 0 * 10^0",
       "name": "spec_bignumber_neg_zero",
       "type": "decode",
-      "input_bytes": "6901",
+      "input_bytes": "f101",
       "expected_value": {"$number": "-0"}
     },
     {
-      "//": "Array example from spec",
+      "//": "Array example from spec (3 elements → count=0x0c)",
       "name": "spec_array",
       "type": "encode",
       "input": ["a", 1, null],
-      "expected_bytes": "998161016d9b"
+      "expected_bytes": "f80ce16165f5"
     },
     {
       "//": "Object example from spec (roundtrip since key order is unspecified)",
@@ -185,20 +185,20 @@
       "name": "spec_bool_false",
       "type": "encode",
       "input": false,
-      "expected_bytes": "6e"
+      "expected_bytes": "f6"
     },
     {
       "name": "spec_bool_true",
       "type": "encode",
       "input": true,
-      "expected_bytes": "6f"
+      "expected_bytes": "f7"
     },
     {
       "//": "Null example from spec",
       "name": "spec_null",
       "type": "encode",
       "input": null,
-      "expected_bytes": "6d"
+      "expected_bytes": "f5"
     },
     {
       "//": "Full example from spec (roundtrip since key order is unspecified)",
