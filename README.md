@@ -177,10 +177,10 @@ Having confidence in your data plumbing is paramount.
 
 ### Implementations
 
- * [⚙️ C Reference Implementation](https://github.com/kstenerud/ksbonjson)
- * [⚙️ Go Reference Implementation](https://github.com/kstenerud/go-bonjson)
- * [⚙️ Rust Reference Implementation](https://github.com/kstenerud/rs-bonjson)
- * [⚙️ Swift Reference Implementation](https://github.com/kstenerud/swift-bonjson)
+ * [⚙️ C Implementation](https://github.com/kstenerud/ksbonjson)
+ * [⚙️ Go Implementation](https://github.com/kstenerud/go-bonjson)
+ * [⚙️ Rust Implementation](https://github.com/kstenerud/rs-bonjson)
+ * [⚙️ Swift Implementation](https://github.com/kstenerud/swift-bonjson)
 
 ### Tools
 
