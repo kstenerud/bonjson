@@ -153,7 +153,7 @@
     },
     {
       "//": "=== Chunked string decode tests ===",
-      "//note": "Length field format: bits 2+: length, bit 1: continuation flag, bit 0: reserved",
+      "//note": "Chunk byte (single-byte encoding) = (length << 2) | (continuation << 1). Continuation=1 means more chunks follow.",
       "name": "decode_chunked_2chunks",
       "type": "decode",
       "input_bytes": "f0 16 68656c6c6f 14 776f726c64",

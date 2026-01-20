@@ -342,7 +342,7 @@
     },
     {
       "//": "=== NaN/Infinity handling ===",
-      "//note": "BigNumber special values: sigLen=0, special=1 (Inf), special=2 (-Inf), special=3 (NaN)",
+      "//note": "BigNumber special values: sigLen=0, then expLen=1 for Infinity (neg=sign), expLen=3 for NaN",
       "name": "nan_rejected_default",
       "type": "decode_error",
       "input_bytes": "f1 06",
