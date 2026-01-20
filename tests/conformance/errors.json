@@ -637,44 +637,11 @@
     },
     {
       "//": "=== Length field edge cases ===",
-      "//note": "Non-canonical length encoding - value 63 encoded with trailing zero byte",
-      "name": "non_canonical_length_63_with_extra_byte",
-      "type": "decode_error",
-      "input_bytes": "f0 f9 00",
-      "expected_error": "non_canonical_length"
-    },
-    {
       "//": "Length field claiming more data than available",
       "name": "length_exceeds_data",
       "type": "decode_error",
       "input_bytes": "f0 80 61",
       "expected_error": "truncated"
-    },
-
-    {
-      "//": "=== Additional non-canonical length tests ===",
-      "//note": "Per spec: Decoders MUST reject non-canonical length encodings"
-    },
-    {
-      "//": "Non-canonical: value 0 encoded in 2 bytes (should be 1 byte: 0x00)",
-      "name": "non_canonical_length_0_in_2_bytes",
-      "type": "decode_error",
-      "input_bytes": "f0 01 00",
-      "expected_error": "non_canonical_length"
-    },
-    {
-      "//": "Non-canonical: value 1 encoded in 2 bytes (should be 1 byte: 0x04)",
-      "name": "non_canonical_length_1_in_2_bytes",
-      "type": "decode_error",
-      "input_bytes": "f0 05 00 61",
-      "expected_error": "non_canonical_length"
-    },
-    {
-      "//": "Non-canonical: value 63 encoded in 2 bytes (should be 1 byte: 0xfc)",
-      "name": "non_canonical_length_63_in_2_bytes",
-      "type": "decode_error",
-      "input_bytes": "f0 fd 00 616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161",
-      "expected_error": "non_canonical_length"
     }
   ]
 }

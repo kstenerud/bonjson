@@ -197,20 +197,6 @@
       "options": {"allow_trailing_bytes": true}
     },
     {
-      "//": "Non-canonical length encoding - length 0 encoded as 2 bytes instead of 1",
-      "name": "non_canonical_length_zero",
-      "type": "decode_error",
-      "input_bytes": "f0 01 00",
-      "expected_error": "non_canonical_length"
-    },
-    {
-      "//": "Non-canonical length - payload 2 (length 1) encoded with 2 bytes instead of 1",
-      "name": "non_canonical_length_small_value",
-      "type": "decode_error",
-      "input_bytes": "f0 09 00 61",
-      "expected_error": "non_canonical_length"
-    },
-    {
       "//": "Maximum nesting depth exceeded (6 nested arrays, limit 5)",
       "//note": "Each array: f8 + count. Inner arrays have 1 element (→0x04), innermost is empty (→0x00)",
       "name": "max_depth_exceeded_arrays",

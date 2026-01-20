@@ -482,7 +482,6 @@ The `expected_error` field uses standardized error type identifiers:
 | `unclosed_container`            | Missing container end marker               |
 | `invalid_data`                  | Generic invalid data (e.g., BigNumber NaN) |
 | `value_out_of_range`            | Value exceeds allowed range                |
-| `non_canonical_length`          | Non-canonical (oversized) length encoding  |
 | `too_many_chunks`               | String exceeds chunk count limit           |
 | `empty_chunk_continuation`      | Zero-length chunk with continuation bit    |
 | `max_depth_exceeded`            | Container nesting too deep                 |

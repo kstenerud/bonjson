@@ -511,7 +511,7 @@ Consequently, the `header` occupies the lowest byte when the encoded data is loa
 
 This encoding has the same size overhead as [LEB128](https://en.wikipedia.org/wiki/LEB128) (1 bit per byte), but is far more efficient to decode because the full size of the field can be determined from the first byte, and the overhead bits can be eliminated in a single shift operation.
 
-**Note**: Unlike [numeric values](#numbers), length fields **MUST** use the most compact encoding possible. Encoders **MUST NOT** produce non-canonical (oversized) length encodings, and decoders **MUST** reject documents containing non-canonical length encodings. A length encoding is canonical if and only if it uses the minimum number of bytes required per the header table above. For example, length 0 with continuation 0 (payload 0) **MUST** be encoded as `00` (1 byte), not `01 00` (2 bytes).
+**Note**: Encoders **SHOULD** use the most compact encoding possible for length fields. Decoders **MUST** accept non-canonical (oversized) length encodings. A length encoding is canonical if and only if it uses the minimum number of bytes required per the header table above. For example, length 0 with continuation 0 (payload 0) is canonically encoded as `00` (1 byte), but `01 00` (2 bytes) is also valid and decodes to the same value.
 
 
 ### Length Field Payload Format
