@@ -209,7 +209,7 @@
     },
     {
       "//": "=== Chunked string edge cases ===",
-      "//note": "Length field: (length << 2) | (continuation << 1). Each chunk must contain valid UTF-8.",
+      "//note": "Length field: (length << 2) | (continuation << 1). UTF-8 validation happens on complete assembled string.",
       "name": "decode_chunked_empty_final",
       "type": "decode",
       "input_bytes": "f0 16 68656c6c6f 00",
@@ -295,6 +295,79 @@
       "type": "decode",
       "input_bytes": "f0 0502 61616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161 0502 62626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262 0102 63636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363",
       "expected_value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    },
+    {
+      "//": "=== UTF-8 sequences split across chunk boundaries ===",
+      "//note": "UTF-8 validation happens on the complete assembled string, not per-chunk. Multi-byte sequences may span chunk boundaries."
+    },
+    {
+      "//": "2-byte UTF-8 char 'ü' (U+00FC = C3 BC) split after first byte",
+      "//note": "Chunk1: length=1, cont=1 → 0x06, data=C3. Chunk2: length=1, cont=0 → 0x04, data=BC",
+      "name": "decode_utf8_2byte_split",
+      "type": "decode",
+      "input_bytes": "f0 06 c3 04 bc",
+      "expected_value": "ü"
+    },
+    {
+      "//": "2-byte UTF-8 'é' (U+00E9 = C3 A9) split across chunks",
+      "name": "decode_utf8_2byte_split_e_acute",
+      "type": "decode",
+      "input_bytes": "f0 06 c3 04 a9",
+      "expected_value": "é"
+    },
+    {
+      "//": "3-byte UTF-8 char '世' (U+4E16 = E4 B8 96) split after first byte",
+      "//note": "Chunk1: length=1, cont=1 → 0x06, data=E4. Chunk2: length=2, cont=0 → 0x08, data=B896",
+      "name": "decode_utf8_3byte_split_1_2",
+      "type": "decode",
+      "input_bytes": "f0 06 e4 08 b896",
+      "expected_value": "世"
+    },
+    {
+      "//": "3-byte UTF-8 char '世' (E4 B8 | 96) split after second byte",
+      "//note": "Chunk1: length=2, cont=1 → 0x0a, data=E4B8. Chunk2: length=1, cont=0 → 0x04, data=96",
+      "name": "decode_utf8_3byte_split_2_1",
+      "type": "decode",
+      "input_bytes": "f0 0a e4b8 04 96",
+      "expected_value": "世"
+    },
+    {
+      "//": "3-byte UTF-8 '中' (U+4E2D = E4 B8 AD) split 1+2",
+      "name": "decode_utf8_3byte_split_1_2_zhong",
+      "type": "decode",
+      "input_bytes": "f0 06 e4 08 b8ad",
+      "expected_value": "中"
+    },
+    {
+      "//": "3-byte UTF-8 '中' split 2+1",
+      "name": "decode_utf8_3byte_split_2_1_zhong",
+      "type": "decode",
+      "input_bytes": "f0 0a e4b8 04 ad",
+      "expected_value": "中"
+    },
+    {
+      "//": "4-byte UTF-8 emoji '😀' (U+1F600 = F0 9F 98 80) split after first byte",
+      "//note": "Chunk1: length=1, cont=1 → 0x06, data=F0. Chunk2: length=3, cont=0 → 0x0c, data=9F9880",
+      "name": "decode_utf8_4byte_split_1_3",
+      "type": "decode",
+      "input_bytes": "f0 06 f0 0c 9f9880",
+      "expected_value": "\ud83d\ude00"
+    },
+    {
+      "//": "4-byte UTF-8 emoji '😀' split in middle (F0 9F | 98 80)",
+      "//note": "Chunk1: length=2, cont=1 → 0x0a, data=F09F. Chunk2: length=2, cont=0 → 0x08, data=9880",
+      "name": "decode_utf8_4byte_split_2_2",
+      "type": "decode",
+      "input_bytes": "f0 0a f09f 08 9880",
+      "expected_value": "\ud83d\ude00"
+    },
+    {
+      "//": "4-byte UTF-8 emoji '😀' split 3+1",
+      "//note": "Chunk1: length=3, cont=1 → 0x0e, data=F09F98. Chunk2: length=1, cont=0 → 0x04, data=80",
+      "name": "decode_utf8_4byte_split_3_1",
+      "type": "decode",
+      "input_bytes": "f0 0e f09f98 04 80",
+      "expected_value": "\ud83d\ude00"
     }
   ]
 }

@@ -406,11 +406,11 @@
     },
     {
       "//": "Multi-chunk nested: outer object in chunks, containing arrays",
-      "//note": "Outer: chunk1 has 1 pair (cont=1) → 0x06, chunk2 has 1 pair (cont=0) → 0x04",
+      "//note": "Outer: chunk1 has 1 pair (cont=1) → 0x06, chunk2 has 1 pair (cont=0) → 0x04. Inner arrays: 2 elements → 0x08",
       "name": "decode_multichunk_nested_object_of_arrays",
       "type": "decode",
-      "input_bytes": "f9 06 e161 f8046566 04 e162 f8046768",
+      "input_bytes": "f9 06 e161 f8 08 65 66 04 e162 f8 08 67 68",
       "expected_value": {"a": [1, 2], "b": [3, 4]}
-    },
+    }
   ]
 }
