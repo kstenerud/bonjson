@@ -458,6 +458,68 @@
       "type": "decode",
       "input_bytes": "f9 03 00 00",
       "expected_value": {}
+    },
+
+    {
+      "//": "=== Null values in containers ===",
+      "//note": "Tests for proper handling of null values inside arrays and objects. Decoders must correctly track container element counts when processing nulls."
+    },
+    {
+      "//": "Array containing multiple null values (2 elements → 0x08)",
+      "name": "array_of_nulls",
+      "type": "encode",
+      "input": [null, null],
+      "expected_bytes": "f8 08 f5 f5"
+    },
+    {
+      "//": "Array with null values interspersed with other types (4 elements → 0x10)",
+      "name": "array_with_nulls_mixed",
+      "type": "encode",
+      "input": [1, null, 2, null],
+      "expected_bytes": "f8 10 65 f5 66 f5"
+    },
+    {
+      "//": "Object with multiple null values (2 pairs → 0x08)",
+      "name": "object_with_multiple_nulls",
+      "type": "encode",
+      "input": {"a": null, "b": null},
+      "expected_bytes": "f9 08 e1 61 f5 e1 62 f5"
+    },
+    {
+      "//": "Roundtrip: array of nulls",
+      "name": "roundtrip_array_of_nulls",
+      "type": "roundtrip",
+      "input": [null, null, null]
+    },
+    {
+      "//": "Roundtrip: array with nulls and other values",
+      "name": "roundtrip_array_nulls_mixed",
+      "type": "roundtrip",
+      "input": [1, null, "a", null, true]
+    },
+    {
+      "//": "Roundtrip: object with null values",
+      "name": "roundtrip_object_with_nulls",
+      "type": "roundtrip",
+      "input": {"a": null, "b": 1, "c": null}
+    },
+    {
+      "//": "Roundtrip: nested array containing nulls",
+      "name": "roundtrip_nested_array_with_nulls",
+      "type": "roundtrip",
+      "input": [[null, null], [null]]
+    },
+    {
+      "//": "Roundtrip: object with nested null values",
+      "name": "roundtrip_nested_object_with_nulls",
+      "type": "roundtrip",
+      "input": {"outer": {"inner": null}, "also_null": null}
+    },
+    {
+      "//": "Roundtrip: complex structure with nulls at various levels",
+      "name": "roundtrip_complex_with_nulls",
+      "type": "roundtrip",
+      "input": {"arr": [null, {"nested": null}], "val": null}
     }
   ]
 }
