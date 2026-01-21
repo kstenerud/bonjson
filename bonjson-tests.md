@@ -808,24 +808,22 @@ Appendix A: Type Code Reference
 
 | Range   | Type                                 |
 |---------|--------------------------------------|
-| `00-64` | Small positive integers (0-100)      |
-| `65-67` | Reserved                             |
-| `68`    | Long string                          |
-| `69`    | BigNumber                            |
-| `6a`    | Float16 (bfloat16)                   |
-| `6b`    | Float32                              |
-| `6c`    | Float64                              |
-| `6d`    | Null                                 |
-| `6e`    | False                                |
-| `6f`    | True                                 |
-| `70-77` | Unsigned integers (8-64 bit)         |
-| `78-7f` | Signed integers (8-64 bit)           |
-| `80-8f` | Short strings (0-15 bytes)           |
-| `90-98` | Reserved                             |
-| `99`    | Array start                          |
-| `9a`    | Object start                         |
-| `9b`    | Container end                        |
-| `9c-ff` | Small negative integers (-100 to -1) |
+| `00-c8` | Small integers (-100 to 100)         |
+| `c9-cf` | Reserved                             |
+| `d0-d7` | Unsigned integers (8-64 bit)         |
+| `d8-df` | Signed integers (8-64 bit)           |
+| `e0-ef` | Short strings (0-15 bytes)           |
+| `f0`    | Long string                          |
+| `f1`    | BigNumber                            |
+| `f2`    | Float16 (bfloat16)                   |
+| `f3`    | Float32                              |
+| `f4`    | Float64                              |
+| `f5`    | Null                                 |
+| `f6`    | False                                |
+| `f7`    | True                                 |
+| `f8`    | Array                                |
+| `f9`    | Object                               |
+| `fa-ff` | Reserved                             |
 
 
 Appendix B: Complete Example
@@ -838,24 +836,24 @@ Appendix B: Complete Example
   "//": "Example test specification file",
   "tests": [
     {
-      "//": "Null encodes to single byte 0x6d",
+      "//": "Null encodes to single byte 0xf5",
       "name": "null_value",
       "type": "encode",
       "input": null,
-      "expected_bytes": "6d"
+      "expected_bytes": "f5"
     },
     {
-      "//": "Small integer 42 encodes directly",
+      "//": "Small integer 42 encodes as type_code = 42 + 100 = 0x8e",
       "name": "smallint_42",
       "type": "encode",
       "input": 42,
-      "expected_bytes": "2a"
+      "expected_bytes": "8e"
     },
     {
-      "//": "Truncated int16 should fail",
+      "//": "Truncated sint16 should fail (0xd9 = sint16, missing second byte)",
       "name": "truncated_int16",
       "type": "decode_error",
-      "input_bytes": "79e8",
+      "input_bytes": "d9e8",
       "expected_error": "truncated"
     },
     {
@@ -876,17 +874,17 @@ Appendix B: Complete Example
       "expected_error": "invalid_data"
     },
     {
-      "//": "Large unsigned integer",
+      "//": "Large unsigned integer (0xd7 = uint64)",
       "name": "uint64_large",
       "type": "encode",
       "input": {"$number": "18446744073709551615"},
-      "expected_bytes": "77 ff ff ff ff ff ff ff ff"
+      "expected_bytes": "d7 ff ff ff ff ff ff ff ff"
     },
     {
-      "//": "BigNumber decodes to 1.5",
+      "//": "BigNumber decodes to 1.5 (0xf1 = BigNumber)",
       "name": "bignumber_1_5",
       "type": "decode",
-      "input_bytes": "69 0a ff 0f",
+      "input_bytes": "f1 0a ff 0f",
       "expected_value": {"$number": "1.5"}
     }
   ]

@@ -476,21 +476,19 @@ For reference when writing byte sequences:
 
 | Range | Type |
 |-------|------|
-| `00-64` | Small positive integers (0-100) |
-| `65-67` | Reserved |
-| `68` | Long string |
-| `69` | BigNumber |
-| `6a` | Float16 (bfloat16) |
-| `6b` | Float32 |
-| `6c` | Float64 |
-| `6d` | Null |
-| `6e` | False |
-| `6f` | True |
-| `70-77` | Unsigned integers (8-64 bit) |
-| `78-7f` | Signed integers (8-64 bit) |
-| `80-8f` | Short strings (0-15 bytes) |
-| `90-98` | Reserved |
-| `99` | Array start |
-| `9a` | Object start |
-| `9b` | Container end |
-| `9c-ff` | Small negative integers (-100 to -1) |
+| `00-c8` | Small integers (-100 to 100) |
+| `c9-cf` | Reserved |
+| `d0-d7` | Unsigned integers (8-64 bit) |
+| `d8-df` | Signed integers (8-64 bit) |
+| `e0-ef` | Short strings (0-15 bytes) |
+| `f0` | Long string |
+| `f1` | BigNumber |
+| `f2` | Float16 (bfloat16) |
+| `f3` | Float32 |
+| `f4` | Float64 |
+| `f5` | Null |
+| `f6` | False |
+| `f7` | True |
+| `f8` | Array |
+| `f9` | Object |
+| `fa-ff` | Reserved |
