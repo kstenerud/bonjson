@@ -30,7 +30,7 @@ These tests ensure your test runner correctly:
 
 **Fix any failures here BEFORE investigating conformance test failures.**
 
-See [bonjson-tests.md](../bonjson-tests.md) for the test specification format.
+See [bonjson-universal-test-specification.md](../bonjson-universal-test-specification.md) for the test specification format.
 
 ### conformance/
 
@@ -219,11 +219,11 @@ JSON cannot directly represent some numeric values. Use the `$number` marker:
 {"$number": "1.23456789e-5"}
 ```
 
-| Format | Interpretation |
-|--------|----------------|
-| `NaN`, `Infinity`, `-Infinity` | IEEE 754 special values (case-insensitive) |
-| `0x...p...` | Hex float (C99 format, case-insensitive) |
-| Decimal | Arbitrary-precision number (case-insensitive for `e`/`E`) |
+| Format                         | Interpretation                                            |
+|--------------------------------|-----------------------------------------------------------|
+| `NaN`, `Infinity`, `-Infinity` | IEEE 754 special values (case-insensitive)                |
+| `0x...p...`                    | Hex float (C99 format, case-insensitive)                  |
+| Decimal                        | Arbitrary-precision number (case-insensitive for `e`/`E`) |
 
 ## Binary Data Format
 
@@ -247,20 +247,23 @@ Compact format (no spaces) is also valid:
 
 Error type values are case-insensitive.
 
-| Error | Description |
-|-------|-------------|
-| `truncated` | Unexpected end of data |
-| `invalid_type_code` | Unrecognized or reserved type code |
-| `invalid_utf8` | Invalid UTF-8 sequence in string |
-| `nul_character` | NUL (0x00) in string (default rejection) |
-| `duplicate_key` | Duplicate key in object |
-| `unclosed_container` | Missing container end marker |
-| `invalid_data` | Generic invalid data (e.g., NaN in BigNumber) |
-| `value_out_of_range` | Value exceeds allowed range |
-| `too_many_chunks` | String has too many chunks |
-| `empty_chunk_continuation` | Empty chunk with continuation bit set |
-| `max_depth_exceeded` | Container nesting too deep |
-| `max_string_length_exceeded` | String exceeds length limit |
+| Error                         | Description                                   |
+|-------------------------------|-----------------------------------------------|
+| `truncated`                   | Unexpected end of data                        |
+| `trailing_bytes`              | Unconsumed bytes after decoding               |
+| `invalid_type_code`           | Unrecognized or reserved type code            |
+| `invalid_utf8`                | Invalid UTF-8 sequence in string              |
+| `nul_character`               | NUL (0x00) in string (default rejection)      |
+| `duplicate_key`               | Duplicate key in object                       |
+| `unclosed_container`          | Missing container end marker                  |
+| `invalid_data`                | Generic invalid data (e.g., NaN in BigNumber) |
+| `value_out_of_range`          | Value exceeds allowed range                   |
+| `too_many_chunks`             | String has too many chunks                    |
+| `empty_chunk_continuation`    | Empty chunk with continuation bit set         |
+| `max_depth_exceeded`          | Container nesting too deep                    |
+| `max_string_length_exceeded`  | String exceeds length limit                   |
+| `max_container_size_exceeded` | Container has too many elements               |
+| `max_document_size_exceeded`  | Document exceeds size limit                   |
 
 ## Test Options
 
@@ -280,9 +283,12 @@ Some tests require non-default decoder/encoder settings. Option names are case-i
 Available options:
 - `allow_nul`: Allow NUL characters in strings
 - `allow_nan_infinity`: Allow NaN and Infinity values
+- `allow_trailing_bytes`: Allow unconsumed bytes after decoding
 - `max_depth`: Maximum container nesting depth
-- `max_string_length`: Maximum string length
+- `max_container_size`: Maximum elements in a container
+- `max_string_length`: Maximum string length in bytes
 - `max_chunks`: Maximum number of string chunks
+- `max_document_size`: Maximum document size in bytes
 
 ## Required Capabilities
 
@@ -299,12 +305,12 @@ Some tests require capabilities that not all implementations support. Use the `r
 
 Available capabilities:
 
-| Capability | Description |
-|------------|-------------|
-| `arbitrary_precision_bignumber` | Support for BigNumber values with more than ~17 significant digits (exceeds float64 precision). Implementations using float64 for decoded BigNumbers will lose precision and should skip these tests. |
-| `bignumber_exponent_gt_127` | Support for BigNumber exponents greater than 127. Some implementations (e.g., Swift's Decimal) limit exponents to -128 to 127. |
-| `bignumber_exponent_lt_neg128` | Support for BigNumber exponents less than -128. Some implementations limit exponents to -128 to 127. |
-| `nan_infinity_stringify` | Support for converting NaN/Infinity float values to string representations during decoding. This is useful for JSON compatibility but not all implementations support it. |
+| Capability                       | Description                                                                                                                                                                             |
+|----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `arbitrary_precision_bignumber`  | Support for BigNumber values with more than ~17 significant digits (exceeds float64 precision). Implementations using float64 for decoded BigNumbers will lose precision and should skip these tests. |
+| `bignumber_exponent_gt_127`      | Support for BigNumber exponents greater than 127. Some implementations (e.g., Swift's Decimal) limit exponents to -128 to 127.                                                          |
+| `bignumber_exponent_lt_neg128`   | Support for BigNumber exponents less than -128. Some implementations limit exponents to -128 to 127.                                                                                    |
+| `nan_infinity_stringify`         | Support for converting NaN/Infinity float values to string representations during decoding. This is useful for JSON compatibility but not all implementations support it.               |
 
 Test runners should:
 1. Define which capabilities their implementation supports
@@ -474,21 +480,21 @@ For example, "truncated data" and "unclosed container" might be the same error i
 
 For reference when writing byte sequences:
 
-| Range | Type |
-|-------|------|
+| Range   | Type                         |
+|---------|------------------------------|
 | `00-c8` | Small integers (-100 to 100) |
-| `c9-cf` | Reserved |
+| `c9-cf` | Reserved                     |
 | `d0-d7` | Unsigned integers (8-64 bit) |
-| `d8-df` | Signed integers (8-64 bit) |
-| `e0-ef` | Short strings (0-15 bytes) |
-| `f0` | Long string |
-| `f1` | BigNumber |
-| `f2` | Float16 (bfloat16) |
-| `f3` | Float32 |
-| `f4` | Float64 |
-| `f5` | Null |
-| `f6` | False |
-| `f7` | True |
-| `f8` | Array |
-| `f9` | Object |
-| `fa-ff` | Reserved |
+| `d8-df` | Signed integers (8-64 bit)   |
+| `e0-ef` | Short strings (0-15 bytes)   |
+| `f0`    | Long string                  |
+| `f1`    | BigNumber                    |
+| `f2`    | Float16 (bfloat16)           |
+| `f3`    | Float32                      |
+| `f4`    | Float64                      |
+| `f5`    | Null                         |
+| `f6`    | False                        |
+| `f7`    | True                         |
+| `f8`    | Array                        |
+| `f9`    | Object                       |
+| `fa-ff` | Reserved                     |

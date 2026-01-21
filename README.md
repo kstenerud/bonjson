@@ -186,6 +186,18 @@ Having confidence in your data plumbing is paramount.
 
  * [🛠️ Bonbon](https://github.com/kstenerud/bonbon): Cmdline tool to convert between JSON and BONJSON
 
+### Validating Implementations
+
+This repository includes a [universal test suite](tests/) for validating BONJSON implementations across any language or platform.
+
+**To validate a new implementation:**
+
+1. **Build a test runner** that can parse the [test specification format](bonjson-universal-test-specification.md)
+2. **Validate your test runner** against [`tests/test-runner-validation/`](tests/test-runner-validation/) - if these fail, your conformance results cannot be trusted
+3. **Validate your codec** against [`tests/conformance/`](tests/conformance/)
+
+See the [test suite documentation](tests/README.md) for details.
+
 -------------------------------------------------------------------------------
 
 

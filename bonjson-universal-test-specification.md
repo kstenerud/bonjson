@@ -31,6 +31,7 @@ Contents
       - [`decode_error` Tests](#decode_error-tests)
     - [Optional Fields](#optional-fields)
       - [Options](#options)
+      - [Requires](#requires)
   - [Data Representation](#data-representation)
     - [Binary Data](#binary-data)
     - [JSON Values](#json-values)
@@ -82,6 +83,7 @@ The following elements are **case-sensitive** (must match exactly):
 - Test `type` field values (`"encode"`, not `"Encode"`)
 - Error type values (`"truncated"`, not `"Truncated"`)
 - Option names (`"allow_nul"`, not `"Allow_Nul"`)
+- Capability identifiers (`"arbitrary_precision_bignumber"`, not `"Arbitrary_Precision_BigNumber"`)
 - Field names (`"expected_bytes"`, not `"Expected_Bytes"`)
 - Marker keys (`"$number"`, not `"$Number"`)
 
@@ -371,6 +373,37 @@ Note: Setting options that contradict the expected outcome (e.g., `allow_nan_inf
   }
 }
 ```
+
+#### Requires
+
+The `requires` field is an optional JSON array that declares implementation capabilities needed to run the test. If present, it **MUST** be a JSON array of strings; any other type is a **STRUCTURAL ERROR**.
+
+```json
+{
+  "name": "bignumber_high_precision",
+  "type": "roundtrip",
+  "input": {"$number": "1.23456789012345678901234567890"},
+  "requires": ["arbitrary_precision_bignumber"]
+}
+```
+
+Test runners **MUST** skip (and log a warning for) any tests that require capabilities the implementation does not support. This allows tests to be written for features that not all implementations can handle, without causing false failures.
+
+The following capability identifiers are defined:
+
+| Capability                       | Description                                                                                                                                                                          |
+|----------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `arbitrary_precision_bignumber`  | Support for BigNumber values with more than ~17 significant digits (exceeds float64 precision). Implementations using float64 for decoded BigNumbers will lose precision.            |
+| `bignumber_exponent_gt_127`      | Support for BigNumber exponents greater than 127. Some implementations (e.g., Swift's Decimal) limit exponents to -128 to 127.                                                       |
+| `bignumber_exponent_lt_neg128`   | Support for BigNumber exponents less than -128. Some implementations limit exponents to -128 to 127.                                                                                 |
+| `nan_infinity_stringify`         | Support for converting NaN/Infinity float values to string representations during decoding. Useful for JSON compatibility but not all implementations support it.                    |
+
+Test runners **SHOULD**:
+1. Define which capabilities their implementation supports
+2. Skip tests whose `requires` array contains unsupported capabilities
+3. Report skipped tests with the reason (missing capability)
+
+Unrecognized capability identifiers **SHOULD** cause the test to be skipped with a warning (not a **STRUCTURAL ERROR**), to allow forward compatibility when new capabilities are added.
 
 
 Data Representation
