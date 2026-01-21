@@ -255,7 +255,7 @@
       "name": "decode_bignumber_max_siglen_small",
       "type": "decode",
       "//note2": "Header 0xf8: sigLen=31, expLen=0, neg=0. Value = sum(256^i for i=0..30)",
-      "input_bytes": "f1f80101010101010101010101010101010101010101010101010101010101010101",
+      "input_bytes": "f1f801010101010101010101010101010101010101010101010101010101010101",
       "expected_value": {"$number": "1773775876797123091660094745843871137458179912157484130506396813846708481"},
       "requires": ["arbitrary_precision_bignumber"]
     },
@@ -264,7 +264,7 @@
       "name": "decode_bignumber_max_siglen_max_value",
       "type": "decode",
       "//note2": "Header 0xf8: sigLen=31, expLen=0, neg=0",
-      "input_bytes": "f1f8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "input_bytes": "f1f8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
       "expected_value": {"$number": "452312848583266388373324160190187140051835877600158453279131187530910662655"},
       "requires": ["arbitrary_precision_bignumber"]
     },
@@ -273,7 +273,7 @@
       "name": "decode_bignumber_max_siglen_negative",
       "type": "decode",
       "//note2": "Header 0xf9: sigLen=31, expLen=0, neg=1",
-      "input_bytes": "f1f90101010101010101010101010101010101010101010101010101010101010101",
+      "input_bytes": "f1f901010101010101010101010101010101010101010101010101010101010101",
       "expected_value": {"$number": "-1773775876797123091660094745843871137458179912157484130506396813846708481"},
       "requires": ["arbitrary_precision_bignumber"]
     }
