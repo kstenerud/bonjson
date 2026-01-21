@@ -4,8 +4,8 @@ This directory contains cross-implementation test specifications for BONJSON. Th
 
 Everything is set up to make it easy for an agent to build. An agent will need to:
 - Vendor in this repository
-- Generate a test runner and validate against the tests in `runner`
-- Validate the codec against the tests in `conformance`
+- **FIRST**: Validate the test runner against the tests in `test-runner-validation`
+- **THEN**: Validate the codec against the tests in `conformance`
 
 ## Purpose
 
@@ -15,8 +15,28 @@ Everything is set up to make it easy for an agent to build. An agent will need t
 - **Regression prevention**: Changes to the spec are reflected in tests
 
 There are two directories under this one that contain tests for specific purposes:
-- runner: Use these to validate the correct behavior of the test runner against the spec [bonjson-tests.md](../bonjson-tests.md).
-- conformance: Use these to validate the correct behavior of the codec against the spec [bonjson.md](../bonjson.md).
+
+### test-runner-validation/ (CRITICAL - Run First!)
+
+⚠️ **These tests validate that your test runner works correctly.** If these tests fail, your conformance test results are unreliable and must not be trusted.
+
+These tests ensure your test runner correctly:
+- Parses BONJSON test specification files
+- Handles all five test types (encode, decode, roundtrip, encode_error, decode_error)
+- Parses hex byte strings in various formats
+- Compares numeric values correctly (int/float equality, NaN comparison)
+- Processes the `$number` marker for special values
+- Handles test options and error types
+
+**Fix any failures here BEFORE investigating conformance test failures.**
+
+See [bonjson-tests.md](../bonjson-tests.md) for the test specification format.
+
+### conformance/
+
+Tests that validate your BONJSON codec implementation. These verify that your encoder produces correct bytes and your decoder correctly interprets BONJSON data.
+
+See [bonjson.md](../bonjson.md) for the BONJSON format specification.
 
 Note: Universal tests can't be exhaustive because each language and platform will have its own ideosyncrasies. You will have to write your own tests to cover things specific to your implementation. These tests are designed to get you 80% of the way there.
 
@@ -27,24 +47,24 @@ tests/
 ├── README.md                        # This file
 ├── bonjson-tests.schema.json        # JSON Schema for test files
 ├── bonjson-test-config.schema.json  # JSON Schema for config files
-├── conformance/                     # BONJSON conformance test suite
-│   ├── config.json                  # Test configuration file
-│   ├── basic-types.json             # Primitive type encoding tests
-│   ├── integers.json                # Integer encoding at all sizes
-│   ├── floats.json                  # Float encoding tests
-│   ├── strings.json                 # String encoding (short, long, chunked)
-│   ├── containers.json              # Arrays and objects
-│   ├── bignumber.json               # BigNumber encoding tests
-│   ├── errors.json                  # Error handling tests
-│   ├── security.json                # Security-related tests
-│   └── specification-examples.json  # Examples from the specification
-└── runner/                          # Tests for test runner implementations
-    ├── README.md                    # Documentation for runner tests
-    ├── valid/                       # Tests that should pass
-    ├── structural-errors/           # Tests that should cause errors
-    ├── skip-scenarios/              # Tests that should be skipped
-    ├── config/                      # Config file processing tests
-    └── special-values/              # Edge cases for value parsing
+├── test-runner-validation/          # CRITICAL: Tests for test runner implementations
+│   ├── README.md                    # Documentation for runner validation tests
+│   ├── must-pass/                   # Basic tests every runner must handle correctly
+│   ├── structural-errors/           # Tests that should cause runner errors
+│   ├── skip-scenarios/              # Tests that should be skipped by runners
+│   ├── config/                      # Config file processing tests
+│   └── value-handling/              # Numeric comparison, NaN, trailing bytes, etc.
+└── conformance/                     # BONJSON codec conformance test suite
+    ├── config.json                  # Test configuration file
+    ├── basic-types.json             # Primitive type encoding tests
+    ├── integers.json                # Integer encoding at all sizes
+    ├── floats.json                  # Float encoding tests
+    ├── strings.json                 # String encoding (short, long, chunked)
+    ├── containers.json              # Arrays and objects
+    ├── bignumber.json               # BigNumber encoding tests
+    ├── errors.json                  # Error handling tests
+    ├── security.json                # Security-related tests
+    └── specification-examples.json  # Examples from the specification
 ```
 
 ## Test Case Format

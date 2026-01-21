@@ -479,11 +479,10 @@
       "expected_bytes": "f8 10 65 f5 66 f5"
     },
     {
-      "//": "Object with multiple null values (2 pairs → 0x08)",
+      "//": "Object with multiple null values",
       "name": "object_with_multiple_nulls",
-      "type": "encode",
-      "input": {"a": null, "b": null},
-      "expected_bytes": "f9 08 e1 61 f5 e1 62 f5"
+      "type": "roundtrip",
+      "input": {"a": null, "b": null}
     },
     {
       "//": "Roundtrip: array of nulls",

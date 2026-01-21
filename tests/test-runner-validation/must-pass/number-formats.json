@@ -4,11 +4,11 @@
   "//": "Tests $number marker with various formats",
   "tests": [
     {
-      "//": "Large integer beyond JSON safe range",
+      "//": "Large integer beyond JSON safe range (max uint64 = 0xd7 + 8 bytes)",
       "name": "number_large_int",
       "type": "encode",
       "input": {"$number": "18446744073709551615"},
-      "expected_bytes": "77 ff ff ff ff ff ff ff ff"
+      "expected_bytes": "d7 ff ff ff ff ff ff ff ff"
     },
     {
       "//": "Hex integer",

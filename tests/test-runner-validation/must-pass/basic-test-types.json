@@ -4,15 +4,17 @@
   "//": "Tests all five test types to verify the runner handles each correctly",
   "tests": [
     {
+      "//": "42 encodes as small int: type_code = 42 + 100 = 0x8e",
       "name": "encode_test",
       "type": "encode",
       "input": 42,
-      "expected_bytes": "2a"
+      "expected_bytes": "8e"
     },
     {
+      "//": "0x8e decodes as small int: 0x8e - 100 = 42",
       "name": "decode_test",
       "type": "decode",
-      "input_bytes": "2a",
+      "input_bytes": "8e",
       "expected_value": 42
     },
     {
@@ -27,9 +29,10 @@
       "expected_error": "invalid_data"
     },
     {
+      "//": "0xd8 is TYPE_SINT8 which expects 1 byte of data, but none provided",
       "name": "decode_error_test",
       "type": "decode_error",
-      "input_bytes": "79 e8",
+      "input_bytes": "d8",
       "expected_error": "truncated"
     }
   ]

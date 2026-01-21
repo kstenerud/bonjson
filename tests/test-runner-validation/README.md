@@ -1,10 +1,14 @@
-# BONJSON Test Runner Tests
+# BONJSON Test Runner Validation Tests
+
+⚠️ **CRITICAL: These tests are NOT optional infrastructure tests.**
+
+If any of these tests fail, your test runner is broken and **conformance test results cannot be trusted**. Fix failures here FIRST before investigating any conformance test failures.
 
 This directory contains tests designed to verify that a BONJSON test runner implementation correctly handles all aspects of the BONJSON test specification.
 
 ## Purpose
 
-These tests exercise the test runner's:
+These tests validate the test runner's:
 - Document parsing and validation
 - Comment handling
 - Test name validation
@@ -18,20 +22,20 @@ These tests exercise the test runner's:
 ## Directory Structure
 
 ```
-runner/
+test-runner-validation/
 ├── README.md                    # This file
-├── valid/                       # Tests the runner should process successfully
+├── must-pass/                   # Tests every runner must handle correctly
 ├── structural-errors/           # Tests that should cause STRUCTURAL ERRORs
 ├── skip-scenarios/              # Tests that should be skipped with warnings
 ├── config/                      # Config file processing tests
 │   ├── errors/                  # Config structural errors
 │   └── directory-source/        # Test directory for directory processing
-└── special-values/              # Edge cases for value/hex parsing
+└── value-handling/              # Edge cases for value/hex parsing
 ```
 
 ## Test Categories
 
-### valid/
+### must-pass/
 
 Contains test files that a correct test runner should process successfully. Use these to verify basic functionality:
 
@@ -137,7 +141,7 @@ Test directory for directory processing tests:
 - `.hidden/` - Hidden directory (should be silently ignored)
 - `README.md`, `notes.txt` - Non-JSON files (should be skipped with log)
 
-### special-values/
+### value-handling/
 
 Contains tests for edge cases in value parsing and comparison:
 
@@ -157,7 +161,7 @@ Contains tests for edge cases in value parsing and comparison:
 
 ### Manual Testing
 
-1. Run your test runner against each file in `valid/` - all should pass
+1. Run your test runner against each file in `must-pass/` - all should pass
 2. Run against each file in `structural-errors/` - each should cause an error exit
 3. Run against files in `skip-scenarios/` - specific tests should be skipped with warnings
 4. Run against config files in `config/` to test config processing

@@ -5,16 +5,18 @@
   "tests": [
     {
       "//": "Trailing bytes should cause error by default",
+      "//note": "TYPE_NULL (0xf5) followed by extra byte",
       "name": "trailing_bytes_error",
       "type": "decode_error",
-      "input_bytes": "6d 00",
+      "input_bytes": "f5 00",
       "expected_error": "trailing_bytes"
     },
     {
       "//": "Trailing bytes allowed with option",
+      "//note": "TYPE_NULL (0xf5) followed by extra byte, but allowed",
       "name": "trailing_bytes_allowed",
       "type": "decode",
-      "input_bytes": "6d 00",
+      "input_bytes": "f5 00",
       "expected_value": null,
       "options": {"allow_trailing_bytes": true}
     }
