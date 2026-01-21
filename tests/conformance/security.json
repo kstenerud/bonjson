@@ -354,7 +354,7 @@
       "type": "decode",
       "input_bytes": "f1 06",
       "expected_value": {"$number": "NaN"},
-      "options": {"nan_infinity": "allow"}
+      "options": {"nan_infinity_behavior": "allow"}
     },
     {
       "//": "Positive Infinity allowed with option",
@@ -362,7 +362,7 @@
       "type": "decode",
       "input_bytes": "f1 02",
       "expected_value": {"$number": "Infinity"},
-      "options": {"nan_infinity": "allow"}
+      "options": {"nan_infinity_behavior": "allow"}
     },
     {
       "//": "Negative Infinity allowed with option (expLen=1, neg=1)",
@@ -370,7 +370,7 @@
       "type": "decode",
       "input_bytes": "f1 03",
       "expected_value": {"$number": "-Infinity"},
-      "options": {"nan_infinity": "allow"}
+      "options": {"nan_infinity_behavior": "allow"}
     },
     {
       "//": "NaN converted to string with stringify option",
@@ -378,7 +378,7 @@
       "type": "decode",
       "input_bytes": "f1 06",
       "expected_value": "NaN",
-      "options": {"nan_infinity": "stringify"},
+      "options": {"nan_infinity_behavior": "stringify"},
       "requires": ["nan_infinity_stringify"]
     },
     {
@@ -387,7 +387,7 @@
       "type": "decode",
       "input_bytes": "f1 02",
       "expected_value": "Infinity",
-      "options": {"nan_infinity": "stringify"},
+      "options": {"nan_infinity_behavior": "stringify"},
       "requires": ["nan_infinity_stringify"]
     },
     {
@@ -396,7 +396,7 @@
       "type": "decode",
       "input_bytes": "f1 03",
       "expected_value": "-Infinity",
-      "options": {"nan_infinity": "stringify"},
+      "options": {"nan_infinity_behavior": "stringify"},
       "requires": ["nan_infinity_stringify"]
     },
     {
