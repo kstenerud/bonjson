@@ -137,7 +137,7 @@ If an entry contains any non-comment keys (keys not starting with `//`), it must
 
 ## Test Types
 
-Test type values are case-insensitive.
+Test type values are case-sensitive (must be lowercase: `"encode"`, `"decode"`, etc.).
 
 ### `encode` - Value to Bytes
 
@@ -212,6 +212,7 @@ JSON cannot directly represent some numeric values. Use the `$number` marker:
 
 ```json
 {"$number": "NaN"}
+{"$number": "sNaN"}
 {"$number": "Infinity"}
 {"$number": "-Infinity"}
 {"$number": "18446744073709551615"}
@@ -219,11 +220,19 @@ JSON cannot directly represent some numeric values. Use the `$number` marker:
 {"$number": "1.23456789e-5"}
 ```
 
-| Format                         | Interpretation                                            |
-|--------------------------------|-----------------------------------------------------------|
-| `NaN`, `Infinity`, `-Infinity` | IEEE 754 special values (case-insensitive)                |
+| Format                                 | Interpretation                                                                     |
+|----------------------------------------|------------------------------------------------------------------------------------|
+| `NaN`, `sNaN`, `Infinity`, `-Infinity` | IEEE 754 special values (case-insensitive). `NaN` is quiet NaN; `sNaN` is signaling NaN. |
 | `0x...p...`                    | Hex float (C99 format, case-insensitive)                  |
 | Decimal                        | Arbitrary-precision number (case-insensitive for `e`/`E`) |
+
+For raw byte sequences in string contexts (testing `invalid_utf8: "pass_through"`), use the `$bytes` marker:
+
+```json
+{"$bytes": "68 65 6c 6c 6f ff 77 6f 72 6c 64"}
+```
+
+Tests using `$bytes` must include `requires: ["raw_string_bytes"]`.
 
 ## Binary Data Format
 
@@ -245,7 +254,7 @@ Compact format (no spaces) is also valid:
 
 ## Error Types
 
-Error type values are case-insensitive.
+Error type values are case-sensitive (must be lowercase).
 
 | Error                         | Description                                   |
 |-------------------------------|-----------------------------------------------|
@@ -255,7 +264,7 @@ Error type values are case-insensitive.
 | `invalid_utf8`                | Invalid UTF-8 sequence in string              |
 | `nul_character`               | NUL (0x00) in string (default rejection)      |
 | `duplicate_key`               | Duplicate key in object                       |
-| `unclosed_container`          | Missing container end marker                  |
+| `unclosed_container`          | Container's final chunk has continuation bit set but no following chunk |
 | `invalid_data`                | Generic invalid data (e.g., NaN in BigNumber) |
 | `value_out_of_range`          | Value exceeds allowed range                   |
 | `too_many_chunks`             | String has too many chunks                    |
@@ -267,7 +276,7 @@ Error type values are case-insensitive.
 
 ## Test Options
 
-Some tests require non-default decoder/encoder settings. Option names are case-insensitive:
+Some tests require non-default decoder/encoder settings. Option names are case-sensitive (must be lowercase):
 
 ```json
 {
@@ -281,14 +290,16 @@ Some tests require non-default decoder/encoder settings. Option names are case-i
 ```
 
 Available options:
-- `allow_nul`: Allow NUL characters in strings
-- `allow_nan_infinity`: Allow NaN and Infinity values
-- `allow_trailing_bytes`: Allow unconsumed bytes after decoding
-- `max_depth`: Maximum container nesting depth
-- `max_container_size`: Maximum elements in a container
-- `max_string_length`: Maximum string length in bytes
-- `max_chunks`: Maximum number of string chunks
-- `max_document_size`: Maximum document size in bytes
+- `allow_nul`: Allow NUL characters in strings (boolean)
+- `allow_trailing_bytes`: Allow unconsumed bytes after decoding (boolean)
+- `nan_infinity_behavior`: How to handle NaN/Infinity: `"reject"`, `"allow"`, or `"stringify"` (string)
+- `duplicate_key`: How to handle duplicate object keys: `"reject"`, `"keep_first"`, or `"keep_last"` (string)
+- `invalid_utf8`: How to handle invalid UTF-8: `"reject"`, `"replace"`, `"delete"`, or `"pass_through"` (string)
+- `max_depth`: Maximum container nesting depth (integer)
+- `max_container_size`: Maximum elements in a container (integer)
+- `max_string_length`: Maximum string length in bytes (integer)
+- `max_chunks`: Maximum number of string/container chunks (integer)
+- `max_document_size`: Maximum document size in bytes (integer)
 
 ## Required Capabilities
 
@@ -310,7 +321,13 @@ Available capabilities:
 | `arbitrary_precision_bignumber`  | Support for BigNumber values with more than ~17 significant digits (exceeds float64 precision). Implementations using float64 for decoded BigNumbers will lose precision and should skip these tests. |
 | `bignumber_exponent_gt_127`      | Support for BigNumber exponents greater than 127. Some implementations (e.g., Swift's Decimal) limit exponents to -128 to 127.                                                          |
 | `bignumber_exponent_lt_neg128`   | Support for BigNumber exponents less than -128. Some implementations limit exponents to -128 to 127.                                                                                    |
-| `nan_infinity_stringify`         | Support for converting NaN/Infinity float values to string representations during decoding. This is useful for JSON compatibility but not all implementations support it.               |
+| `nan_infinity_stringify`         | Support for the `nan_infinity_behavior: "stringify"` option, which converts NaN/Infinity float values to string representations. Not all implementations support this mode.             |
+| `uint64`                         | Support for full 64-bit unsigned integers. Some platforms (e.g., JavaScript) cannot represent integers beyond 2^53-1.                                                                   |
+| `int64`                          | Support for full 64-bit signed integers. Some platforms cannot represent integers beyond ±2^53-1.                                                                                       |
+| `float16`                        | Support for bfloat16 (16-bit floating point) values. Some implementations may decode these as float32 or float64.                                                                       |
+| `negative_zero`                  | Support for IEEE 754 negative zero (-0.0) preservation. Some platforms or type systems cannot distinguish -0.0 from +0.0.                                                               |
+| `raw_string_bytes`               | Support for representing strings as raw byte sequences (for testing `invalid_utf8: "pass_through"`). Implementations using native string types that require valid UTF-8 cannot support this. |
+| `signaling_nan`                  | Support for preserving the signaling bit of NaN values. Most platforms convert signaling NaN to quiet NaN on any operation.                                                          |
 
 Test runners should:
 1. Define which capabilities their implementation supports

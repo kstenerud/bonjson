@@ -92,24 +92,21 @@
             "duplicate_key",
             "unclosed_container",
             "invalid_data",
+            "invalid_object_key",
             "value_out_of_range",
             "too_many_chunks",
             "empty_chunk_continuation",
             "max_depth_exceeded",
-            "max_string_length_exceeded"
+            "max_string_length_exceeded",
+            "max_container_size_exceeded",
+            "max_document_size_exceeded"
           ]
         },
         "requires": {
           "type": "array",
-          "description": "Capabilities required to run this test. Implementations should skip tests requiring capabilities they don't support.",
+          "description": "Capabilities required to run this test. Implementations should skip tests requiring capabilities they don't support. Known capabilities: arbitrary_precision_bignumber, bignumber_exponent_gt_127, bignumber_exponent_lt_neg128, nan_infinity_stringify, uint64, int64, float16, negative_zero, raw_string_bytes, signaling_nan. Unknown capabilities should cause the test to be skipped (for forward compatibility).",
           "items": {
-            "type": "string",
-            "enum": [
-              "arbitrary_precision_bignumber",
-              "bignumber_exponent_gt_127",
-              "bignumber_exponent_lt_neg128",
-              "nan_infinity_stringify"
-            ]
+            "type": "string"
           }
         },
         "options": {
@@ -120,28 +117,49 @@
               "type": "boolean",
               "description": "Allow NUL characters in strings"
             },
-            "allow_nan_infinity": {
-              "type": "boolean",
-              "description": "Allow NaN and Infinity values"
-            },
             "allow_trailing_bytes": {
               "type": "boolean",
               "description": "Allow unconsumed bytes after decoding (default: false)"
+            },
+            "nan_infinity_behavior": {
+              "type": "string",
+              "description": "How to handle NaN/Infinity values",
+              "enum": ["reject", "allow", "stringify"]
+            },
+            "duplicate_key": {
+              "type": "string",
+              "description": "How to handle duplicate object keys",
+              "enum": ["reject", "keep_first", "keep_last"]
+            },
+            "invalid_utf8": {
+              "type": "string",
+              "description": "How to handle invalid UTF-8 sequences",
+              "enum": ["reject", "replace", "delete", "pass_through"]
             },
             "max_depth": {
               "type": "integer",
               "minimum": 0,
               "description": "Maximum container nesting depth (non-negative)"
             },
+            "max_container_size": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Maximum elements in a container (non-negative)"
+            },
             "max_string_length": {
               "type": "integer",
               "minimum": 0,
-              "description": "Maximum string length (non-negative)"
+              "description": "Maximum string length in bytes (non-negative)"
             },
             "max_chunks": {
               "type": "integer",
               "minimum": 0,
-              "description": "Maximum number of string chunks (non-negative)"
+              "description": "Maximum number of string/container chunks (non-negative)"
+            },
+            "max_document_size": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Maximum document size in bytes (non-negative)"
             }
           },
           "additionalProperties": false
@@ -201,6 +219,19 @@
         }
       },
       "required": ["$number"],
+      "additionalProperties": false
+    },
+    "bytesValue": {
+      "type": "object",
+      "description": "Raw byte sequence marker for testing invalid UTF-8 handling in expected_value fields",
+      "properties": {
+        "$bytes": {
+          "type": "string",
+          "description": "Hexadecimal byte sequence (spaces allowed, even number of hex digits required)",
+          "pattern": "^[0-9a-fA-F ]*$"
+        }
+      },
+      "required": ["$bytes"],
       "additionalProperties": false
     }
   }

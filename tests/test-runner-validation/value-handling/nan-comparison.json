@@ -10,28 +10,28 @@
       "type": "decode",
       "input_bytes": "f4 00 00 00 00 00 00 f8 7f",
       "expected_value": {"$number": "NaN"},
-      "options": {"allow_nan_infinity": true}
+      "options": {"nan_infinity_behavior": "allow"}
     },
     {
-      "//": "NaN roundtrip with allow_nan_infinity",
+      "//": "NaN roundtrip with nan_infinity_behavior: allow",
       "name": "nan_roundtrip",
       "type": "roundtrip",
       "input": {"$number": "NaN"},
-      "options": {"allow_nan_infinity": true}
+      "options": {"nan_infinity_behavior": "allow"}
     },
     {
-      "//": "Infinity roundtrip with allow_nan_infinity",
+      "//": "Infinity roundtrip with nan_infinity_behavior: allow",
       "name": "infinity_roundtrip",
       "type": "roundtrip",
       "input": {"$number": "Infinity"},
-      "options": {"allow_nan_infinity": true}
+      "options": {"nan_infinity_behavior": "allow"}
     },
     {
       "//": "Negative infinity roundtrip",
       "name": "neg_infinity_roundtrip",
       "type": "roundtrip",
       "input": {"$number": "-Infinity"},
-      "options": {"allow_nan_infinity": true}
+      "options": {"nan_infinity_behavior": "allow"}
     }
   ]
 }

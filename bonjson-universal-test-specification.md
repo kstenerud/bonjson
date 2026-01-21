@@ -18,6 +18,7 @@ Contents
   - [Document Structure](#document-structure)
     - [Required Fields](#required-fields)
     - [Comment Convention](#comment-convention)
+    - [Comment-Only Entries (Section Dividers)](#comment-only-entries-section-dividers)
     - [Unrecognized Fields](#unrecognized-fields)
   - [Test Case Structure](#test-case-structure)
     - [Common Fields](#common-fields)
@@ -37,6 +38,7 @@ Contents
     - [JSON Values](#json-values)
     - [Special Values](#special-values)
       - [Numbers](#numbers)
+      - [Raw Byte Sequences](#raw-byte-sequences)
   - [Error Types](#error-types)
   - [Test Execution](#test-execution)
     - [Encode Test Execution](#encode-test-execution)
@@ -57,6 +59,14 @@ Contents
     - [Number Encoding Flexibility](#number-encoding-flexibility)
     - [Object Key Ordering](#object-key-ordering)
     - [Platform Differences](#platform-differences)
+  - [Runner Validation](#runner-validation)
+    - [Directory Structure](#directory-structure)
+    - [must-pass Directory](#must-pass-directory)
+    - [structural-errors Directory](#structural-errors-directory)
+    - [skip-scenarios Directory](#skip-scenarios-directory)
+    - [config Directory](#config-directory)
+    - [value-handling Directory](#value-handling-directory)
+    - [README.md](#readmemd)
   - [Appendix A: Type Code Reference](#appendix-a-type-code-reference)
   - [Appendix B: Complete Example](#appendix-b-complete-example)
 
@@ -90,7 +100,7 @@ The following elements are **case-sensitive** (must match exactly):
 The following elements are **case-insensitive**:
 
 - Test `name` field (for duplicate detection only; names may contain any case)
-- `$number` special values (`"NaN"`, `"Infinity"`, `"-Infinity"`)
+- `$number` special values (`"NaN"`, `"sNaN"`, `"Infinity"`, `"-Infinity"`)
 - `$number` hex prefix (`"0x"`, `"0X"`) for both hex integers and hex floats
 - `$number` hex float exponent (`"p"`, `"P"`)
 - `$number` hex digits (`"0xabc"` = `"0xABC"`)
@@ -188,6 +198,29 @@ Multiple comment keys are permitted:
 
 The `//` prefix was chosen because it is universally recognized as a comment marker by programmers and is unlikely to appear in real data keys.
 
+### Comment-Only Entries (Section Dividers)
+
+Entries in the `tests` array that contain **only** keys starting with `//` are comment blocks (section dividers). Test runners **MUST** silently skip these entries without treating them as errors.
+
+```json
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "tests": [
+    {"//": "=== Integer Encoding Tests ==="},
+    {"name": "int_zero", "type": "encode", "input": 0, "expected_bytes": "64"},
+    {"name": "int_one", "type": "encode", "input": 1, "expected_bytes": "65"},
+
+    {"//section": "Negative Integers", "//note": "Testing negative range"},
+    {"name": "int_neg_one", "type": "encode", "input": -1, "expected_bytes": "63"}
+  ]
+}
+```
+
+Comment-only entries serve as organizational tools to divide tests into logical sections. They are useful for large test files where grouping related tests improves readability.
+
+**Important**: If an entry contains **any** non-comment keys (keys not starting with `//`), it is treated as a test case and **MUST** include the required `name` and `type` fields. Mixed entries with both comment keys and missing required fields are a **STRUCTURAL ERROR**.
+
 ### Unrecognized Fields
 
 Test runners **MUST** ignore unrecognized fields in:
@@ -262,7 +295,7 @@ Verify that encoding a value produces an exact byte sequence.
   "name": "int16_1000",
   "type": "encode",
   "input": 1000,
-  "expected_bytes": "79 e8 03"
+  "expected_bytes": "d9 e8 03"
 }
 ```
 
@@ -279,7 +312,7 @@ Verify that decoding a byte sequence produces a specific value.
 {
   "name": "decode_float16",
   "type": "decode",
-  "input_bytes": "6a 90 3f",
+  "input_bytes": "f2 90 3f",
   "expected_value": 1.125
 }
 ```
@@ -331,7 +364,7 @@ Verify that decoding a byte sequence fails with a specific error.
 {
   "name": "truncated_int16",
   "type": "decode_error",
-  "input_bytes": "79 e8",
+  "input_bytes": "d9 e8",
   "expected_error": "truncated"
 }
 ```
@@ -345,15 +378,36 @@ The `options` field is an optional JSON object that configures encoder/decoder b
 | Option                 | Type    | Description                                            |
 |------------------------|---------|--------------------------------------------------------|
 | `allow_nul`            | boolean | Allow NUL characters in strings                        |
-| `allow_nan_infinity`   | boolean | Allow NaN and Infinity values                          |
 | `allow_trailing_bytes` | boolean | Allow unconsumed bytes after decoding (default: false) |
-| `max_depth`            | integer | Maximum container nesting depth (non-negative)         |
+| `nan_infinity_behavior`| string  | How to handle NaN/Infinity: `"reject"` (default), `"allow"` (pass through as float), or `"stringify"` (convert to string representation) |
+| `duplicate_key`        | string  | How to handle duplicate object keys: `"reject"` (default), `"keep_first"`, or `"keep_last"` |
+| `invalid_utf8`         | string  | How to handle invalid UTF-8: `"reject"` (default), `"replace"` (with U+FFFD), `"delete"`, or `"pass_through"` |
+| `max_depth`            | integer | Maximum container nesting depth (non-negative). See depth counting examples below. |
 | `max_container_size`   | integer | Maximum elements in a container (non-negative)         |
 | `max_string_length`    | integer | Maximum string length in bytes (non-negative)          |
-| `max_chunks`           | integer | Maximum string chunks (non-negative)                   |
+| `max_chunks`           | integer | Maximum chunks per individual string or container (non-negative); each string and container has its own independent counter |
 | `max_document_size`    | integer | Maximum document size in bytes (non-negative)          |
 
-Option values **MUST** have the correct JSON type (boolean for boolean options, integer for integer options). Null is not a valid option value. An option with the wrong type (e.g., `"allow_nul": "true"` or `"allow_nul": null`) is a **STRUCTURAL ERROR**. Integer options **MUST** be non-negative; negative values are a **STRUCTURAL ERROR**.
+**Depth counting**: Any value at the root level (including primitives and empty containers) has depth 1. Each value inside a container is one level deeper than the container itself. Examples:
+- `42` → depth 1 (primitive at root)
+- `[]` or `{}` → depth 1 (empty container at root)
+- `[1, 2, 3]` → depth 2 (array at depth 1, elements inside at depth 2)
+- `[[]]` → depth 2 (outer array at depth 1, inner empty array at depth 2)
+- `[[1]]` → depth 3 (outer array at depth 1, inner array at depth 2, element at depth 3)
+- `[[[1]]]` → depth 4
+- `{"a": {}}` → depth 2 (outer object at depth 1, inner object value at depth 2)
+- `{"a": {"b": 1}}` → depth 3 (outer object at depth 1, inner object at depth 2, value at depth 3)
+- `{"a": 1, "b": [2]}` → depth 3 (object at 1, value `1` at 2, array at 2, value `2` at 3)
+
+The maximum depth is the deepest level reached by any value. With `max_depth: 2`, the last example `{"a": 1, "b": [2]}` would be rejected because the value `2` inside the nested array reaches depth 3.
+
+With `max_depth: 1`, primitives and empty containers are allowed at root, but containers may not have any elements inside (elements would be at depth 2). With `max_depth: 2`, containers may contain primitives but not nested containers. With `max_depth: 3`, one level of nested containers is allowed (e.g., `[[1]]`).
+
+**Chunk counting**: Each string and container has its own independent chunk counter. With `max_chunks: 3`, an outer array with 2 chunks containing an inner array with 2 chunks is valid (each uses its own counter), but an array with 4 chunks would exceed its limit. Strings similarly have their own counters independent of any containing structure.
+
+Option values **MUST** have the correct JSON type (boolean for boolean options, integer for integer options, string for string options). Null is not a valid option value. An option with the wrong type (e.g., `"allow_nul": "true"` or `"allow_nul": null`) is a **STRUCTURAL ERROR**. Integer options **MUST** be non-negative; negative values are a **STRUCTURAL ERROR**. String options **MUST** use one of the defined values; unrecognized values are a **STRUCTURAL ERROR**.
+
+For integer limit options (`max_depth`, `max_container_size`, `max_string_length`, `max_chunks`, `max_document_size`), a value of 0 means "no limit." **Warning**: Disabling limits can make implementations vulnerable to denial-of-service attacks and is **NOT RECOMMENDED** for production use.
 
 Default values for these options are defined in the BONJSON specification. Tests typically use small values (e.g., `max_depth: 5`) to verify that limit-checking machinery works correctly in an implementation.
 
@@ -361,7 +415,7 @@ Test runners **MUST** skip (and log a warning for) any tests that contain:
 - Option names not recognized by the test runner (e.g., typos like `"alow_nul"`)
 - Option settings not supported by the underlying library
 
-Note: Setting options that contradict the expected outcome (e.g., `allow_nan_infinity: true` on an `encode_error` test expecting NaN to fail) is a malformed test. Test authors are responsible for writing sensible tests; test runners are not required to detect such contradictions.
+Note: Setting options that contradict the expected outcome (e.g., `nan_infinity_behavior: "allow"` on an `encode_error` test expecting NaN to fail) is a malformed test. Test authors are responsible for writing sensible tests; test runners are not required to detect such contradictions.
 
 ```json
 {
@@ -396,14 +450,20 @@ The following capability identifiers are defined:
 | `arbitrary_precision_bignumber`  | Support for BigNumber values with more than ~17 significant digits (exceeds float64 precision). Implementations using float64 for decoded BigNumbers will lose precision.            |
 | `bignumber_exponent_gt_127`      | Support for BigNumber exponents greater than 127. Some implementations (e.g., Swift's Decimal) limit exponents to -128 to 127.                                                       |
 | `bignumber_exponent_lt_neg128`   | Support for BigNumber exponents less than -128. Some implementations limit exponents to -128 to 127.                                                                                 |
-| `nan_infinity_stringify`         | Support for converting NaN/Infinity float values to string representations during decoding. Useful for JSON compatibility but not all implementations support it.                    |
+| `nan_infinity_stringify`         | Support for the `nan_infinity_behavior: "stringify"` option, which converts NaN/Infinity float values to string representations. Not all implementations support this mode.          |
+| `uint64`                         | Support for full 64-bit unsigned integers. Some platforms (e.g., JavaScript) cannot represent integers beyond 2^53-1.                                                                |
+| `int64`                          | Support for full 64-bit signed integers. Some platforms cannot represent integers beyond ±2^53-1.                                                                                    |
+| `float16`                        | Support for bfloat16 (16-bit floating point) values. Some implementations may decode these as float32 or float64.                                                                    |
+| `negative_zero`                  | Support for IEEE 754 negative zero (-0.0) preservation. Some platforms or type systems cannot distinguish -0.0 from +0.0.                                                            |
+| `raw_string_bytes`               | Support for representing strings as raw byte sequences (for testing `invalid_utf8: "pass_through"`). Implementations using native string types that require valid UTF-8 cannot support this. |
+| `signaling_nan`                  | Support for preserving the signaling bit of NaN values. Most platforms convert signaling NaN to quiet NaN on any operation; tests using `sNaN` should require this capability.       |
 
 Test runners **SHOULD**:
 1. Define which capabilities their implementation supports
 2. Skip tests whose `requires` array contains unsupported capabilities
 3. Report skipped tests with the reason (missing capability)
 
-Unrecognized capability identifiers **SHOULD** cause the test to be skipped with a warning (not a **STRUCTURAL ERROR**), to allow forward compatibility when new capabilities are added.
+Capability identifiers **MUST** match exactly (case-sensitive, byte-for-byte comparison). No fuzzy matching or typo correction is performed. Unrecognized capability identifiers **MUST** cause the test to be skipped with a warning (not a **STRUCTURAL ERROR**), to ensure forward compatibility when new capabilities are added in future specification versions.
 
 
 Data Representation
@@ -411,7 +471,7 @@ Data Representation
 
 ### Binary Data
 
-Binary data (byte sequences) is represented as a hexadecimal string (uppercase or lowercase) with optional spaces for readability. An empty string (`""`) represents zero bytes, which is useful for testing how implementations handle empty input.
+Binary data (byte sequences) is represented as a hexadecimal string (uppercase or lowercase) with optional spaces for readability. An empty string (`""`) represents zero bytes, which is useful for testing the empty document error case. When decoding zero bytes, implementations **MUST** report a `truncated` error since BONJSON documents require at least one value.
 
 Hex strings **MUST**:
 - Contain only hex digits (`0-9`, `a-f`, `A-F`) and spaces
@@ -446,7 +506,7 @@ Standard JSON values are represented directly:
 
 Special values are values that cannot be directly represented in JSON, and instead use marker objects. These are JSON objects with a single key starting with `$` that signals to the test runner how to interpret the value.
 
-Marker objects **MUST** contain only the marker key. Additional keys are a **STRUCTURAL ERROR**. For example, `{"$number": "1.5", "extra": "field"}` is invalid.
+Marker objects **MUST** contain exactly one key (the marker key). Additional keys—including comment keys starting with `//`—are a **STRUCTURAL ERROR**. For example, `{"$number": "1.5", "extra": "field"}` and `{"$number": "1.5", "//": "comment"}` are both invalid.
 
 #### Numbers
 
@@ -454,6 +514,7 @@ The `$number` marker represents stringified numeric values that cannot be safely
 
 ```json
 {"$number": "NaN"}
+{"$number": "sNaN"}
 {"$number": "Infinity"}
 {"$number": "-Infinity"}
 {"$number": "18446744073709551615"}
@@ -463,14 +524,14 @@ The `$number` marker represents stringified numeric values that cannot be safely
 
 The test runner parses the string based on its format:
 
-| Format                         | Interpretation                                                                     |
-|--------------------------------|------------------------------------------------------------------------------------|
-| `NaN`, `Infinity`, `-Infinity` | IEEE 754 special float values (case-insensitive)                                   |
+| Format                                 | Interpretation                                                                     |
+|----------------------------------------|------------------------------------------------------------------------------------|
+| `NaN`, `sNaN`, `Infinity`, `-Infinity` | IEEE 754 special float values (case-insensitive). `NaN` is quiet NaN; `sNaN` is signaling NaN. |
 | `0x...p...`                    | IEEE 754 hex float (C99 `%a` format) for precise representation (case-insensitive) |
 | `0x...` (no `p`)               | Hex integer (case-insensitive)                                                     |
 | Decimal integer or float       | Arbitrary-precision decimal number (case-insensitive for `e`/`E` exponent)         |
 
-**Hex integer format**: Standard hexadecimal integer format `[±]0xH...` where `H...` are hex digits. At least one hex digit is required (i.e., `0x` alone is invalid). Parsed as an integer, or BigNumber if too large for native integer types. Examples: `0x100` (256), `-0xff` (-255), `0xffffffffffffffff` (2^64-1).
+**Hex integer format**: Standard hexadecimal integer format `[±]0xH...` where `H...` are hex digits. At least one hex digit is required (i.e., `0x` alone is invalid). For negative hex integers, parse the hex portion as an unsigned value, then negate the result (i.e., `-0xff` means "negate 255" = -255, not "parse 0xff as signed"). Values that fit in signed 64-bit range (-2^63 to 2^63-1) are encoded as integers; values outside this range (e.g., `0xffffffffffffffff` = 2^64-1, or `-0xffffffffffffffff` = -(2^64-1)) are encoded as BigNumber. Examples: `0x100` (256), `-0xff` (-255), `0x7fffffffffffffff` (max int64), `0xffffffffffffffff` (BigNumber).
 
 **Hex float format**: C99 hexadecimal floating-point format as produced by `printf("%a", ...)`. The general form is `[±]0x[H...][.H...]p[±]D...` where `H...` are hex digits and `D...` is the decimal exponent (power of 2). The integer part, fractional part, and exponent sign are all optional, but at least one hex digit must be present (before and/or after the decimal point), and at least one decimal digit must be present in the exponent. Examples:
 - `0x1.921fb54442d18p+1` = π
@@ -488,15 +549,41 @@ The test runner parses the string based on its format:
 **Decimal format**: Standard decimal notation with optional sign and scientific notation. Use this for large integers (beyond JavaScript's 2^53-1 safe range) and BigNumber values.
 
 **Type selection**: When parsing `$number` for encoding, the test runner **SHOULD** produce:
-- Integer strings (no decimal point or exponent, e.g., `"1"`, `"100"`) → integer
-- Hex integers (e.g., `"0x100"`) → integer
-- Decimal or scientific notation (e.g., `"1.0"`, `"1e2"`) → float
+- Integer strings (no decimal point or exponent, e.g., `"1"`, `"100"`) → integer if within signed 64-bit range, otherwise BigNumber
+- Hex integers (e.g., `"0x100"`) → integer if within signed 64-bit range, otherwise BigNumber
+- Decimal or scientific notation (e.g., `"1.0"`, `"1e2"`, `"100.0"`) → float
 - Hex floats → float with the exact bit pattern specified
-- Values exceeding native integer/float range → BigNumber
+- Integer values outside signed 64-bit range (-2^63 to 2^63-1) → BigNumber
 
-Passing float values like `"1.0"` to the encoder allows tests to verify that the encoder correctly optimizes whole-number floats into smaller integer representations.
+Values with decimal points or exponents (e.g., `"1.0"`, `"1e2"`, `"100.0"`) are parsed as floats. This allows tests to verify that the encoder correctly optimizes whole-number floats into smaller integer representations when appropriate. Encoders **MAY** convert float values to integers if the value is a whole number and no precision is lost, but are not required to do so.
 
 The `$number` string **MUST NOT** be empty and **MUST NOT** contain leading or trailing spaces. An unparseable `$number` value (e.g., `{"$number": "hello"}`) is a **STRUCTURAL ERROR**.
+
+
+#### Raw Byte Sequences
+
+The `$bytes` marker represents raw byte sequences in string contexts, useful for testing invalid UTF-8 handling when `invalid_utf8: "pass_through"` is configured:
+
+```json
+{"$bytes": "68 65 6c 6c 6f ff 77 6f 72 6c 64"}
+```
+
+The string value is a hexadecimal string (like `input_bytes`), representing the exact bytes that should appear in the decoded string. The same validation rules apply: only hex digits (0-9, a-f, A-F) and spaces are allowed, with an even number of hex digits. An empty `$bytes` value or one with invalid characters is a **STRUCTURAL ERROR**. This marker is only meaningful in `expected_value` fields for decode tests where the decoded string may contain invalid UTF-8.
+
+Tests using `$bytes` in expected values **MUST** include `requires: ["raw_string_bytes"]` since many implementations cannot represent or compare strings containing invalid UTF-8. Implementations that always validate UTF-8 (e.g., those using native string types that require valid UTF-8) should skip these tests.
+
+```json
+{
+  "name": "decode_passthrough_invalid_utf8",
+  "type": "decode",
+  "input_bytes": "e5 68 65 6c 6c 6f ff 77 6f 72 6c 64",
+  "expected_value": {"$bytes": "68 65 6c 6c 6f ff 77 6f 72 6c 64"},
+  "options": {"invalid_utf8": "pass_through"},
+  "requires": ["raw_string_bytes"]
+}
+```
+
+The `$bytes` marker **MUST** only appear in `expected_value` fields of decode tests. Appearing in `input` fields (for encode or roundtrip tests) or other contexts is a **STRUCTURAL ERROR**.
 
 
 Error Types
@@ -506,13 +593,14 @@ The `expected_error` field uses standardized error type identifiers:
 
 | Error Type                      | Description                                |
 |---------------------------------|--------------------------------------------|
-| `truncated`                     | Unexpected end of input data               |
+| `truncated`                     | Unexpected end of input data (includes empty documents, and length fields that specify more data than remain in the document) |
 | `trailing_bytes`                | Unconsumed bytes after decoding            |
 | `invalid_type_code`             | Unrecognized or reserved type code         |
 | `invalid_utf8`                  | Invalid UTF-8 byte sequence                |
 | `nul_character`                 | NUL (0x00) byte in string                  |
 | `duplicate_key`                 | Duplicate key in object                    |
-| `unclosed_container`            | Missing container end marker               |
+| `invalid_object_key`            | Non-string key in object                   |
+| `unclosed_container`            | Container's final chunk has continuation bit set but no following chunk |
 | `invalid_data`                  | Generic invalid data (e.g., BigNumber NaN) |
 | `value_out_of_range`            | Value exceeds allowed range                |
 | `too_many_chunks`               | String exceeds chunk count limit           |
@@ -523,6 +611,15 @@ The `expected_error` field uses standardized error type identifiers:
 | `max_document_size_exceeded`    | Document exceeds size limit                |
 
 Implementations **MUST** map errors from their library to these standardized identifiers for test matching. If an implementation cannot distinguish between error types, it **MAY** treat any error as a successful match for error tests (verifying only that an error occurred, not its specific type).
+
+When multiple error conditions could apply to malformed input (e.g., truncated data that also contains an invalid key), implementations **SHOULD** prioritize error detection in this order:
+1. Structural errors (`truncated`, `invalid_type_code`, `unclosed_container`, `empty_chunk_continuation`)
+2. Type/format errors (`invalid_object_key`, `invalid_utf8`, `invalid_data`)
+3. Content errors (`duplicate_key`, `nul_character`)
+4. Limit errors (`max_depth_exceeded`, `max_string_length_exceeded`, `max_container_size_exceeded`, `max_document_size_exceeded`, `too_many_chunks`)
+5. Post-decode errors (`trailing_bytes`, `value_out_of_range`)
+
+This ordering helps different implementations converge on the same error type for ambiguous cases, improving test interoperability.
 
 If a test specifies an `expected_error` value that is not one of the recognized error types listed above, the test runner **MUST** skip the test and log a warning. This allows forward compatibility when new error types are added in future specification versions.
 
@@ -594,6 +691,8 @@ function executeDecodeErrorTest(test):
         assert errorType(error) == test.expected_error
 ```
 
+**Note on contradictory configurations**: Tests should not combine options that contradict the expected error. For example, a test expecting `trailing_bytes` error should not include `allow_trailing_bytes: true`. Such tests are considered malformed. Test runners **MAY** issue a warning but are not required to detect contradictory configurations.
+
 ### Value Parsing
 
 ```pseudocode
@@ -612,6 +711,11 @@ function parseValue(v):
             if v has keys other than "$number":
                 error("marker object must only contain the marker key")
             return parseNumber(v["$number"])
+
+        if "$bytes" in v:
+            if v has keys other than "$bytes":
+                error("marker object must only contain the marker key")
+            return parseBytes(v["$bytes"])  // Returns raw byte sequence
 
         // Regular object - parse all values
         result = {}
@@ -641,13 +745,16 @@ Values **MUST** be compared for semantic equality:
 
 - Numbers: Equal if they represent the same mathematical value (e.g., `1.0` equals `1`, `1e2` equals `100`). Exception: `-0.0` and `0.0` are considered distinct per IEEE 754.
 - Strings: Equal if they contain the same Unicode code points (no normalization; `"é"` as U+00E9 does not equal `"é"` as U+0065 U+0301)
+- Raw byte sequences (`$bytes`): Equal if they contain the same bytes in the same order. Byte-by-byte comparison is used, not Unicode comparison. This is relevant only for decode tests with `invalid_utf8: "pass_through"`.
 - Arrays: Equal if they are the same length and all elements are equal and in the same order
 - Objects: Equal if they have the same keys and every associated value is equal (order-independent)
-- Special values: NaN equals NaN for testing purposes; positive infinity and negative infinity are distinct values
+- Special values: Quiet NaN equals quiet NaN; signaling NaN equals signaling NaN; but quiet NaN does NOT equal signaling NaN. Positive infinity and negative infinity are distinct values.
 
-**Implementation note**: IEEE 754 defines NaN as not equal to anything, including itself. Implementations must use `isnan(a) && isnan(b)` (or equivalent) rather than `a == b` when comparing NaN values. The specific NaN payload is irrelevant for test comparison purposes.
+**Implementation note**: IEEE 754 defines NaN as not equal to anything, including itself. Implementations **MUST** use special comparison logic that checks both the NaN status and the signaling bit. The specific NaN payload bits (other than the signaling bit) **MUST** be ignored for test comparison purposes—two quiet NaNs are equal regardless of their payload bits, and two signaling NaNs are equal regardless of their payload bits.
 
-When comparing `$number` values from test expectations against decoded results, the same mathematical equality rules apply. The test runner **SHOULD** parse both values to a common representation (e.g., arbitrary-precision decimal) before comparison. For floating-point values that cannot be exactly represented, comparison **SHOULD** use the closest representable value in the target type.
+When comparing `$number` values from test expectations against decoded results, the same mathematical equality rules apply. The test runner **SHOULD** parse both values to a common representation (e.g., arbitrary-precision decimal) before comparison.
+
+**Precision guarantee**: BONJSON guarantees lossless round-trip for all numeric values it can encode. Test values use hex float notation (e.g., `0x1.921fb54442d18p+1`) when bit-exact precision is required. Comparison of such values **MUST** be exact (no epsilon tolerance). The only exception is NaN payloads, which are not preserved.
 
 
 File Organization
@@ -836,6 +943,97 @@ Some tests may not apply to all platforms:
 Implementations **SHOULD** skip tests that cannot be executed on the target platform and report them as skipped (not failed).
 
 
+Runner Validation
+-----------------
+
+In addition to conformance tests that verify BONJSON encoding/decoding behavior, implementations **SHOULD** validate that their test runner correctly handles the test specification format. These concerns are kept separate:
+
+- **Conformance tests**: Verify that the BONJSON codec works correctly
+- **Runner validation**: Verify that the test runner correctly parses test files, skips tests appropriately, and detects malformed test specifications
+
+### Directory Structure
+
+Runner validation files are organized in the `test-runner-validation/` directory:
+
+```
+test-runner-validation/
+├── README.md              # Documents expected behavior for each file
+├── must-pass/             # Tests every runner must handle correctly
+├── structural-errors/     # Files that should cause STRUCTURAL ERRORs
+├── skip-scenarios/        # Tests that should be skipped with warnings
+├── config/                # Config file processing tests
+│   ├── errors/            # Config structural errors
+│   └── directory-source/  # Test directory for directory processing
+└── value-handling/        # Edge cases for value/hex parsing
+```
+
+### must-pass Directory
+
+Contains test files that a correct test runner **MUST** process successfully. These verify basic functionality:
+
+- All five test types (`encode`, `decode`, `roundtrip`, `encode_error`, `decode_error`)
+- Comment key handling at document and test levels
+- Hex string parsing (spaces, mixed case)
+- `$number` marker parsing (all formats)
+- Valid options with correct types
+- Empty tests array
+
+### structural-errors Directory
+
+Contains files that the runner **MUST** reject with a structural error. Each file tests one specific error condition:
+
+- Missing or invalid document fields (`type`, `version`, `tests`)
+- Invalid test names (wrong characters, duplicates)
+- Unknown test types
+- Invalid hex strings
+- Invalid `$number` values (empty, unparseable, `0x` without digits)
+- Marker objects with unrecognized keys
+- Option validation errors (wrong types, null, negative integers)
+- Missing type-specific required fields
+
+### skip-scenarios Directory
+
+Contains valid test files where specific tests should be skipped with warnings:
+
+- Tests with unrecognized option names
+- Tests with unrecognized error types
+- Tests requiring unsupported capabilities
+
+The runner should parse these files successfully but skip the affected individual tests.
+
+### config Directory
+
+Contains configuration file tests:
+
+- Valid configurations with various source types
+- Directory processing (alphabetical order, recursive mode)
+- Skip source handling
+- Comment keys in config files
+- `errors/` subdirectory with config files that should cause structural errors
+
+### value-handling Directory
+
+Contains tests for edge cases in value parsing and comparison:
+
+- IEEE 754 negative zero (`-0.0` vs `0.0`)
+- NaN comparison (NaN equals NaN for testing)
+- Object comparison (order-independent)
+- Mathematical equality across numeric types
+- `//` keys in data values (not treated as comments)
+- Version string handling (pre-release, build metadata)
+
+### README.md
+
+The `README.md` file in `test-runner-validation/` provides comprehensive documentation:
+
+- Purpose and importance of runner validation
+- Detailed tables listing every test file and its expected behavior
+- Coverage checklist for implementers
+- Instructions for manual and automated testing
+
+Implementers integrate these validation checks into their own test suites using their language's native testing framework.
+
+
 Appendix A: Type Code Reference
 -------------------------------
 
@@ -919,6 +1117,13 @@ Appendix B: Complete Example
       "type": "decode",
       "input_bytes": "f1 0a ff 0f",
       "expected_value": {"$number": "1.5"}
+    },
+    {
+      "//": "Non-string object key should fail (object with 1 pair, key is integer 0, value is integer 1)",
+      "name": "invalid_object_key",
+      "type": "decode_error",
+      "input_bytes": "f9 04 64 65",
+      "expected_error": "invalid_object_key"
     }
   ]
 }

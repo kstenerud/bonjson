@@ -267,6 +267,20 @@ Long strings begin with the [type code](#type-codes) (`0xf0`), followed by one o
     f0 00                               // ""
     f0 20 61 20 73 74 72 69 6e 67       // "a string" (in 1 chunk)
     f0 06 61 12 20 73 74 72 0c 69 6e 67 // "a string" (in chunks: 1 byte, 4 bytes, 3 bytes)
+
+**Worked example**: Decoding the chunked string `f0 06 61 12 20 73 74 72 0c 69 6e 67`:
+
+1. `f0` = long string type code
+2. `06` = chunk 1 length field: payload = 0x06 >> 1 = 3 = (1 << 1) | 1, so length=1, continuation=1
+3. `61` = 1 byte of UTF-8 data: "a"
+4. `12` = chunk 2 length field: payload = 0x12 >> 1 = 9 = (4 << 1) | 1, so length=4, continuation=1
+5. `20 73 74 72` = 4 bytes of UTF-8 data: " str"
+6. `0c` = chunk 3 length field: payload = 0x0c >> 1 = 6 = (3 << 1) | 0, so length=3, continuation=0
+7. `69 6e 67` = 3 bytes of UTF-8 data: "ing"
+8. Result: "a" + " str" + "ing" = "a string"
+
+---
+
     f0 01 02                            // (String of 64 Zs)
     5a 5a 5a 5a 5a 5a 5a 5a             // ZZZZZZZZ
     5a 5a 5a 5a 5a 5a 5a 5a             // ZZZZZZZZ
@@ -291,6 +305,7 @@ All primitive numeric types are encoded exactly as they would appear in memory o
  * `NaN` and `infinity` are not valid BONJSON values. See [Values incompatible with JSON](#values-incompatible-with-json).
  * Decoders **MUST** accept any valid numeric encoding for a value, even if it is not the most compact representation. Only the mathematical value matters, not the encoding used to represent it.
  * A value such as `1.0` **MAY** be encoded as an integer (`0x65`) or as a float (`f3 00 00 80 3f`). Decoders **MUST** treat these as equivalent.
+ * Negative zero (`-0.0`) **MUST** be encoded using a float or [big number](#big-number) encoding that preserves the sign. Encoding `-0.0` as integer `0` would lose the sign and is therefore considered data loss.
 
 
 ### Small Integer
@@ -317,7 +332,13 @@ Integers are encoded in little-endian byte order following the [type code](#type
             |   ╰───> Length (add 1 to yield a length from 1 to 8 bytes)
             ╰───────> Signed (0 = unsigned, 1 = signed)
 
-Encoders **SHOULD** favor _signed_ over _unsigned_ when both types would encode a value into the same number of bytes.
+Encoders **SHOULD** use the smallest encoding that can represent the value:
+
+1. If the value fits in the small integer range (-100 to 100), use the small integer encoding.
+2. Otherwise, use whichever of signed or unsigned requires fewer bytes.
+3. If both signed and unsigned require the same number of bytes, prefer signed.
+
+For example: 127 fits in 1 byte as either signed or unsigned, so use signed (`d8 7f`). 128 requires 2 bytes signed but only 1 byte unsigned, so use unsigned (`d0 80`).
 
 **Examples**:
 
@@ -398,11 +419,13 @@ The `negative` bit represents the sign as usual.
 | `1 0`                | `NaN` (quiet)      | ❌               |
 | `1 1`                | `NaN` (signaling)  | ❌               |
 
+**Note**: When the significand is zero and the negative bit is set, this represents negative zero (-0), which is semantically equivalent to IEEE 754 negative zero. Decoders **MUST** preserve the sign when converting to floating-point types that support signed zero.
+
 **Examples**:
 
     f1 48 00 10 32 54 76 98 ba dc fe  // 0xfedcba987654321000 (9 bytes significand, no exponent, positive)
     f1 0a ff 0f                       // 1.5 (15 x 10⁻¹) (1 byte significand, 1 byte exponent, positive)
-    f1 01                             // -0 (no significand, no exponent, negative)
+    f1 01                             // -0 (IEEE 754 negative zero: no significand, no exponent, negative)
     f1 8d 8d 01 97 EB F2 0E C3 98 06  // -13837758495464977165497261864967377972119 x 10⁻⁹⁰⁰⁰
        C1 47 71 5E 65 4F 58 5F AA 28  // (17 bytes significand, 2 bytes exponent, negative)
 
@@ -425,7 +448,7 @@ An array consists of an `array` type code (`0xf8`), followed by one or more [chu
 
     f8 00                    // [] (empty array: count=0, cont=0)
     f8 0c e1 61 65 f5        // ["a", 1, null] (3 elements in one chunk)
-    f8 08 e1 61 65 04 f5     // ["a", 1, null] (2 elements, then 1 element in separate chunks)
+    f8 0a e1 61 65 04 f5     // ["a", 1, null] (2 elements, then 1 element in separate chunks)
 
 
 ### Object
@@ -511,7 +534,7 @@ Consequently, the `header` occupies the lowest byte when the encoded data is loa
 
 This encoding has the same size overhead as [LEB128](https://en.wikipedia.org/wiki/LEB128) (1 bit per byte), but is far more efficient to decode because the full size of the field can be determined from the first byte, and the overhead bits can be eliminated in a single shift operation.
 
-**Note**: Encoders **SHOULD** use the most compact encoding possible for length fields. Decoders **MUST** accept non-canonical (oversized) length encodings. A length encoding is canonical if and only if it uses the minimum number of bytes required per the header table above. For example, length 0 with continuation 0 (payload 0) is canonically encoded as `00` (1 byte), but `01 00` (2 bytes) is also valid and decodes to the same value.
+**Note**: Encoders **SHOULD** use the most compact encoding possible for length fields. Decoders **MUST** accept non-canonical (oversized) length encodings. A length encoding is canonical if and only if it uses the minimum number of bytes required per the header table above. For example, length 0 with continuation 0 (payload 0) is canonically encoded as `00` (1 byte), but `01 00` (2 bytes) is also valid and decodes to the same value. Non-canonical encodings are permitted because some encoders may not know the total length in advance, and pre-allocating space for a larger length field (to be filled in later) can avoid producing many small chunks.
 
 
 ### Length Field Payload Format
@@ -525,6 +548,10 @@ A length field `payload` is itself composed of two components:
         ╰───────> Length (up to 0x7FFFFFFFFFFFFFFF)
 
 The low bit of the `payload` is the `continuation bit`. When this bit is 1, there is another `length field` following the data chunk that this `length field` refers to.
+
+**Explicit formulas**:
+- Encoding: `payload = (length << 1) | continuation`
+- Decoding: `continuation = payload & 1`, `length = payload >> 1`
 
 
 ### Length Payload Encoding Process
@@ -576,6 +603,14 @@ The low bit of the `payload` is the `continuation bit`. When this bit is 1, ther
     0b 24 f4                    // Length 1,000,000 and continuation 1
     ff fe ff ff ff ff ff ff ff  // Length 9,223,372,036,854,775,807 and continuation 0
 
+**Worked example**: Decoding `0b 24 f4` (Length 1,000,000, continuation 1):
+
+1. Read header byte `0b` = binary `00001011`
+2. Invert to get `11110100`, lowest 1-bit is at position 3 (1-based), so `count` = 3
+3. Read 3 bytes as little-endian: `0b 24 f4` = `0xf4240b`
+4. Shift right by 3 bits: `0xf4240b >> 3` = `0x1e8481` = 2,000,001
+5. Payload 2,000,001 = (1,000,000 << 1) | 1, so length = 1,000,000, continuation = 1
+
 ### Chunking
 
 Chunking is a mechanism for encoding variable-length data using one or more length-prefixed segments. This allows encoders to begin encoding data before the total size is known (progressive encoding), while still allowing decoders to pre-allocate storage when the size is known up front.
@@ -595,6 +630,8 @@ The meaning of `count` depends on the data type being chunked:
 Chunking continues until a chunk whose length field's [continuation bit](#length-field-payload-format) is 0. If a chunk has a continuation bit of 1, another chunk **MUST** follow; a document that ends after such a chunk is invalid.
 
 A chunk with count 0 **MUST** have a [continuation bit](#length-field-payload-format) of 0. Allowing otherwise would open up the decoder to DOS attacks.
+
+**Note**: A trailing empty chunk (count=0, continuation=0) after one or more non-empty chunks is valid, though unusual. This can be useful in closed systems where encoders deliberately append empty chunks to allow decoders to use the original data zero-copy.
 
 
 
@@ -643,17 +680,17 @@ Decoders **MUST** enforce limits on resource consumption to prevent denial-of-se
 | Resource               | Recommended Default  | Notes                                                                                                    |
 | ---------------------- | -------------------- | -------------------------------------------------------------------------------------------------------- |
 | Maximum document size  | 2,000,000,000 bytes  | Total size of the encoded document                                                                       |
-| Maximum nesting depth  | 512                  | Arrays and objects nested within each other (root value is depth 0, first container is depth 1)          |
-| Maximum container size | 1,000,000 elements   | Elements in a single array, or key-value pairs in a single object (each pair counts as one)              |
-| Maximum string length  | 10,000,000 bytes     | Encoded byte length, before any normalization. See [Long Field Lengths](#long-field-lengths)             |
-| Maximum chunk count    | 100                  | Per string or container; a single-chunk counts as 1. See [Chunking Restrictions](#chunking-restrictions) |
-| Numeric range          | 64-bit float/integer | See [Value Ranges](#value-ranges)                                                                        |
+| Maximum nesting depth  | 500                  | Arrays and objects nested within each other. Any value at the root level has depth 1; each value inside a container is one level deeper than the container itself. Examples: `[1]` has depth 2 (array at depth 1, element at depth 2); `[[]]` has depth 2; `[[1]]` has depth 3 (outer array at 1, inner array at 2, element at 3). |
+| Maximum container size | 1,000,000 elements   | Total elements in a single array or key-value pairs in a single object, summed across all chunks         |
+| Maximum string length  | 10,000,000 bytes     | Total encoded byte length summed across all chunks, validated during decoding (before string assembly)   |
+| Maximum chunk count    | 100                  | Per individual string or container (nested containers each have their own count); a single-chunk counts as 1. See [Chunking Restrictions](#chunking-restrictions) |
+| Numeric range          | 64-bit float/integer | Minimum supported range; not a configurable limit. See [Value Ranges](#value-ranges)                     |
 
 Implementations **SHOULD** support at minimum 64-bit IEEE 754 floats and 64-bit signed and unsigned integers. JavaScript environments are limited to 53-bit integer precision; implementations targeting JavaScript **SHOULD** document this limitation.
 
 Implementations **MUST** document their default limits and any configuration options they provide.
 
-**Warning**: Choosing excessively high limits (or no limits) can make implementations vulnerable to resource exhaustion attacks. Even seemingly reasonable limits can be dangerous in combination (e.g., 1000 nesting depth × 1000 elements per level = 1 billion total nodes).
+**Warning**: Choosing excessively high limits (or no limits) can make implementations vulnerable to resource exhaustion attacks. Even seemingly reasonable limits can be dangerous in combination (e.g., 1000 nesting depth × 1000 elements per level = 1 billion total nodes). Setting a limit to 0 typically means "no limit" and is **NOT RECOMMENDED** for production use.
 
 
 ### Long Field Lengths
@@ -714,9 +751,11 @@ The handling of Unicode normalization depends on the [compliance level](#complia
 * **Secure compliance**: Decoders normalize strings to [NFC](https://unicode.org/reports/tr15/#Norm_Forms) before performing [duplicate key](#duplicate-object-keys) detection. This prevents the attack described above.
 * **Basic compliance**: Decoders perform byte-for-byte comparison without normalization. This is vulnerable to key collision attacks on auto-normalizing platforms.
 
-**Important**: For [chunked](#chunking) [long strings](#long-string), NFC normalization **MUST** be applied after the complete string has been assembled, not per-chunk. Normalizing per-chunk would fail to compose characters that span chunk boundaries (e.g., a base character in one chunk and its combining mark in the next).
+**Important**: For [chunked](#chunking) [long strings](#long-string), both UTF-8 validation and NFC normalization **MUST** be applied after the complete string has been assembled, not per-chunk. Individual chunks may split multi-byte UTF-8 sequences; only the fully assembled string must be valid UTF-8. Similarly, normalizing per-chunk would fail to compose characters that span chunk boundaries (e.g., a base character in one chunk and its combining mark in the next).
 
 **Note**: Length fields in the encoded document refer to the byte length of the original (non-normalized) UTF-8 data. After NFC normalization, the resulting string may have a different byte length. For example, `café` encoded with a decomposed `é` (U+0065 U+0301) occupies 6 bytes, but after NFC normalization becomes 5 bytes (using precomposed U+00E9). This is expected behavior.
+
+**Note**: Implementations **SHOULD** use the latest available Unicode version for NFC normalization. While different Unicode versions may produce different results for edge cases involving newly added characters, this is unavoidable and generally affects only obscure codepoints.
 
 
 ### Values incompatible with JSON
@@ -726,8 +765,10 @@ NaN and infinity are unrepresentable in JSON, but are technically possible to en
 Codecs **MUST** by default reject NaN and infinity values regardless of encoding (whether in [float](#16-bit-float) bit patterns or [big number](#big-number) special encodings), and **MAY** offer the following configuration options:
 
 * Reject the document (this **MUST** be the default behavior)
-* Stringify the value ("NaN", "infinity", or "-infinity")
+* Stringify the value (replace the numeric value with a string: `"NaN"`, `"Infinity"`, or `"-Infinity"`)
 * Allow the value (passing the decoded data to a JSON encoder may fail or produce different results)
+
+**Note**: The stringify option converts the numeric value to a string value at decode time. This allows interoperability with systems that represent these special values as strings. The application or a type-aware decoder can convert the string back to the appropriate floating-point value if needed.
 
 
 ### Out-of-range Values
@@ -742,6 +783,8 @@ Decoders **MAY** offer an option to stringify such values, replacing the numeric
 Duplicate [object](#object) keys (the same key appearing multiple times in the same object) are being actively exploited in the wild to compromise security and exfiltrate data. Allowing duplicate keys is **extremely** dangerous. However, some systems must allow it for interoperability reasons.
 
 **Note**: Key equality is determined by byte-for-byte comparison of UTF-8 encoded strings. For [secure compliance](#secure-compliance), strings are NFC-normalized before comparison. For [basic compliance](#basic-compliance), raw (non-normalized) strings are compared. See [Unicode Normalization](#unicode-normalization) for security implications.
+
+**Important**: For [chunked](#chunking) objects, duplicate key detection **MUST** work across chunk boundaries. An object with key `"a"` in one chunk and key `"a"` in a subsequent chunk contains duplicate keys and **MUST** be handled according to the configured duplicate key policy.
 
 Decoders **MAY** offer the following configuration options:
 
@@ -846,6 +889,8 @@ Formal BONJSON Grammar
 ----------------------
 
 The following [Dogma](https://github.com/kstenerud/dogma/blob/master/v1/dogma_v1.0.md) grammar is **normative**. In case of any discrepancy between the prose descriptions in this document and the formal grammar, the grammar takes precedence.
+
+**Note**: The grammar defines what constitutes a valid BONJSON encoding at the byte level. Security restrictions described in the prose (such as NUL character rejection, NaN/infinity rejection, and duplicate key detection) are runtime checks that may cause a structurally valid document to be rejected. The grammar permits these byte sequences; the security rules determine whether they are accepted at runtime.
 
 ```dogma
 dogma_v1 utf-8

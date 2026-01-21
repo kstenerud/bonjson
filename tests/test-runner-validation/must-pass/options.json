@@ -11,11 +11,25 @@
       "options": {"allow_nul": true}
     },
     {
-      "//": "Boolean option allow_nan_infinity",
-      "name": "option_allow_nan_infinity",
+      "//": "String option nan_infinity_behavior",
+      "name": "option_nan_infinity_behavior",
       "type": "roundtrip",
       "input": {"$number": "NaN"},
-      "options": {"allow_nan_infinity": true}
+      "options": {"nan_infinity_behavior": "allow"}
+    },
+    {
+      "//": "String option duplicate_key - keep_first",
+      "name": "option_duplicate_key",
+      "type": "roundtrip",
+      "input": {"a": 1},
+      "options": {"duplicate_key": "keep_first"}
+    },
+    {
+      "//": "String option invalid_utf8 - replace",
+      "name": "option_invalid_utf8",
+      "type": "roundtrip",
+      "input": "test",
+      "options": {"invalid_utf8": "replace"}
     },
     {
       "//": "Integer option max_depth",
@@ -63,11 +77,11 @@
       }
     },
     {
-      "//": "Zero is valid for integer options",
-      "name": "option_zero_depth",
+      "//": "max_depth: 1 allows only empty containers (elements inside would be depth 2)",
+      "name": "option_max_depth_exceeded",
       "type": "encode_error",
       "input": [1],
-      "options": {"max_depth": 0},
+      "options": {"max_depth": 1},
       "expected_error": "max_depth_exceeded"
     }
   ]

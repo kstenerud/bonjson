@@ -1,0 +1,12 @@
+{
+  "type": "bonjson-test",
+  "version": "1.0.0",
+  "tests": [
+    {
+      "name": "option_invalid_string_enum_value",
+      "type": "roundtrip",
+      "input": "test",
+      "options": {"nan_infinity_behavior": "invalid_value"}
+    }
+  ]
+}
