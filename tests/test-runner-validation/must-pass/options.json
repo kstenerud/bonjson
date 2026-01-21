@@ -77,10 +77,10 @@
       }
     },
     {
-      "//": "max_depth: 1 allows only empty containers (elements inside would be depth 2)",
+      "//": "max_depth: 1 allows one level of container nesting; nested containers with content exceed it",
       "name": "option_max_depth_exceeded",
       "type": "encode_error",
-      "input": [1],
+      "input": [[1]],
       "options": {"max_depth": 1},
       "expected_error": "max_depth_exceeded"
     }
