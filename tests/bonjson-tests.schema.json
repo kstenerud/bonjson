@@ -94,8 +94,6 @@
             "invalid_data",
             "invalid_object_key",
             "value_out_of_range",
-            "too_many_chunks",
-            "empty_chunk_continuation",
             "max_depth_exceeded",
             "max_string_length_exceeded",
             "max_container_size_exceeded",
@@ -104,7 +102,7 @@
         },
         "requires": {
           "type": "array",
-          "description": "Capabilities required to run this test. Implementations should skip tests requiring capabilities they don't support. Known capabilities: arbitrary_precision_bignumber, bignumber_exponent_gt_127, bignumber_exponent_lt_neg128, nan_infinity_stringify, uint64, int64, float16, negative_zero, raw_string_bytes, signaling_nan. Unknown capabilities should cause the test to be skipped (for forward compatibility).",
+          "description": "Capabilities required to run this test. Implementations should skip tests requiring capabilities they don't support. Known capabilities: arbitrary_precision_bignumber, bignumber_exponent_gt_127, bignumber_exponent_lt_neg128, nan_infinity_stringify, uint64, int64, negative_zero, raw_string_bytes, signaling_nan. Unknown capabilities should cause the test to be skipped (for forward compatibility).",
           "items": {
             "type": "string"
           }
@@ -150,11 +148,6 @@
               "type": "integer",
               "minimum": 0,
               "description": "Maximum string length in bytes (non-negative)"
-            },
-            "max_chunks": {
-              "type": "integer",
-              "minimum": 0,
-              "description": "Maximum number of string/container chunks (non-negative)"
             },
             "max_document_size": {
               "type": "integer",

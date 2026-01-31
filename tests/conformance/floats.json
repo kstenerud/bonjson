@@ -1,70 +1,74 @@
 {
   "type": "bonjson-test",
   "version": "1.0.0",
-  "//": "Float encoding tests covering float16, float32, and float64",
+  "//": "Float encoding tests covering float32 and float64",
   "tests": [
     {
-      "//": "Float16 (bfloat16) uses type code 0xf2 - 1.125 can be exactly represented",
-      "name": "float16_1_125",
+      "//": "Float32: 1.125 can be exactly represented",
+      "name": "float32_1_125",
       "type": "encode",
       "input": 1.125,
-      "expected_bytes": "f2903f"
+      "expected_bytes": "cb 00 00 90 3f"
     },
     {
       "//": "Float32 uses type code 0xf3",
       "name": "float32_39_875",
       "type": "encode",
       "input": 39.875,
-      "expected_bytes": "f300801f42"
+      "expected_bytes": "cb 00 80 1f 42"
     },
     {
       "//": "Float64 uses type code 0xf4 - 1.234 requires full precision",
       "name": "float64_1_234",
       "type": "encode",
       "input": 1.234,
-      "expected_bytes": "f45839b4c876bef33f"
+      "expected_bytes": "cc 58 39 b4 c8 76 be f3 3f"
     },
     {
-      "//": "Negative float16: -1.25",
-      "name": "float16_neg1_25",
+      "//": "Negative float32: -1.25",
+      "name": "float32_neg1_25",
       "type": "encode",
       "input": -1.25,
-      "expected_bytes": "f2a0bf"
+      "expected_bytes": "cb 00 00 a0 bf"
     },
     {
       "//": "Small float that fits in float64: -5.923441e-50",
       "name": "float64_small",
       "type": "encode",
       "input": -5.923441e-50,
-      "expected_bytes": "f4353cce818729b6b5"
+      "expected_bytes": "cc 35 3c ce 81 87 29 b6 b5"
     },
     {
       "//": "Decode tests - float32 encoding of 1.125 decodes correctly",
       "name": "decode_float32_1_125",
       "type": "decode",
-      "input_bytes": "f30000903f",
+      "input_bytes": "cb 00 00 90 3f",
       "expected_value": 1.125
     },
     {
       "//": "Decode float64 encoding of 1.125",
       "name": "decode_float64_1_125",
       "type": "decode",
-      "input_bytes": "f4000000000000f23f",
+      "input_bytes": "cc 00 00 00 00 00 00 f2 3f",
       "expected_value": 1.125
     },
     {
       "//": "Decode float64 pi using hex float for precise representation",
       "name": "decode_float64_pi_hex",
       "type": "decode",
-      "input_bytes": "f4 182d4454fb210940",
-      "expected_value": {"$number": "0x1.921fb54442d18p+1"}
+      "input_bytes": "cc 18 2d 44 54 fb 21 09 40",
+      "expected_value": {
+        "$number": "0x1.921fb54442d18p+1"
+      }
     },
     {
       "//": "Decode float64 e using hex float for precise representation",
       "name": "decode_float64_e_hex",
       "type": "decode",
-      "input_bytes": "f4 6957148b0abf0540",
-      "expected_value": {"$number": "0x1.5bf0a8b145769p+1"}
+      "input_bytes": "cc 69 57 14 8b 0a bf 05 40",
+      "expected_value": {
+        "$number": "0x1.5bf0a8b145769p+1"
+      }
     },
     {
       "//": "Round-trip tests for floats",
@@ -90,7 +94,7 @@
     {
       "name": "roundtrip_float_large",
       "type": "roundtrip",
-      "input": 1.7976931348623157e308
+      "input": 1.7976931348623157e+308
     },
     {
       "name": "roundtrip_float_small_positive",
@@ -110,32 +114,30 @@
     },
     {
       "//": "=== Negative zero tests ===",
-      "name": "decode_float16_negative_zero",
-      "type": "decode",
-      "input_bytes": "f20080",
-      "expected_value": {"$number": "-0.0"}
-    },
-    {
       "name": "decode_float32_negative_zero",
       "type": "decode",
-      "input_bytes": "f300000080",
-      "expected_value": {"$number": "-0.0"}
+      "input_bytes": "cb 00 00 00 80",
+      "expected_value": {
+        "$number": "-0.0"
+      }
     },
     {
       "name": "decode_float64_negative_zero",
       "type": "decode",
-      "input_bytes": "f40000000000000080",
-      "expected_value": {"$number": "-0.0"}
+      "input_bytes": "cc 00 00 00 00 00 00 00 80",
+      "expected_value": {
+        "$number": "-0.0"
+      }
     },
     {
       "//": "=== Float precision boundary tests ===",
-      "//note": "Values that overflow bfloat16 precision but fit float32",
-      "name": "roundtrip_float_bfloat16_boundary",
+      "//note": "Values at float32 precision boundary",
+      "name": "roundtrip_float_float32_boundary",
       "type": "roundtrip",
       "input": 1.0078125
     },
     {
-      "//": "Value with more precision than bfloat16 can represent",
+      "//": "Value requiring float32 precision",
       "name": "roundtrip_float_needs_float32",
       "type": "roundtrip",
       "input": 1.00390625
@@ -150,57 +152,69 @@
       "//": "=== Subnormal float tests ===",
       "name": "roundtrip_float64_subnormal",
       "type": "roundtrip",
-      "input": {"$number": "5e-324"}
+      "input": {
+        "$number": "5e-324"
+      }
     },
     {
       "//": "Smallest positive normal float64",
       "name": "roundtrip_float64_min_normal",
       "type": "roundtrip",
-      "input": {"$number": "2.2250738585072014e-308"}
+      "input": {
+        "$number": "2.2250738585072014e-308"
+      }
     },
     {
       "//": "=== Float special encoding tests ===",
       "//note": "Verify decoder accepts float values encoded in larger formats",
       "name": "decode_1_125_as_float64",
       "type": "decode",
-      "input_bytes": "f4000000000000f23f",
+      "input_bytes": "cc 00 00 00 00 00 00 f2 3f",
       "expected_value": 1.125
     },
     {
       "name": "decode_1_25_as_float32",
       "type": "decode",
-      "input_bytes": "f30000a03f",
+      "input_bytes": "cb 00 00 a0 3f",
       "expected_value": 1.25
     },
     {
       "//": "Large magnitude that fits in float64",
       "name": "roundtrip_float_large_magnitude",
       "type": "roundtrip",
-      "input": {"$number": "1e300"}
+      "input": {
+        "$number": "1e300"
+      }
     },
     {
       "//": "Small magnitude that fits in float64",
       "name": "roundtrip_float_small_magnitude",
       "type": "roundtrip",
-      "input": {"$number": "1e-300"}
+      "input": {
+        "$number": "1e-300"
+      }
     },
     {
       "//": "=== Negative zero roundtrip and encode tests ===",
       "name": "roundtrip_float_negative_zero",
       "type": "roundtrip",
-      "input": {"$number": "-0.0"}
+      "input": {
+        "$number": "-0.0"
+      }
     },
     {
       "//": "Negative zero should encode to a float type (not integer 0)",
       "name": "encode_float_negative_zero",
       "type": "encode",
-      "input": {"$number": "-0.0"},
-      "expected_bytes": "f20080"
+      "input": {
+        "$number": "-0.0"
+      },
+      "expected_bytes": "cb 00 00 00 80"
     },
     {
       "//": "=== Additional precision boundary tests ===",
       "//note": "Values that test the boundary between float sizes",
-      "name": "roundtrip_float_bfloat16_exact",
+      "name": "roundtrip_float_float32_exact",
       "type": "roundtrip",
       "input": 1.5
     },
@@ -220,19 +234,25 @@
       "//": "=== Float boundary values ===",
       "name": "roundtrip_float64_max",
       "type": "roundtrip",
-      "input": {"$number": "1.7976931348623157e+308"}
+      "input": {
+        "$number": "1.7976931348623157e+308"
+      }
     },
     {
       "//": "Negative max float64",
       "name": "roundtrip_float64_neg_max",
       "type": "roundtrip",
-      "input": {"$number": "-1.7976931348623157e+308"}
+      "input": {
+        "$number": "-1.7976931348623157e+308"
+      }
     },
     {
       "//": "Smallest positive normalized float64",
       "name": "roundtrip_float64_min_positive_normal",
       "type": "roundtrip",
-      "input": {"$number": "2.2250738585072014e-308"}
+      "input": {
+        "$number": "2.2250738585072014e-308"
+      }
     },
     {
       "//": "=== Float values that could be integers ===",
@@ -256,36 +276,46 @@
       "name": "decode_float64_min_subnormal",
       "type": "decode",
       "//note2": "Bits: 0x0000000000000001 (little-endian: 01 00 00 00 00 00 00 00)",
-      "input_bytes": "f40100000000000000",
-      "expected_value": {"$number": "5e-324"}
+      "input_bytes": "cc 01 00 00 00 00 00 00 00",
+      "expected_value": {
+        "$number": "5e-324"
+      }
     },
     {
       "//": "Largest subnormal float64 (just below smallest normal)",
       "name": "decode_float64_max_subnormal",
       "type": "decode",
       "//note2": "Bits: 0x000fffffffffffff (little-endian: ff ff ff ff ff ff 0f 00)",
-      "input_bytes": "f4ffffffffffff0f00",
-      "expected_value": {"$number": "2.225073858507201e-308"}
+      "input_bytes": "cc ff ff ff ff ff ff 0f 00",
+      "expected_value": {
+        "$number": "2.225073858507201e-308"
+      }
     },
     {
       "//": "Negative smallest subnormal",
       "name": "decode_float64_neg_min_subnormal",
       "type": "decode",
       "//note2": "Bits: 0x8000000000000001 (little-endian: 01 00 00 00 00 00 00 80)",
-      "input_bytes": "f40100000000000080",
-      "expected_value": {"$number": "-5e-324"}
+      "input_bytes": "cc 01 00 00 00 00 00 00 80",
+      "expected_value": {
+        "$number": "-5e-324"
+      }
     },
     {
       "//": "Subnormal round-trip: smallest positive",
       "name": "roundtrip_float64_min_subnormal",
       "type": "roundtrip",
-      "input": {"$number": "5e-324"}
+      "input": {
+        "$number": "5e-324"
+      }
     },
     {
       "//": "Subnormal round-trip: value in subnormal range",
       "name": "roundtrip_float64_subnormal_mid",
       "type": "roundtrip",
-      "input": {"$number": "1e-310"}
+      "input": {
+        "$number": "1e-310"
+      }
     },
     {
       "//": "=== Float32 subnormals ===",
@@ -296,16 +326,20 @@
       "name": "decode_float32_min_subnormal",
       "type": "decode",
       "//note2": "Bits: 0x00000001 (little-endian: 01 00 00 00)",
-      "input_bytes": "f301000000",
-      "expected_value": {"$number": "0x1p-149"}
+      "input_bytes": "cb 01 00 00 00",
+      "expected_value": {
+        "$number": "0x1p-149"
+      }
     },
     {
       "//": "Largest subnormal float32",
       "name": "decode_float32_max_subnormal",
       "type": "decode",
       "//note2": "Bits: 0x007fffff (little-endian: ff ff 7f 00)",
-      "input_bytes": "f3ffff7f00",
-      "expected_value": {"$number": "0x1.fffffcp-127"}
+      "input_bytes": "cb ff ff 7f 00",
+      "expected_value": {
+        "$number": "0x1.fffffcp-127"
+      }
     }
   ]
 }

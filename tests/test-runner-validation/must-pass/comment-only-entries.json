@@ -10,7 +10,7 @@
       "name": "test_after_section_divider",
       "type": "encode",
       "input": null,
-      "expected_bytes": "f5"
+      "expected_bytes": "cd"
     },
     {
       "//": "=== Section 2: More tests ===",
@@ -20,7 +20,7 @@
       "name": "test_after_multi_comment_divider",
       "type": "encode",
       "input": true,
-      "expected_bytes": "f7"
+      "expected_bytes": "cf"
     },
     {
       "//": "Single line section divider"
@@ -34,7 +34,7 @@
       "name": "test_at_end",
       "type": "encode",
       "input": false,
-      "expected_bytes": "f6"
+      "expected_bytes": "ce"
     }
   ]
 }

@@ -46,13 +46,6 @@
       "options": {"max_string_length": 1000}
     },
     {
-      "//": "Integer option max_chunks",
-      "name": "option_max_chunks",
-      "type": "roundtrip",
-      "input": "test",
-      "options": {"max_chunks": 100}
-    },
-    {
       "//": "Integer option max_container_size",
       "name": "option_max_container_size",
       "type": "roundtrip",

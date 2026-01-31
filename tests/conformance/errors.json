@@ -7,562 +7,405 @@
       "//": "Truncated integer types - data ends before all bytes received",
       "name": "truncated_uint8",
       "type": "decode_error",
-      "input_bytes": "d0",
+      "input_bytes": "e0",
       "expected_error": "truncated"
     },
     {
       "name": "truncated_uint16",
       "type": "decode_error",
-      "input_bytes": "d102",
-      "expected_error": "truncated"
-    },
-    {
-      "name": "truncated_uint24",
-      "type": "decode_error",
-      "input_bytes": "d20202",
+      "input_bytes": "e1 02",
       "expected_error": "truncated"
     },
     {
       "name": "truncated_uint32",
       "type": "decode_error",
-      "input_bytes": "d3020202",
-      "expected_error": "truncated"
-    },
-    {
-      "name": "truncated_uint40",
-      "type": "decode_error",
-      "input_bytes": "d402020202",
-      "expected_error": "truncated"
-    },
-    {
-      "name": "truncated_uint48",
-      "type": "decode_error",
-      "input_bytes": "d50202020202",
-      "expected_error": "truncated"
-    },
-    {
-      "name": "truncated_uint56",
-      "type": "decode_error",
-      "input_bytes": "d6020202020202",
+      "input_bytes": "e2 02 02 02",
       "expected_error": "truncated"
     },
     {
       "name": "truncated_uint64",
       "type": "decode_error",
-      "input_bytes": "d702020202020202",
+      "input_bytes": "e3 02 02 02 02 02 02 02",
       "expected_error": "truncated"
     },
     {
       "name": "truncated_sint8",
       "type": "decode_error",
-      "input_bytes": "d8",
+      "input_bytes": "e4",
       "expected_error": "truncated"
     },
     {
       "name": "truncated_sint16",
       "type": "decode_error",
-      "input_bytes": "d902",
-      "expected_error": "truncated"
-    },
-    {
-      "name": "truncated_sint24",
-      "type": "decode_error",
-      "input_bytes": "da0202",
+      "input_bytes": "e5 02",
       "expected_error": "truncated"
     },
     {
       "name": "truncated_sint32",
       "type": "decode_error",
-      "input_bytes": "db020202",
-      "expected_error": "truncated"
-    },
-    {
-      "name": "truncated_sint40",
-      "type": "decode_error",
-      "input_bytes": "dc02020202",
-      "expected_error": "truncated"
-    },
-    {
-      "name": "truncated_sint48",
-      "type": "decode_error",
-      "input_bytes": "dd0202020202",
-      "expected_error": "truncated"
-    },
-    {
-      "name": "truncated_sint56",
-      "type": "decode_error",
-      "input_bytes": "de020202020202",
+      "input_bytes": "e6 02 02 02",
       "expected_error": "truncated"
     },
     {
       "name": "truncated_sint64",
       "type": "decode_error",
-      "input_bytes": "df02020202020202",
+      "input_bytes": "e7 02 02 02 02 02 02 02",
       "expected_error": "truncated"
     },
     {
       "//": "Truncated float types",
-      "name": "truncated_float16",
-      "type": "decode_error",
-      "input_bytes": "f200",
-      "expected_error": "truncated"
-    },
-    {
       "name": "truncated_float32",
       "type": "decode_error",
-      "input_bytes": "f3000000",
+      "input_bytes": "cb 00 00 00",
       "expected_error": "truncated"
     },
     {
       "name": "truncated_float64",
       "type": "decode_error",
-      "input_bytes": "f400000000000000",
+      "input_bytes": "cc 00 00 00 00 00 00 00",
       "expected_error": "truncated"
     },
     {
-      "//": "Truncated BigNumber",
-      "name": "truncated_bignumber_1",
+      "//": "Truncated BigNumber (zigzag LEB128 format)",
+      "name": "truncated_bignumber_no_exponent",
       "type": "decode_error",
-      "input_bytes": "f108",
+      "input_bytes": "ca",
       "expected_error": "truncated"
     },
     {
-      "name": "truncated_bignumber_2",
+      "//": "Exponent byte has continuation bit set but no following byte",
+      "name": "truncated_bignumber_exponent_incomplete",
       "type": "decode_error",
-      "input_bytes": "f11000",
+      "input_bytes": "ca 80",
       "expected_error": "truncated"
     },
     {
-      "name": "truncated_bignumber_3",
+      "//": "Exponent complete (0), significand byte has continuation bit but no following byte",
+      "name": "truncated_bignumber_significand_incomplete",
       "type": "decode_error",
-      "input_bytes": "f1180000",
+      "input_bytes": "ca 00 80",
       "expected_error": "truncated"
     },
     {
       "//": "Truncated short strings",
       "name": "truncated_string1",
       "type": "decode_error",
-      "input_bytes": "e1",
+      "input_bytes": "d1",
       "expected_error": "truncated"
     },
     {
       "name": "truncated_string2",
       "type": "decode_error",
-      "input_bytes": "e261",
+      "input_bytes": "d2 61",
       "expected_error": "truncated"
     },
     {
       "name": "truncated_string3",
       "type": "decode_error",
-      "input_bytes": "e36161",
+      "input_bytes": "d3 61 61",
       "expected_error": "truncated"
     },
     {
       "name": "truncated_string15",
       "type": "decode_error",
-      "input_bytes": "ef6161616161616161616161616161",
+      "input_bytes": "df 61 61 61 61 61 61 61 61 61 61 61 61 61 61",
       "expected_error": "truncated"
     },
     {
-      "//": "Invalid (reserved) type codes - 0xC9-0xCF are reserved",
+      "//": "Truncated long string (no terminator)",
+      "name": "truncated_long_string",
+      "type": "decode_error",
+      "input_bytes": "ff 68 65 6c 6c 6f",
+      "expected_error": "truncated"
+    },
+    {
+      "//": "Invalid (reserved) type codes — codes in the 0xC9 and 0xE8-0xFB ranges are reserved",
       "name": "invalid_type_code_c9",
       "type": "decode_error",
-      "input_bytes": "c90000000000000000000000ff",
+      "input_bytes": "c9",
       "expected_error": "invalid_type_code"
     },
     {
-      "name": "invalid_type_code_ca",
+      "name": "invalid_type_code_e8",
       "type": "decode_error",
-      "input_bytes": "ca0000000000000000000000ff",
+      "input_bytes": "e8",
       "expected_error": "invalid_type_code"
     },
     {
-      "name": "invalid_type_code_cb",
+      "name": "invalid_type_code_e9",
       "type": "decode_error",
-      "input_bytes": "cb0000000000000000000000ff",
+      "input_bytes": "e9",
       "expected_error": "invalid_type_code"
     },
     {
-      "name": "invalid_type_code_cc",
+      "name": "invalid_type_code_f0",
       "type": "decode_error",
-      "input_bytes": "cc0000000000000000000000ff",
+      "input_bytes": "f0",
       "expected_error": "invalid_type_code"
     },
     {
-      "name": "invalid_type_code_cd",
+      "name": "invalid_type_code_f5",
       "type": "decode_error",
-      "input_bytes": "cd0000000000000000000000ff",
+      "input_bytes": "f5",
       "expected_error": "invalid_type_code"
     },
     {
-      "name": "invalid_type_code_ce",
-      "type": "decode_error",
-      "input_bytes": "ce0000000000000000000000ff",
-      "expected_error": "invalid_type_code"
-    },
-    {
-      "name": "invalid_type_code_cf",
-      "type": "decode_error",
-      "input_bytes": "cf0000000000000000000000ff",
-      "expected_error": "invalid_type_code"
-    },
-    {
-      "//": "Reserved type codes 0xFA-0xFF",
       "name": "invalid_type_code_fa",
       "type": "decode_error",
-      "input_bytes": "fa0000000000000000000000ff",
+      "input_bytes": "fa",
       "expected_error": "invalid_type_code"
     },
     {
       "name": "invalid_type_code_fb",
       "type": "decode_error",
-      "input_bytes": "fb0000000000000000000000ff",
+      "input_bytes": "fb",
       "expected_error": "invalid_type_code"
     },
     {
-      "name": "invalid_type_code_fc",
+      "//": "Container end marker at top level (no container to close)",
+      "name": "unexpected_container_end",
       "type": "decode_error",
-      "input_bytes": "fc0000000000000000000000ff",
-      "expected_error": "invalid_type_code"
-    },
-    {
-      "name": "invalid_type_code_fd",
-      "type": "decode_error",
-      "input_bytes": "fd0000000000000000000000ff",
-      "expected_error": "invalid_type_code"
-    },
-    {
-      "name": "invalid_type_code_fe",
-      "type": "decode_error",
-      "input_bytes": "fe0000000000000000000000ff",
-      "expected_error": "invalid_type_code"
-    },
-    {
-      "name": "invalid_type_code_ff",
-      "type": "decode_error",
-      "input_bytes": "ff0000000000000000000000ff",
+      "input_bytes": "fe",
       "expected_error": "invalid_type_code"
     },
     {
       "//": "=== Truncated/unclosed container errors ===",
-      "//note": "Containers now use chunked encoding: type code + count chunk(s) + elements"
+      "//note": "Containers use delimiter-terminated encoding: fc/fd + children + fe"
     },
     {
-      "//": "Object with no count chunk",
-      "name": "unclosed_object_no_count",
+      "//": "Array with no end marker and no content",
+      "name": "unclosed_array_empty",
       "type": "decode_error",
-      "input_bytes": "f9",
+      "input_bytes": "fc",
       "expected_error": "truncated"
     },
     {
-      "//": "Array with no count chunk",
-      "name": "unclosed_array_no_count",
+      "//": "Object with no end marker and no content",
+      "name": "unclosed_object_empty",
       "type": "decode_error",
-      "input_bytes": "f8",
+      "input_bytes": "fd",
       "expected_error": "truncated"
     },
     {
-      "//": "Array with count=1 but no element (count=1,cont=0 → 0x04)",
-      "name": "array_count_but_missing_element",
+      "//": "Array with element but no end marker",
+      "name": "unclosed_array_with_element",
       "type": "decode_error",
-      "input_bytes": "f8 04",
+      "input_bytes": "fc 65",
       "expected_error": "truncated"
     },
     {
-      "//": "Object with count=1 but no key-value pair (count=1,cont=0 → 0x04)",
-      "name": "object_count_but_missing_pair",
+      "//": "Object with key-value pair but no end marker",
+      "name": "unclosed_object_with_pair",
       "type": "decode_error",
-      "input_bytes": "f9 04",
-      "expected_error": "truncated"
-    },
-    {
-      "//": "Array with continuation bit but no following chunk (count=1,cont=1 → 0x06)",
-      "name": "array_continuation_but_no_next_chunk",
-      "type": "decode_error",
-      "input_bytes": "f8 06 65",
-      "expected_error": "truncated"
-    },
-    {
-      "//": "Object with continuation bit but no following chunk (count=1,cont=1 → 0x06)",
-      "name": "object_continuation_but_no_next_chunk",
-      "type": "decode_error",
-      "input_bytes": "f9 06 e0 65",
-      "expected_error": "truncated"
-    },
-    {
-      "//": "Multi-chunk array with empty chunk with continuation in middle (invalid)",
-      "//note": "Empty chunk with continuation is always invalid - potential DoS vector",
-      "name": "array_empty_chunk_with_continuation_middle",
-      "type": "decode_error",
-      "input_bytes": "f8 06 65 02 04 66",
-      "expected_error": "empty_chunk_continuation"
-    },
-    {
-      "//": "Multi-chunk object with empty chunk with continuation in middle (invalid)",
-      "name": "object_empty_chunk_with_continuation_middle",
-      "type": "decode_error",
-      "input_bytes": "f9 06 e161 65 02 04 e162 66",
-      "expected_error": "empty_chunk_continuation"
-    },
-    {
-      "//": "Array starting with empty chunk with continuation (invalid even if followed by terminator)",
-      "//note": "count=0, cont=1 → 0x02 is always invalid - potential DoS vector",
-      "name": "array_empty_chunk_with_continuation_start",
-      "type": "decode_error",
-      "input_bytes": "f8 02 00",
-      "expected_error": "empty_chunk_continuation"
-    },
-    {
-      "//": "Object starting with empty chunk with continuation (invalid even if followed by terminator)",
-      "name": "object_empty_chunk_with_continuation_start",
-      "type": "decode_error",
-      "input_bytes": "f9 02 00",
-      "expected_error": "empty_chunk_continuation"
-    },
-    {
-      "//": "Multi-chunk array truncated after continuation chunk header",
-      "//note": "Chunk1 complete, chunk2 header present but no terminator",
-      "name": "multichunk_array_truncated_mid_sequence",
-      "type": "decode_error",
-      "input_bytes": "f8 06 65 06 66",
-      "expected_error": "truncated"
-    },
-    {
-      "//": "Multi-chunk object truncated after continuation chunk header",
-      "name": "multichunk_object_truncated_mid_sequence",
-      "type": "decode_error",
-      "input_bytes": "f9 06 e161 65 06 e162 66",
-      "expected_error": "truncated"
-    },
-    {
-      "//": "Multi-chunk array with fewer elements than chunk count claims",
-      "//note": "Chunk claims 2 elements but only 1 provided before next chunk",
-      "name": "multichunk_array_undercount",
-      "type": "decode_error",
-      "input_bytes": "f8 0a 65 04 66",
-      "expected_error": "truncated"
-    },
-    {
-      "//": "Multi-chunk object with fewer pairs than chunk count claims",
-      "name": "multichunk_object_undercount",
-      "type": "decode_error",
-      "input_bytes": "f9 0a e161 65 04 e162 66",
+      "input_bytes": "fd d1 61 65",
       "expected_error": "truncated"
     },
     {
       "//": "Nested array where inner is truncated",
       "name": "nested_array_inner_truncated",
       "type": "decode_error",
-      "input_bytes": "f8 04 f8 04",
+      "input_bytes": "fc fc",
       "expected_error": "truncated"
     },
     {
       "//": "Nested object where inner is truncated",
       "name": "nested_object_inner_truncated",
       "type": "decode_error",
-      "input_bytes": "f9 04 e0 f9 04",
+      "input_bytes": "fd d0 fd",
       "expected_error": "truncated"
     },
     {
       "//": "NUL character in string (rejected by default)",
       "name": "nul_in_string1",
       "type": "decode_error",
-      "input_bytes": "e100",
+      "input_bytes": "d1 00",
       "expected_error": "nul_character"
     },
     {
       "name": "nul_in_string_middle",
       "type": "decode_error",
-      "input_bytes": "e26100",
+      "input_bytes": "d2 61 00",
       "expected_error": "nul_character"
     },
     {
       "name": "nul_in_string_start",
       "type": "decode_error",
-      "input_bytes": "e20061",
+      "input_bytes": "d2 00 61",
       "expected_error": "nul_character"
     },
     {
+      "//": "NUL in long string (ff-terminated format)",
       "name": "nul_in_long_string",
       "type": "decode_error",
-      "input_bytes": "f0407468697320697320612073747200676e67",
+      "input_bytes": "ff 74 68 69 73 00 ff",
       "expected_error": "nul_character"
     },
     {
-      "//": "BigNumber NaN/Infinity (rejected by default)",
-      "//note": "When sig_len=0, exp_len encodes: 00=zero, 01=infinity, 10=NaN quiet, 11=NaN signaling",
-      "name": "bignumber_infinity_positive",
+      "//": "Float64 NaN rejected by default",
+      "name": "float64_nan_rejected",
       "type": "decode_error",
-      "input_bytes": "f102",
+      "input_bytes": "cc 00 00 00 00 00 00 f8 7f",
       "expected_error": "invalid_data"
     },
     {
-      "name": "bignumber_infinity_negative",
+      "//": "Float64 positive infinity rejected by default",
+      "name": "float64_infinity_positive_rejected",
       "type": "decode_error",
-      "input_bytes": "f103",
+      "input_bytes": "cc 00 00 00 00 00 00 f0 7f",
       "expected_error": "invalid_data"
     },
     {
-      "name": "bignumber_nan_quiet",
+      "//": "Float64 negative infinity rejected by default",
+      "name": "float64_infinity_negative_rejected",
       "type": "decode_error",
-      "input_bytes": "f104",
+      "input_bytes": "cc 00 00 00 00 00 00 f0 ff",
       "expected_error": "invalid_data"
     },
     {
-      "name": "bignumber_nan_signaling",
+      "//": "Float32 NaN rejected by default",
+      "name": "float32_nan_rejected",
       "type": "decode_error",
-      "input_bytes": "f106",
+      "input_bytes": "cb 00 00 c0 7f",
+      "expected_error": "invalid_data"
+    },
+    {
+      "//": "Float32 positive infinity rejected by default",
+      "name": "float32_infinity_positive_rejected",
+      "type": "decode_error",
+      "input_bytes": "cb 00 00 80 7f",
+      "expected_error": "invalid_data"
+    },
+    {
+      "//": "Float32 negative infinity rejected by default",
+      "name": "float32_infinity_negative_rejected",
+      "type": "decode_error",
+      "input_bytes": "cb 00 00 80 ff",
       "expected_error": "invalid_data"
     },
     {
       "//": "Encoding errors - NaN and Infinity rejected by default",
       "name": "encode_nan",
       "type": "encode_error",
-      "input": {"$number": "NaN"},
+      "input": {
+        "$number": "NaN"
+      },
       "expected_error": "invalid_data"
     },
     {
       "name": "encode_infinity",
       "type": "encode_error",
-      "input": {"$number": "Infinity"},
+      "input": {
+        "$number": "Infinity"
+      },
       "expected_error": "invalid_data"
     },
     {
       "name": "encode_neg_infinity",
       "type": "encode_error",
-      "input": {"$number": "-Infinity"},
+      "input": {
+        "$number": "-Infinity"
+      },
       "expected_error": "invalid_data"
     },
     {
       "//": "=== Non-string object keys (must be rejected) ===",
-      "//note": "Object format: f9 + count chunk + key-value pairs. Keys must be strings.",
-      "//note2": "count=1,cont=0 → 0x04"
+      "//note": "Object format: fd + key-value pairs + fe. Keys must be strings."
     },
     {
       "name": "object_key_integer",
       "type": "decode_error",
-      "input_bytes": "f9 04 65 64",
+      "input_bytes": "fd 65 64 fe",
       "expected_error": "invalid_object_key"
     },
     {
       "name": "object_key_null",
       "type": "decode_error",
-      "input_bytes": "f9 04 f5 64",
+      "input_bytes": "fd cd 64 fe",
       "expected_error": "invalid_object_key"
     },
     {
       "name": "object_key_true",
       "type": "decode_error",
-      "input_bytes": "f9 04 f7 64",
+      "input_bytes": "fd cf 64 fe",
       "expected_error": "invalid_object_key"
     },
     {
       "name": "object_key_false",
       "type": "decode_error",
-      "input_bytes": "f9 04 f6 64",
+      "input_bytes": "fd ce 64 fe",
       "expected_error": "invalid_object_key"
     },
     {
       "name": "object_key_array",
       "type": "decode_error",
-      "input_bytes": "f9 04 f8 00 64",
+      "input_bytes": "fd fc fe 64 fe",
       "expected_error": "invalid_object_key"
     },
     {
       "name": "object_key_object",
       "type": "decode_error",
-      "input_bytes": "f9 04 f9 00 64",
-      "expected_error": "invalid_object_key"
-    },
-    {
-      "name": "object_key_float16",
-      "type": "decode_error",
-      "input_bytes": "f9 04 f2 00 00 64",
+      "input_bytes": "fd fd fe 64 fe",
       "expected_error": "invalid_object_key"
     },
     {
       "name": "object_key_float32",
       "type": "decode_error",
-      "input_bytes": "f9 04 f3 00 00 00 00 64",
+      "input_bytes": "fd cb 00 00 00 00 64 fe",
       "expected_error": "invalid_object_key"
     },
     {
       "name": "object_key_float64",
       "type": "decode_error",
-      "input_bytes": "f9 04 f4 00 00 00 00 00 00 00 00 64",
+      "input_bytes": "fd cc 00 00 00 00 00 00 00 00 64 fe",
       "expected_error": "invalid_object_key"
     },
     {
       "//": "=== Additional invalid UTF-8 patterns ===",
       "name": "invalid_utf8_fe_byte",
       "type": "decode_error",
-      "input_bytes": "e1 fe",
+      "input_bytes": "d1 fe",
       "expected_error": "invalid_utf8"
     },
     {
       "name": "invalid_utf8_ff_byte",
       "type": "decode_error",
-      "input_bytes": "e1 ff",
+      "input_bytes": "d1 ff",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "Two-byte sequence followed by invalid continuation (0x00 instead of 0x80-0xbf)",
       "name": "invalid_utf8_bad_continuation",
       "type": "decode_error",
-      "input_bytes": "e2 c2 00",
+      "input_bytes": "d2 c2 00",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "Two-byte sequence followed by another start byte instead of continuation",
       "name": "invalid_utf8_start_instead_of_continuation",
       "type": "decode_error",
-      "input_bytes": "e2 c2 c2",
+      "input_bytes": "d2 c2 c2",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "Lone continuation byte 0xbf",
       "name": "invalid_utf8_lone_continuation_bf",
       "type": "decode_error",
-      "input_bytes": "e1 bf",
+      "input_bytes": "d1 bf",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "Valid UTF-8 followed by invalid in same string",
       "name": "invalid_utf8_valid_then_invalid",
       "type": "decode_error",
-      "input_bytes": "e3 61 62 80",
+      "input_bytes": "d3 61 62 80",
       "expected_error": "invalid_utf8"
     },
     {
-      "//": "Valid string followed by lone continuation byte in second chunk",
-      "//note": "Assembled string 'hi\\x80' is invalid UTF-8 (0x80 is a continuation byte without lead byte)",
-      "name": "invalid_utf8_chunked_lone_continuation",
+      "//": "Lone continuation byte in long string",
+      "name": "invalid_utf8_long_string_lone_continuation",
       "type": "decode_error",
-      "input_bytes": "f0 0a 6869 04 80",
+      "input_bytes": "ff 68 69 80 ff",
       "expected_error": "invalid_utf8"
-    },
-
-    {
-      "//": "=== Malformed BigNumber headers ===",
-      "//note": "BigNumber header: [sig_len:5][exp_len:2][negative:1]",
-      "name": "bignumber_max_sig_len_truncated",
-      "type": "decode_error",
-      "input_bytes": "f1 f8",
-      "expected_error": "truncated"
-    },
-    {
-      "//": "Significand claims 5 bytes but only 2 provided",
-      "name": "bignumber_sig_partial",
-      "type": "decode_error",
-      "input_bytes": "f1 28 01 02",
-      "expected_error": "truncated"
-    },
-    {
-      "//": "Exponent claims 2 bytes but only 1 provided (sig_len=1, exp_len=2)",
-      "name": "bignumber_exp_partial",
-      "type": "decode_error",
-      "input_bytes": "f1 0c 01 02",
-      "expected_error": "truncated"
     },
     {
       "//": "=== Empty input ===",
@@ -573,75 +416,67 @@
     },
     {
       "//": "=== Malformed object structures ===",
-      "//note": "Object format: f9 + count chunk + key-value pairs. count=1,cont=0 → 0x04"
+      "//note": "Object format: fd + string-key value-pairs + fe"
     },
     {
-      "//": "Object with key but missing value",
+      "//": "Object with key but missing value (truncated before value)",
       "name": "object_key_without_value",
       "type": "decode_error",
-      "input_bytes": "f9 04 e1 61",
+      "input_bytes": "fd d1 61",
       "expected_error": "truncated"
     },
     {
       "//": "Object with long string key but missing value",
       "name": "object_long_key_without_value",
       "type": "decode_error",
-      "input_bytes": "f9 04 f0 40 6b6579206e616d6520686572652121",
+      "input_bytes": "fd ff 6b 65 79 ff",
       "expected_error": "truncated"
     },
     {
-      "//": "Object truncated mid-key",
+      "//": "Object truncated mid-key (short string header but data missing)",
       "name": "object_truncated_after_key_start",
       "type": "decode_error",
-      "input_bytes": "f9 04 e1",
+      "input_bytes": "fd d1",
       "expected_error": "truncated"
     },
     {
       "//": "Object with value but missing key (integer where key expected)",
       "name": "object_value_without_key",
       "type": "decode_error",
-      "input_bytes": "f9 04 65",
+      "input_bytes": "fd 65 fe",
       "expected_error": "invalid_object_key"
     },
     {
       "//": "=== Trailing bytes edge cases ===",
-      "//note": "With chunked containers, extra data after a complete document"
+      "//note": "Extra data after a complete document"
     },
     {
       "//": "Extra data after valid empty array",
       "name": "trailing_after_empty_array",
       "type": "decode_error",
-      "input_bytes": "f8 00 64",
+      "input_bytes": "fc fe 64",
       "expected_error": "trailing_bytes"
     },
     {
-      "//": "Extra data after array with element (array: 1 element → 0x04)",
+      "//": "Extra data after array with element",
       "name": "trailing_after_array_with_element",
       "type": "decode_error",
-      "input_bytes": "f8 04 65 64",
+      "input_bytes": "fc 65 fe 64",
       "expected_error": "trailing_bytes"
     },
     {
       "//": "Extra data after valid empty object",
       "name": "trailing_after_empty_object",
       "type": "decode_error",
-      "input_bytes": "f9 00 64",
+      "input_bytes": "fd fe 64",
       "expected_error": "trailing_bytes"
     },
     {
-      "//": "Reserved type code 0xfa at top level",
+      "//": "Reserved type code at top level",
       "name": "reserved_type_code_fa_toplevel",
       "type": "decode_error",
       "input_bytes": "fa",
       "expected_error": "invalid_type_code"
-    },
-    {
-      "//": "=== Length field edge cases ===",
-      "//": "Length field claiming more data than available",
-      "name": "length_exceeds_data",
-      "type": "decode_error",
-      "input_bytes": "f0 80 61",
-      "expected_error": "truncated"
     }
   ]
 }

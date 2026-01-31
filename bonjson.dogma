@@ -11,64 +11,51 @@ value             = array | object | number | boolean | string | null;
 
 # Types
 
-# Containers use chunked encoding with element/pair counts.
-# Each chunk specifies exactly how many elements/pairs follow.
-array                  = u8(0xf8) & element_chunk(1)* & element_chunk(0);
-element_chunk(hasNext) = chunked(var(count, ~), hasNext) & value*;
-object                 = u8(0xf9) & pair_chunk(1)* & pair_chunk(0);
-pair_chunk(hasNext)    = chunked(var(count, ~), hasNext) & (string & value)*;
+# Containers use delimiter-terminated encoding.
+# 0xFC/0xFD opens, 0xFE closes.
+array             = u8(0xfc) & value* & u8(0xfe);
+object            = u8(0xfd) & (string & value)* & u8(0xfe);
 
-number            = int_small | int_unsigned | int_signed | float_16 | float_32 | float_64 | big_number;
+number            = int_small | int_unsigned | int_signed | float_32 | float_64 | big_number;
 int_small         = u8(var(code, 0x00~0xc8));  # value = code - 100
-int_unsigned      = u4(0xd) & u1(0) & u3(var(count, ~)) & ordered(uint((count+1)*8, ~));
-int_signed        = u4(0xd) & u1(1) & u3(var(count, ~)) & ordered(sint((count+1)*8, ~));
-float_16          = u8(0xf2) & ordered(f16(~));
-float_32          = u8(0xf3) & ordered(f32(~));
-float_64          = u8(0xf4) & ordered(f64(~));
-big_number        = u8(0xf1)
-                  & var(header, big_number_header)
-                  & [
-                        header.sig_length > 0: ordered(sint(header.exp_length*8, ~))
-                                             & ordered(uint(header.sig_length*8, ~))
-                                             ;
-                    ]
+int_unsigned      = u8(0xe0) & ordered(uint( 8, ~))
+                  | u8(0xe1) & ordered(uint(16, ~))
+                  | u8(0xe2) & ordered(uint(32, ~))
+                  | u8(0xe3) & ordered(uint(64, ~))
                   ;
-big_number_header = u5(var(sig_length, ~)) & u2(var(exp_length, ~)) & u1(var(sig_negative, ~));
+int_signed        = u8(0xe4) & ordered(sint( 8, ~))
+                  | u8(0xe5) & ordered(sint(16, ~))
+                  | u8(0xe6) & ordered(sint(32, ~))
+                  | u8(0xe7) & ordered(sint(64, ~))
+                  ;
+float_32          = u8(0xcb) & ordered(f32(~));
+float_64          = u8(0xcc) & ordered(f64(~));
+big_number        = u8(0xca) & zigzag_leb128(~) & zigzag_leb128(~);
 
 boolean           = true | false;
-false             = u8(0xf6);
-true              = u8(0xf7);
+false             = u8(0xce);
+true              = u8(0xcf);
 
-null              = u8(0xf5);
+null              = u8(0xcd);
 
-string                = string_short | string_long;
-string_short          = u4(0xe) & u4(var(count, ~)) & sized(count*8, char_string*);
-string_long           = u8(0xf0) & string_chunk(1)* & string_chunk(0);
-string_chunk(hasNext) = chunked(var(count, ~), hasNext) & sized(count*8, char_string*);
+string            = string_short | string_long;
+string_short      = u8(var(code, 0xd0~0xdf)) & sized((code - 0xd0) * 8, char_string*);
+string_long       = u8(0xff) & char_string* & u8(0xff);
 
-chunked(len, hasNext) = length(len * 2 + hasNext);
-length(l)             = ordered([
-                                    l >=                 0 & l <=               0x7f: uint( 7, l) & uint(1, 0x00);
-                                    l >=              0x80 & l <=             0x3fff: uint(14, l) & uint(2, 0x01);
-                                    l >=            0x4000 & l <=           0x1fffff: uint(21, l) & uint(3, 0x03);
-                                    l >=          0x200000 & l <=          0xfffffff: uint(28, l) & uint(4, 0x07);
-                                    l >=        0x10000000 & l <=        0x7ffffffff: uint(35, l) & uint(5, 0x0f);
-                                    l >=       0x800000000 & l <=      0x3ffffffffff: uint(42, l) & uint(6, 0x1f);
-                                    l >=     0x40000000000 & l <=    0x1ffffffffffff: uint(49, l) & uint(7, 0x3f);
-                                    l >=   0x2000000000000 & l <=   0xffffffffffffff: uint(56, l) & uint(8, 0x7f);
-                                    l >= 0x100000000000000 & l <= 0xffffffffffffffff: uint(64, l) & uint(8, 0xff);
-                                ]);
+# Zigzag LEB128: variable-length signed integer encoding.
+# Zigzag maps signed to unsigned: 0→0, -1→1, 1→2, -2→3, ...
+# LEB128 stores 7 data bits per byte, MSbit=1 means more bytes follow.
+zigzag_leb128(v)  = leb128(zigzag(v));
+zigzag(v)         = uint(~, (v << 1) ^ (v >> 63));  # signed to unsigned
+leb128(v)         = [
+                        v <= 0x7f:         uint(7, v) & u1(0);
+                        v >  0x7f:         uint(7, v) & u1(1) & leb128(v >> 7);
+                    ];
 
 # Primitives & Functions
 
 u1(v)             = uint(1, v);
-u2(v)             = uint(2, v);
-u3(v)             = uint(3, v);
-u4(v)             = uint(4, v);
-u5(v)             = uint(5, v);
 u8(v)             = uint(8, v);
-i8(v)             = sint(8, v);
-f16(v)            = sized(16, f32(v)); # bfloat16
 f32(v)            = float(32, v);
 f64(v)            = float(64, v);
 

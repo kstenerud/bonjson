@@ -2,14 +2,14 @@
   "type": "bonjson-test",
   "version": "1.0.0",
   "//": "BigNumber encoding tests for values that cannot be represented as IEEE 754 floats",
-  "//note": "BigNumber roundtrip tests may decode to different types (big.Int, big.Float, float64, string) depending on the implementation. These tests verify the value survives encoding/decoding, not the specific type returned.",
+  "//note": "BigNumber uses zigzag LEB128 for both exponent and significand. Wire format: 0xCA + zigzag_leb128(exponent) + zigzag_leb128(signed_significand). Negative zero is not representable as bignum (use IEEE754 float).",
   "tests": [
     {
       "//": "=== BigNumber zero encoding ===",
-      "//note": "BigNumber zero has sigLen=0, special value=0 (header byte 0x00)",
+      "//note": "Zero: exponent=0 (0x00), significand=0 (0x00) → 2 payload bytes",
       "name": "decode_bignumber_zero",
       "type": "decode",
-      "input_bytes": "f100",
+      "input_bytes": "ca 00 00",
       "expected_value": 0
     },
     {
@@ -20,29 +20,45 @@
       "//": "19 significant digits - exceeds float64 precision",
       "name": "roundtrip_bignumber_19_digits",
       "type": "roundtrip",
-      "input": {"$number": "1.234567890123456789"},
-      "requires": ["arbitrary_precision_bignumber"]
+      "input": {
+        "$number": "1.234567890123456789"
+      },
+      "requires": [
+        "arbitrary_precision_bignumber"
+      ]
     },
     {
       "//": "Negative 19-digit decimal",
       "name": "roundtrip_bignumber_neg_19_digits",
       "type": "roundtrip",
-      "input": {"$number": "-1.234567890123456789"},
-      "requires": ["arbitrary_precision_bignumber"]
+      "input": {
+        "$number": "-1.234567890123456789"
+      },
+      "requires": [
+        "arbitrary_precision_bignumber"
+      ]
     },
     {
       "//": "19 digits with negative exponent within common range",
       "name": "roundtrip_bignumber_19_digits_neg_exp",
       "type": "roundtrip",
-      "input": {"$number": "1.234567890123456789e-50"},
-      "requires": ["arbitrary_precision_bignumber"]
+      "input": {
+        "$number": "1.234567890123456789e-50"
+      },
+      "requires": [
+        "arbitrary_precision_bignumber"
+      ]
     },
     {
       "//": "Pi to 19 digits - exceeds float64 precision",
       "name": "roundtrip_bignumber_pi_19",
       "type": "roundtrip",
-      "input": {"$number": "3.141592653589793238"},
-      "requires": ["arbitrary_precision_bignumber"]
+      "input": {
+        "$number": "3.141592653589793238"
+      },
+      "requires": [
+        "arbitrary_precision_bignumber"
+      ]
     },
     {
       "//": "=== High precision decimals requiring arbitrary precision (roundtrip) ===",
@@ -52,36 +68,56 @@
       "//": "30 significant digits - requires arbitrary precision",
       "name": "bignumber_high_precision",
       "type": "roundtrip",
-      "input": {"$number": "1.23456789012345678901234567890"},
-      "requires": ["arbitrary_precision_bignumber"]
+      "input": {
+        "$number": "1.23456789012345678901234567890"
+      },
+      "requires": [
+        "arbitrary_precision_bignumber"
+      ]
     },
     {
       "//": "Very small exponent beyond float64 range",
       "name": "bignumber_tiny_exponent",
       "type": "roundtrip",
-      "input": {"$number": "1e-1000"},
-      "requires": ["bignumber_exponent_lt_neg128"]
+      "input": {
+        "$number": "1e-1000"
+      },
+      "requires": [
+        "bignumber_exponent_lt_neg128"
+      ]
     },
     {
       "//": "Negative exponent within float64 range but high precision",
       "name": "roundtrip_bignumber_30_digits_neg_exp",
       "type": "roundtrip",
-      "input": {"$number": "1.23456789012345678901234567890e-50"},
-      "requires": ["arbitrary_precision_bignumber"]
+      "input": {
+        "$number": "1.23456789012345678901234567890e-50"
+      },
+      "requires": [
+        "arbitrary_precision_bignumber"
+      ]
     },
     {
       "//": "Many decimal places",
       "name": "roundtrip_bignumber_many_decimals",
       "type": "roundtrip",
-      "input": {"$number": "0.123456789012345678901234567890123456789"},
-      "requires": ["arbitrary_precision_bignumber"]
+      "input": {
+        "$number": "0.123456789012345678901234567890123456789"
+      },
+      "requires": [
+        "arbitrary_precision_bignumber"
+      ]
     },
     {
       "//": "Value that looks like it could be float64 but has too many sig digits",
       "name": "roundtrip_bignumber_looks_like_float",
       "type": "roundtrip",
-      "input": {"$number": "3.141592653589793238462643383279"},
-      "requires": ["arbitrary_precision_bignumber"]
+      "input": {
+        "$number": "3.141592653589793238462643383279"
+      },
+      "requires": [
+        "arbitrary_precision_bignumber"
+      ]
     },
     {
       "//": "=== Negative BigNumber tests ===",
@@ -90,52 +126,73 @@
     {
       "name": "roundtrip_bignumber_negative",
       "type": "roundtrip",
-      "input": {"$number": "-9007199254740993"}
+      "input": {
+        "$number": "-9007199254740993"
+      }
     },
     {
       "//": "Negative high precision decimal (requires arbitrary precision)",
       "name": "roundtrip_bignumber_negative_decimal",
       "type": "roundtrip",
-      "input": {"$number": "-1.23456789012345678901234567890"},
-      "requires": ["arbitrary_precision_bignumber"]
+      "input": {
+        "$number": "-1.23456789012345678901234567890"
+      },
+      "requires": [
+        "arbitrary_precision_bignumber"
+      ]
     },
     {
       "//": "Negative with tiny exponent",
       "name": "roundtrip_bignumber_negative_tiny_exponent",
       "type": "roundtrip",
-      "input": {"$number": "-1e-500"},
-      "requires": ["bignumber_exponent_lt_neg128"]
+      "input": {
+        "$number": "-1e-500"
+      },
+      "requires": [
+        "bignumber_exponent_lt_neg128"
+      ]
     },
     {
       "//": "=== BigNumber zero roundtrip ===",
       "name": "roundtrip_bignumber_zero",
       "type": "roundtrip",
-      "input": {"$number": "0"}
+      "input": {
+        "$number": "0"
+      }
     },
     {
       "//": "=== BigNumber with negative exponent within common range ===",
       "name": "roundtrip_bignumber_small_neg_exp",
       "type": "roundtrip",
-      "input": {"$number": "1.5e-100"}
+      "input": {
+        "$number": "1.5e-100"
+      }
     },
     {
       "//": "Small value with negative exponent requiring extended range",
       "name": "roundtrip_bignumber_precise_small",
       "type": "roundtrip",
-      "input": {"$number": "1.234567890123456789e-200"},
-      "requires": ["bignumber_exponent_lt_neg128"]
+      "input": {
+        "$number": "1.234567890123456789e-200"
+      },
+      "requires": [
+        "bignumber_exponent_lt_neg128"
+      ]
     },
     {
       "//": "=== Large exponent tests ===",
-      "//note": "Values with large exponents that require BigNumber encoding",
-      "//note2": "Tests like 1e1000 are removed as they overflow float64 when decoded to interface{}"
+      "//note": "Values with large exponents that require BigNumber encoding"
     },
     {
       "//": "Large negative exponent",
       "name": "roundtrip_bignumber_large_negative_exponent",
       "type": "roundtrip",
-      "input": {"$number": "1e-1000"},
-      "requires": ["bignumber_exponent_lt_neg128"]
+      "input": {
+        "$number": "1e-1000"
+      },
+      "requires": [
+        "bignumber_exponent_lt_neg128"
+      ]
     },
     {
       "//": "=== Values at float64 boundary ===",
@@ -144,138 +201,154 @@
     {
       "name": "roundtrip_bignumber_beyond_float64_precision",
       "type": "roundtrip",
-      "input": {"$number": "9007199254740993"}
+      "input": {
+        "$number": "9007199254740993"
+      }
     },
     {
       "//": "Negative value beyond float64 precision",
       "name": "roundtrip_bignumber_negative_beyond_float64",
       "type": "roundtrip",
-      "input": {"$number": "-9007199254740993"}
-    },
-
-    {
-      "//": "=== BigNumber wire format boundary tests ===",
-      "//note": "These test the header structure: [sigLen:5][expLen:2][negative:1]"
+      "input": {
+        "$number": "-9007199254740993"
+      }
     },
     {
-      "//": "Negative zero - should preserve sign",
-      "name": "decode_bignumber_negative_zero",
-      "type": "decode",
-      "input_bytes": "f101",
-      "expected_value": 0,
-      "//note2": "Header 0x01: sigLen=0, expLen=0, negative=1"
+      "//": "=== BigNumber wire format tests ===",
+      "//note": "Zigzag LEB128 encoding: type_code(0xCA) + zigzag_leb128(exponent) + zigzag_leb128(signed_significand)"
     },
     {
-      "//": "=== Exponent length boundary tests ===",
-      "//note": "expLen=0: zero exponent, expLen=1: 1 byte (-128 to 127), expLen=2: 2 bytes, expLen=3: 4 bytes"
-    },
-    {
-      "//": "Zero exponent (expLen=0): 1e0 = 1",
+      "//": "Zero exponent, significand=1: zigzag(0)=0x00, zigzag(1)=0x02",
       "name": "decode_bignumber_zero_exponent",
       "type": "decode",
-      "input_bytes": "f10801",
-      "expected_value": 1,
-      "//note2": "Header 0x08: sigLen=1, expLen=0, negative=0. Significand=0x01"
+      "input_bytes": "ca 00 02",
+      "expected_value": 1
     },
     {
-      "//": "Max 1-byte exponent: 127 (expLen=1)",
+      "//": "=== Exponent boundary tests ===",
+      "//note": "Zigzag LEB128 has no fixed-size boundaries, but we test various exponent values"
+    },
+    {
+      "//": "Max 1-byte exponent: 63 (zigzag(63)=126=0x7E, fits in 1 LEB128 byte)",
       "name": "roundtrip_bignumber_exp_127",
       "type": "roundtrip",
-      "input": {"$number": "1e127"}
+      "input": {
+        "$number": "1e127"
+      }
     },
     {
-      "//": "Min 1-byte exponent: -128 (expLen=1)",
+      "//": "Min 1-byte exponent: -64 (zigzag(-64)=127=0x7F, fits in 1 LEB128 byte)",
       "name": "roundtrip_bignumber_exp_neg128",
       "type": "roundtrip",
-      "input": {"$number": "1e-128"}
+      "input": {
+        "$number": "1e-128"
+      }
     },
     {
-      "//": "First value requiring 2-byte exponent: 128 (expLen=2)",
+      "//": "First value requiring 2-byte LEB128 exponent: 128 (zigzag(128)=256)",
       "name": "roundtrip_bignumber_exp_128",
       "type": "roundtrip",
-      "input": {"$number": "1e128"},
-      "requires": ["bignumber_exponent_gt_127"]
+      "input": {
+        "$number": "1e128"
+      },
+      "requires": [
+        "bignumber_exponent_gt_127"
+      ]
     },
     {
-      "//": "First negative value requiring 2-byte exponent: -129 (expLen=2)",
+      "//": "First negative value requiring 2-byte LEB128 exponent: -129",
       "name": "roundtrip_bignumber_exp_neg129",
       "type": "roundtrip",
-      "input": {"$number": "1e-129"},
-      "requires": ["bignumber_exponent_lt_neg128"]
+      "input": {
+        "$number": "1e-129"
+      },
+      "requires": [
+        "bignumber_exponent_lt_neg128"
+      ]
     },
     {
-      "//": "Value requiring 2-byte exponent: 200 (expLen=2, beyond 1-byte range)",
+      "//": "Value requiring 2-byte LEB128 exponent: 200",
       "name": "roundtrip_bignumber_exp_200",
       "type": "roundtrip",
-      "input": {"$number": "1e200"},
-      "requires": ["bignumber_exponent_gt_127"]
+      "input": {
+        "$number": "1e200"
+      },
+      "requires": [
+        "bignumber_exponent_gt_127"
+      ]
     },
     {
-      "//": "Large negative exponent requiring 2-byte encoding: -200 (expLen=2)",
+      "//": "Large negative exponent requiring 2-byte LEB128 encoding: -200",
       "name": "roundtrip_bignumber_exp_neg200",
       "type": "roundtrip",
-      "input": {"$number": "1e-200"},
-      "requires": ["bignumber_exponent_lt_neg128"]
+      "input": {
+        "$number": "1e-200"
+      },
+      "requires": [
+        "bignumber_exponent_lt_neg128"
+      ]
     },
-
     {
-      "//": "=== Significand length boundary tests ===",
-      "//note": "sigLen is 5 bits, so max is 31 bytes"
+      "//": "=== Significand size tests ===",
+      "//note": "Zigzag LEB128 significand encoding"
     },
     {
-      "//": "Single byte significand (sigLen=1)",
+      "//": "Significand=255: zigzag(255)=510, LEB128=0xFE 0x03",
       "name": "decode_bignumber_sig_1_byte",
       "type": "decode",
-      "input_bytes": "f108ff",
-      "expected_value": 255,
-      "//note2": "Header 0x08: sigLen=1. Significand=0xff=255"
+      "input_bytes": "ca 00 fe 03",
+      "expected_value": 255
     },
     {
-      "//": "Two byte significand (sigLen=2)",
+      "//": "Significand=65535: zigzag(65535)=131070, LEB128=0xFE 0xFF 0x07",
       "name": "decode_bignumber_sig_2_bytes",
       "type": "decode",
-      "input_bytes": "f110ffff",
-      "expected_value": 65535,
-      "//note2": "Header 0x10: sigLen=2. Significand=0xffff=65535 (little-endian)"
+      "input_bytes": "ca 00 fe ff 07",
+      "expected_value": 65535
     },
     {
-      "//": "Three byte significand (sigLen=3)",
+      "//": "Significand=65537: zigzag(65537)=131074, LEB128=0x82 0x80 0x08",
       "name": "decode_bignumber_sig_3_bytes",
       "type": "decode",
-      "input_bytes": "f118010001",
-      "expected_value": 65537,
-      "//note2": "Header 0x18: sigLen=3. Significand=0x010001=65537 (little-endian)"
+      "input_bytes": "ca 00 82 80 08",
+      "expected_value": 65537
     },
     {
-      "//": "=== Maximum significand length tests (31 bytes) ===",
-      "//note": "sigLen is 5 bits in header, max value is 31"
+      "//": "=== Large significand tests (require arbitrary precision) ===",
+      "//note": "Values requiring more than 64-bit significand"
     },
     {
-      "//": "Maximum significand: 31 bytes all 0x01",
+      "//": "Very large significand value",
       "name": "decode_bignumber_max_siglen_small",
-      "type": "decode",
-      "//note2": "Header 0xf8: sigLen=31, expLen=0, neg=0. Value = sum(256^i for i=0..30)",
-      "input_bytes": "f1f801010101010101010101010101010101010101010101010101010101010101",
-      "expected_value": {"$number": "1773775876797123091660094745843871137458179912157484130506396813846708481"},
-      "requires": ["arbitrary_precision_bignumber"]
+      "type": "roundtrip",
+      "input": {
+        "$number": "1773775876797123091660094745843871137458179912157484130506396813846708481"
+      },
+      "requires": [
+        "arbitrary_precision_bignumber"
+      ]
     },
     {
-      "//": "Maximum significand: 31 bytes = 2^248 - 1 (all 0xff)",
+      "//": "Maximum 248-bit value",
       "name": "decode_bignumber_max_siglen_max_value",
-      "type": "decode",
-      "//note2": "Header 0xf8: sigLen=31, expLen=0, neg=0",
-      "input_bytes": "f1f8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-      "expected_value": {"$number": "452312848583266388373324160190187140051835877600158453279131187530910662655"},
-      "requires": ["arbitrary_precision_bignumber"]
+      "type": "roundtrip",
+      "input": {
+        "$number": "452312848583266388373324160190187140051835877600158453279131187530910662655"
+      },
+      "requires": [
+        "arbitrary_precision_bignumber"
+      ]
     },
     {
-      "//": "Maximum significand with negative flag (31 bytes all 0x01)",
+      "//": "Negative very large significand value",
       "name": "decode_bignumber_max_siglen_negative",
-      "type": "decode",
-      "//note2": "Header 0xf9: sigLen=31, expLen=0, neg=1",
-      "input_bytes": "f1f901010101010101010101010101010101010101010101010101010101010101",
-      "expected_value": {"$number": "-1773775876797123091660094745843871137458179912157484130506396813846708481"},
-      "requires": ["arbitrary_precision_bignumber"]
+      "type": "roundtrip",
+      "input": {
+        "$number": "-1773775876797123091660094745843871137458179912157484130506396813846708481"
+      },
+      "requires": [
+        "arbitrary_precision_bignumber"
+      ]
     }
   ]
 }

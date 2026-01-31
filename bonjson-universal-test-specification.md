@@ -295,7 +295,7 @@ Verify that encoding a value produces an exact byte sequence.
   "name": "int16_1000",
   "type": "encode",
   "input": 1000,
-  "expected_bytes": "d9 e8 03"
+  "expected_bytes": "e5 e8 03"
 }
 ```
 
@@ -310,9 +310,9 @@ Verify that decoding a byte sequence produces a specific value.
 
 ```json
 {
-  "name": "decode_float16",
+  "name": "decode_float32",
   "type": "decode",
-  "input_bytes": "f2 90 3f",
+  "input_bytes": "cb 00 00 90 3f",
   "expected_value": 1.125
 }
 ```
@@ -364,7 +364,7 @@ Verify that decoding a byte sequence fails with a specific error.
 {
   "name": "truncated_int16",
   "type": "decode_error",
-  "input_bytes": "d9 e8",
+  "input_bytes": "e5 e8",
   "expected_error": "truncated"
 }
 ```
@@ -385,7 +385,6 @@ The `options` field is an optional JSON object that configures encoder/decoder b
 | `max_depth`            | integer | Maximum container nesting depth (non-negative). See depth counting examples below. |
 | `max_container_size`   | integer | Maximum elements in a container (non-negative)         |
 | `max_string_length`    | integer | Maximum string length in bytes (non-negative)          |
-| `max_chunks`           | integer | Maximum chunks per individual string or container (non-negative); each string and container has its own independent counter |
 | `max_document_size`    | integer | Maximum document size in bytes (non-negative)          |
 
 **Depth counting**: Any value at the root level (including primitives and empty containers) has depth 1. Each value inside a container is one level deeper than the container itself. Examples:
@@ -403,11 +402,9 @@ The maximum depth is the deepest level reached by any value. With `max_depth: 2`
 
 With `max_depth: 1`, primitives and empty containers are allowed at root, but containers may not have any elements inside (elements would be at depth 2). With `max_depth: 2`, containers may contain primitives but not nested containers. With `max_depth: 3`, one level of nested containers is allowed (e.g., `[[1]]`).
 
-**Chunk counting**: Each string and container has its own independent chunk counter. With `max_chunks: 3`, an outer array with 2 chunks containing an inner array with 2 chunks is valid (each uses its own counter), but an array with 4 chunks would exceed its limit. Strings similarly have their own counters independent of any containing structure.
-
 Option values **MUST** have the correct JSON type (boolean for boolean options, integer for integer options, string for string options). Null is not a valid option value. An option with the wrong type (e.g., `"allow_nul": "true"` or `"allow_nul": null`) is a **STRUCTURAL ERROR**. Integer options **MUST** be non-negative; negative values are a **STRUCTURAL ERROR**. String options **MUST** use one of the defined values; unrecognized values are a **STRUCTURAL ERROR**.
 
-For integer limit options (`max_depth`, `max_container_size`, `max_string_length`, `max_chunks`, `max_document_size`), a value of 0 means "no limit." **Warning**: Disabling limits can make implementations vulnerable to denial-of-service attacks and is **NOT RECOMMENDED** for production use.
+For integer limit options (`max_depth`, `max_container_size`, `max_string_length`, `max_document_size`), a value of 0 means "no limit." **Warning**: Disabling limits can make implementations vulnerable to denial-of-service attacks and is **NOT RECOMMENDED** for production use.
 
 Default values for these options are defined in the BONJSON specification. Tests typically use small values (e.g., `max_depth: 5`) to verify that limit-checking machinery works correctly in an implementation.
 
@@ -453,7 +450,6 @@ The following capability identifiers are defined:
 | `nan_infinity_stringify`         | Support for the `nan_infinity_behavior: "stringify"` option, which converts NaN/Infinity float values to string representations. Not all implementations support this mode.          |
 | `uint64`                         | Support for full 64-bit unsigned integers. Some platforms (e.g., JavaScript) cannot represent integers beyond 2^53-1.                                                                |
 | `int64`                          | Support for full 64-bit signed integers. Some platforms cannot represent integers beyond ±2^53-1.                                                                                    |
-| `float16`                        | Support for bfloat16 (16-bit floating point) values. Some implementations may decode these as float32 or float64.                                                                    |
 | `negative_zero`                  | Support for IEEE 754 negative zero (-0.0) preservation. Some platforms or type systems cannot distinguish -0.0 from +0.0.                                                            |
 | `raw_string_bytes`               | Support for representing strings as raw byte sequences (for testing `invalid_utf8: "pass_through"`). Implementations using native string types that require valid UTF-8 cannot support this. |
 | `signaling_nan`                  | Support for preserving the signaling bit of NaN values. Most platforms convert signaling NaN to quiet NaN on any operation; tests using `sNaN` should require this capability.       |
@@ -600,11 +596,9 @@ The `expected_error` field uses standardized error type identifiers:
 | `nul_character`                 | NUL (0x00) byte in string                  |
 | `duplicate_key`                 | Duplicate key in object                    |
 | `invalid_object_key`            | Non-string key in object                   |
-| `unclosed_container`            | Container's final chunk has continuation bit set but no following chunk |
+| `unclosed_container`            | Container missing `0xFE` end marker        |
 | `invalid_data`                  | Generic invalid data (e.g., BigNumber NaN) |
 | `value_out_of_range`            | Value exceeds allowed range                |
-| `too_many_chunks`               | String exceeds chunk count limit           |
-| `empty_chunk_continuation`      | Zero-length chunk with continuation bit    |
 | `max_depth_exceeded`            | Container nesting too deep                 |
 | `max_string_length_exceeded`    | String exceeds length limit                |
 | `max_container_size_exceeded`   | Container has too many elements            |
@@ -613,10 +607,10 @@ The `expected_error` field uses standardized error type identifiers:
 Implementations **MUST** map errors from their library to these standardized identifiers for test matching. If an implementation cannot distinguish between error types, it **MAY** treat any error as a successful match for error tests (verifying only that an error occurred, not its specific type).
 
 When multiple error conditions could apply to malformed input (e.g., truncated data that also contains an invalid key), implementations **SHOULD** prioritize error detection in this order:
-1. Structural errors (`truncated`, `invalid_type_code`, `unclosed_container`, `empty_chunk_continuation`)
+1. Structural errors (`truncated`, `invalid_type_code`, `unclosed_container`)
 2. Type/format errors (`invalid_object_key`, `invalid_utf8`, `invalid_data`)
 3. Content errors (`duplicate_key`, `nul_character`)
-4. Limit errors (`max_depth_exceeded`, `max_string_length_exceeded`, `max_container_size_exceeded`, `max_document_size_exceeded`, `too_many_chunks`)
+4. Limit errors (`max_depth_exceeded`, `max_string_length_exceeded`, `max_container_size_exceeded`, `max_document_size_exceeded`)
 5. Post-decode errors (`trailing_bytes`, `value_out_of_range`)
 
 This ordering helps different implementations converge on the same error type for ambiguous cases, improving test interoperability.
@@ -766,7 +760,7 @@ Test specifications **SHOULD** be organized into multiple files by category:
 |-------------------------------|---------------------------------|
 | `basic-types.json`            | null, boolean, empty containers |
 | `integers.json`               | Integer encoding (all sizes)    |
-| `floats.json`                 | Float encoding (16/32/64 bit)   |
+| `floats.json`                 | Float encoding (32/64 bit)      |
 | `strings.json`                | String encoding (short/long)    |
 | `containers.json`             | Arrays and objects              |
 | `bignumber.json`              | BigNumber encoding              |
@@ -1040,21 +1034,21 @@ Appendix A: Type Code Reference
 | Range   | Type                                 |
 |---------|--------------------------------------|
 | `00-c8` | Small integers (-100 to 100)         |
-| `c9-cf` | Reserved                             |
-| `d0-d7` | Unsigned integers (8-64 bit)         |
-| `d8-df` | Signed integers (8-64 bit)           |
-| `e0-ef` | Short strings (0-15 bytes)           |
-| `f0`    | Long string                          |
-| `f1`    | BigNumber                            |
-| `f2`    | Float16 (bfloat16)                   |
-| `f3`    | Float32                              |
-| `f4`    | Float64                              |
-| `f5`    | Null                                 |
-| `f6`    | False                                |
-| `f7`    | True                                 |
-| `f8`    | Array                                |
-| `f9`    | Object                               |
-| `fa-ff` | Reserved                             |
+| `c9`    | Reserved                             |
+| `ca`    | BigNumber                            |
+| `cb`    | Float32                              |
+| `cc`    | Float64                              |
+| `cd`    | Null                                 |
+| `ce`    | False                                |
+| `cf`    | True                                 |
+| `d0-df` | Short strings (0-15 bytes)           |
+| `e0-e3` | Unsigned integers (8, 16, 32, 64 bit)|
+| `e4-e7` | Signed integers (8, 16, 32, 64 bit)  |
+| `e8-fb` | Reserved                             |
+| `fc`    | Array                                |
+| `fd`    | Object                               |
+| `fe`    | Container end marker                 |
+| `ff`    | Long string                          |
 
 
 Appendix B: Complete Example
@@ -1067,11 +1061,11 @@ Appendix B: Complete Example
   "//": "Example test specification file",
   "tests": [
     {
-      "//": "Null encodes to single byte 0xf5",
+      "//": "Null encodes to single byte 0xcd",
       "name": "null_value",
       "type": "encode",
       "input": null,
-      "expected_bytes": "f5"
+      "expected_bytes": "cd"
     },
     {
       "//": "Small integer 42 encodes as type_code = 42 + 100 = 0x8e",
@@ -1081,10 +1075,10 @@ Appendix B: Complete Example
       "expected_bytes": "8e"
     },
     {
-      "//": "Truncated sint16 should fail (0xd9 = sint16, missing second byte)",
+      "//": "Truncated sint16 should fail (0xe5 = sint16, missing second byte)",
       "name": "truncated_int16",
       "type": "decode_error",
-      "input_bytes": "d9e8",
+      "input_bytes": "e5e8",
       "expected_error": "truncated"
     },
     {
@@ -1105,24 +1099,24 @@ Appendix B: Complete Example
       "expected_error": "invalid_data"
     },
     {
-      "//": "Large unsigned integer (0xd7 = uint64)",
+      "//": "Large unsigned integer (0xe3 = uint64)",
       "name": "uint64_large",
       "type": "encode",
       "input": {"$number": "18446744073709551615"},
-      "expected_bytes": "d7 ff ff ff ff ff ff ff ff"
+      "expected_bytes": "e3 ff ff ff ff ff ff ff ff"
     },
     {
-      "//": "BigNumber decodes to 1.5 (0xf1 = BigNumber)",
+      "//": "BigNumber decodes to 1.5 (0xca = BigNumber, zigzag LEB128)",
       "name": "bignumber_1_5",
       "type": "decode",
-      "input_bytes": "f1 0a ff 0f",
+      "input_bytes": "ca 01 1e",
       "expected_value": {"$number": "1.5"}
     },
     {
-      "//": "Non-string object key should fail (object with 1 pair, key is integer 0, value is integer 1)",
+      "//": "Non-string object key should fail (object start, key is integer 0 instead of string, value is integer 1, end)",
       "name": "invalid_object_key",
       "type": "decode_error",
-      "input_bytes": "f9 04 64 65",
+      "input_bytes": "fd 64 65 fe",
       "expected_error": "invalid_object_key"
     }
   ]

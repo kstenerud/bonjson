@@ -31,7 +31,7 @@ Why use BONJSON?
 
 ### It's Small
 
-* The [BONJSON specification](bonjson.md) is only 800 lines long (including the formal grammar).
+* The [BONJSON specification](bonjson.md) is only 750 lines long (including the formal grammar).
 * The [C reference implementation](https://github.com/kstenerud/ksbonjson/tree/main/library/src) is less than 500 LOC each for the encoder and decoder.
 
 ### It's Simple

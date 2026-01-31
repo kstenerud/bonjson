@@ -59,7 +59,7 @@ tests/
     ├── basic-types.json             # Primitive type encoding tests
     ├── integers.json                # Integer encoding at all sizes
     ├── floats.json                  # Float encoding tests
-    ├── strings.json                 # String encoding (short, long, chunked)
+    ├── strings.json                 # String encoding (short, long)
     ├── containers.json              # Arrays and objects
     ├── bignumber.json               # BigNumber encoding tests
     ├── errors.json                  # Error handling tests
@@ -95,11 +95,11 @@ Any key starting with `//` is ignored by test runners. The primary convention is
 
 ```json
 {
-  "//": "Integer 1000 requires int16 encoding (type code 0x79)",
+  "//": "Integer 1000 requires sint16 encoding (type code 0xe5)",
   "name": "int16_1000",
   "type": "encode",
   "input": 1000,
-  "expected_bytes": "79e803"
+  "expected_bytes": "e5e803"
 }
 ```
 
@@ -118,7 +118,7 @@ Test entries that contain **only** keys starting with `//` are treated as commen
       "name": "int8_positive",
       "type": "encode",
       "input": 100,
-      "expected_bytes": "64"
+      "expected_bytes": "c8"
     },
     {
       "//": "=== Negative integers ==="
@@ -127,7 +127,7 @@ Test entries that contain **only** keys starting with `//` are treated as commen
       "name": "int8_negative",
       "type": "encode",
       "input": -1,
-      "expected_bytes": "ff"
+      "expected_bytes": "63"
     }
   ]
 }
@@ -148,7 +148,7 @@ Verifies that encoding a value produces specific bytes.
   "name": "encode_int_1000",
   "type": "encode",
   "input": 1000,
-  "expected_bytes": "79e803"
+  "expected_bytes": "e5e803"
 }
 ```
 
@@ -158,9 +158,9 @@ Verifies that decoding bytes produces a specific value.
 
 ```json
 {
-  "name": "decode_float16",
+  "name": "decode_float32",
   "type": "decode",
-  "input_bytes": "6a903f",
+  "input_bytes": "cb0000903f",
   "expected_value": 1.125
 }
 ```
@@ -201,7 +201,7 @@ Verifies that certain byte sequences are rejected.
 {
   "name": "decode_error_truncated_int16",
   "type": "decode_error",
-  "input_bytes": "79e8",
+  "input_bytes": "e5e8",
   "expected_error": "truncated"
 }
 ```
@@ -264,11 +264,9 @@ Error type values are case-sensitive (must be lowercase).
 | `invalid_utf8`                | Invalid UTF-8 sequence in string              |
 | `nul_character`               | NUL (0x00) in string (default rejection)      |
 | `duplicate_key`               | Duplicate key in object                       |
-| `unclosed_container`          | Container's final chunk has continuation bit set but no following chunk |
+| `unclosed_container`          | Container missing `0xFE` end marker           |
 | `invalid_data`                | Generic invalid data (e.g., NaN in BigNumber) |
 | `value_out_of_range`          | Value exceeds allowed range                   |
-| `too_many_chunks`             | String has too many chunks                    |
-| `empty_chunk_continuation`    | Empty chunk with continuation bit set         |
 | `max_depth_exceeded`          | Container nesting too deep                    |
 | `max_string_length_exceeded`  | String exceeds length limit                   |
 | `max_container_size_exceeded` | Container has too many elements               |
@@ -298,7 +296,6 @@ Available options:
 - `max_depth`: Maximum container nesting depth (integer)
 - `max_container_size`: Maximum elements in a container (integer)
 - `max_string_length`: Maximum string length in bytes (integer)
-- `max_chunks`: Maximum number of string/container chunks (integer)
 - `max_document_size`: Maximum document size in bytes (integer)
 
 ## Required Capabilities
@@ -324,7 +321,6 @@ Available capabilities:
 | `nan_infinity_stringify`         | Support for the `nan_infinity_behavior: "stringify"` option, which converts NaN/Infinity float values to string representations. Not all implementations support this mode.             |
 | `uint64`                         | Support for full 64-bit unsigned integers. Some platforms (e.g., JavaScript) cannot represent integers beyond 2^53-1.                                                                   |
 | `int64`                          | Support for full 64-bit signed integers. Some platforms cannot represent integers beyond ±2^53-1.                                                                                       |
-| `float16`                        | Support for bfloat16 (16-bit floating point) values. Some implementations may decode these as float32 or float64.                                                                       |
 | `negative_zero`                  | Support for IEEE 754 negative zero (-0.0) preservation. Some platforms or type systems cannot distinguish -0.0 from +0.0.                                                               |
 | `raw_string_bytes`               | Support for representing strings as raw byte sequences (for testing `invalid_utf8: "pass_through"`). Implementations using native string types that require valid UTF-8 cannot support this. |
 | `signaling_nan`                  | Support for preserving the signaling bit of NaN values. Most platforms convert signaling NaN to quiet NaN on any operation.                                                          |
@@ -468,8 +464,8 @@ These are valid implementation choices, not format errors.
 **Don't use `encode` tests** for values that have multiple valid byte representations.
 
 For example, the integer `180` can validly be encoded as:
-- `70 b4` (uint8)
-- `79 b4 00` (sint16)
+- `e0 b4` (uint8)
+- `e5 b4 00` (sint16)
 
 Both are correct per the BONJSON specification. Instead, use:
 - **`roundtrip`** tests to verify the value survives encoding/decoding
@@ -497,21 +493,21 @@ For example, "truncated data" and "unclosed container" might be the same error i
 
 For reference when writing byte sequences:
 
-| Range   | Type                         |
-|---------|------------------------------|
-| `00-c8` | Small integers (-100 to 100) |
-| `c9-cf` | Reserved                     |
-| `d0-d7` | Unsigned integers (8-64 bit) |
-| `d8-df` | Signed integers (8-64 bit)   |
-| `e0-ef` | Short strings (0-15 bytes)   |
-| `f0`    | Long string                  |
-| `f1`    | BigNumber                    |
-| `f2`    | Float16 (bfloat16)           |
-| `f3`    | Float32                      |
-| `f4`    | Float64                      |
-| `f5`    | Null                         |
-| `f6`    | False                        |
-| `f7`    | True                         |
-| `f8`    | Array                        |
-| `f9`    | Object                       |
-| `fa-ff` | Reserved                     |
+| Range   | Type                                 |
+|---------|--------------------------------------|
+| `00-c8` | Small integers (-100 to 100)         |
+| `c9`    | Reserved                             |
+| `ca`    | BigNumber                            |
+| `cb`    | Float32                              |
+| `cc`    | Float64                              |
+| `cd`    | Null                                 |
+| `ce`    | False                                |
+| `cf`    | True                                 |
+| `d0-df` | Short strings (0-15 bytes)           |
+| `e0-e3` | Unsigned integers (8, 16, 32, 64 bit)|
+| `e4-e7` | Signed integers (8, 16, 32, 64 bit)  |
+| `e8-fb` | Reserved                             |
+| `fc`    | Array                                |
+| `fd`    | Object                               |
+| `fe`    | Container end marker                 |
+| `ff`    | Long string                          |

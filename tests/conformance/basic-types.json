@@ -8,55 +8,64 @@
       "name": "null",
       "type": "encode",
       "input": null,
-      "expected_bytes": "f5"
+      "expected_bytes": "cd"
     },
     {
       "//": "True encodes to type code 0xf7",
       "name": "bool_true",
       "type": "encode",
       "input": true,
-      "expected_bytes": "f7"
+      "expected_bytes": "cf"
     },
     {
       "//": "False encodes to type code 0xf6",
       "name": "bool_false",
       "type": "encode",
       "input": false,
-      "expected_bytes": "f6"
+      "expected_bytes": "ce"
     },
     {
       "//": "Empty array encodes to start (0xf8) + count chunk (0 elements → 0x00)",
       "name": "empty_array",
       "type": "encode",
       "input": [],
-      "expected_bytes": "f800"
+      "expected_bytes": "fc fe"
     },
     {
       "//": "Empty object encodes to start (0xf9) + count chunk (0 pairs → 0x00)",
       "name": "empty_object",
       "type": "encode",
       "input": {},
-      "expected_bytes": "f900"
+      "expected_bytes": "fd fe"
     },
     {
       "//": "Simple array with mixed types (3 elements → 0x0c)",
       "name": "array_mixed",
       "type": "encode",
-      "input": [1, "x", null],
-      "expected_bytes": "f80c65e178f5"
+      "input": [
+        1,
+        "x",
+        null
+      ],
+      "expected_bytes": "fc 65 d1 78 cd fe"
     },
     {
       "//": "Object with single key-value pair (1 pair → 0x04)",
       "name": "object_single_key",
       "type": "encode",
-      "input": {"a": 1},
-      "expected_bytes": "f904e16165"
+      "input": {
+        "a": 1
+      },
+      "expected_bytes": "fd d1 61 65 fe"
     },
     {
       "//": "Object with multiple keys (key order is implementation-defined)",
       "name": "object_multiple_keys",
       "type": "roundtrip",
-      "input": {"b": 0, "test": "x"}
+      "input": {
+        "b": 0,
+        "test": "x"
+      }
     },
     {
       "//": "Null round-trips correctly",

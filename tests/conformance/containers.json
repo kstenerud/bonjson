@@ -4,123 +4,165 @@
   "//": "Container (array and object) encoding tests",
   "tests": [
     {
-      "//": "Array with different value types (3 elements: count=3, cont=0 → 0x0c)",
+      "//": "Array with different value types (3 elements)",
       "name": "array_with_string_int_null",
       "type": "encode",
-      "input": ["a", 1, null],
-      "expected_bytes": "f80ce16165f5"
+      "input": [
+        "a",
+        1,
+        null
+      ],
+      "expected_bytes": "fc d1 61 65 cd fe"
     },
     {
-      "//": "Nested empty arrays (outer: 1 element → 0x04, inner: 0 elements → 0x00)",
+      "//": "Nested empty arrays",
       "name": "array_nested_empty",
       "type": "encode",
-      "input": [[]],
-      "expected_bytes": "f804f800"
+      "input": [
+        []
+      ],
+      "expected_bytes": "fc fc fe fe"
     },
     {
-      "//": "Array with nested object (array: 1 element → 0x04, object: 1 pair → 0x04)",
+      "//": "Array with nested object",
       "name": "array_with_object",
       "type": "encode",
-      "input": [{"a": 1}],
-      "expected_bytes": "f804f904e16165"
+      "input": [
+        {
+          "a": 1
+        }
+      ],
+      "expected_bytes": "fc fd d1 61 65 fe fe"
     },
     {
-      "//": "Object with integer value (1 pair → 0x04)",
+      "//": "Object with integer value",
       "name": "object_with_int",
       "type": "encode",
-      "input": {"a": 1},
-      "expected_bytes": "f904e16165"
+      "input": {
+        "a": 1
+      },
+      "expected_bytes": "fd d1 61 65 fe"
     },
     {
-      "//": "Object with negative small int value (1 pair → 0x04)",
+      "//": "Object with negative small int value",
       "name": "object_with_neg_int",
       "type": "encode",
-      "input": {"a": -1},
-      "expected_bytes": "f904e16163"
+      "input": {
+        "a": -1
+      },
+      "expected_bytes": "fd d1 61 63 fe"
     },
     {
-      "//": "Object with larger int value (requires int16) (1 pair → 0x04)",
+      "//": "Object with larger int value (requires int16)",
       "name": "object_with_int16",
       "type": "encode",
-      "input": {"a": 1000},
-      "expected_bytes": "f904e161d9e803"
+      "input": {
+        "a": 1000
+      },
+      "expected_bytes": "fd d1 61 e5 e8 03 fe"
     },
     {
-      "//": "Object with int64 value (1 pair → 0x04)",
+      "//": "Object with int64 value",
       "name": "object_with_int64",
       "type": "encode",
-      "input": {"a": 1152921504606846976},
-      "expected_bytes": "f904e161df0000000000000010"
+      "input": {
+        "a": 1152921504606846976
+      },
+      "expected_bytes": "fd d1 61 e7 00 00 00 00 00 00 00 10 fe"
     },
     {
-      "//": "Object with negative int64 value (1 pair → 0x04)",
+      "//": "Object with negative int64 value",
       "name": "object_with_neg_int64",
       "type": "encode",
-      "input": {"a": -1152921504606846976},
-      "expected_bytes": "f904e161df00000000000000f0"
+      "input": {
+        "a": -1152921504606846976
+      },
+      "expected_bytes": "fd d1 61 e7 00 00 00 00 00 00 00 f0 fe"
     },
     {
-      "//": "Object with float16 value (1 pair → 0x04)",
-      "name": "object_with_float16",
+      "//": "Object with float32 value (1.25 fits in float32)",
+      "name": "object_with_float32",
       "type": "encode",
-      "input": {"a": 1.25},
-      "expected_bytes": "f904e161f2a03f"
+      "input": {
+        "a": 1.25
+      },
+      "expected_bytes": "fd d1 61 cb 00 00 a0 3f fe"
     },
     {
-      "//": "Object with float64 value (1 pair → 0x04)",
+      "//": "Object with float64 value",
       "name": "object_with_float64",
       "type": "encode",
-      "input": {"a": -5.923441e-50},
-      "expected_bytes": "f904e161f4353cce818729b6b5"
+      "input": {
+        "a": -5.923441e-50
+      },
+      "expected_bytes": "fd d1 61 cc 35 3c ce 81 87 29 b6 b5 fe"
     },
     {
-      "//": "Object with string value (1 pair → 0x04)",
+      "//": "Object with string value",
       "name": "object_with_string",
       "type": "encode",
-      "input": {"a": "b"},
-      "expected_bytes": "f904e161e162"
+      "input": {
+        "a": "b"
+      },
+      "expected_bytes": "fd d1 61 d1 62 fe"
     },
     {
-      "//": "Object with boolean false value (1 pair → 0x04)",
+      "//": "Object with boolean false value",
       "name": "object_with_false",
       "type": "encode",
-      "input": {"a": false},
-      "expected_bytes": "f904e161f6"
+      "input": {
+        "a": false
+      },
+      "expected_bytes": "fd d1 61 ce fe"
     },
     {
-      "//": "Object with null value (1 pair → 0x04)",
+      "//": "Object with null value",
       "name": "object_with_null",
       "type": "encode",
-      "input": {"a": null},
-      "expected_bytes": "f904e161f5"
+      "input": {
+        "a": null
+      },
+      "expected_bytes": "fd d1 61 cd fe"
     },
     {
-      "//": "Object with nested empty object value (outer: 1 pair → 0x04, inner: 0 pairs → 0x00)",
+      "//": "Object with nested empty object value",
       "name": "object_with_nested_object",
       "type": "encode",
-      "input": {"a": {}},
-      "expected_bytes": "f904e161f900"
+      "input": {
+        "a": {}
+      },
+      "expected_bytes": "fd d1 61 fd fe fe"
     },
     {
-      "//": "Object with nested empty array value (object: 1 pair → 0x04, array: 0 elements → 0x00)",
+      "//": "Object with nested empty array value",
       "name": "object_with_nested_array",
       "type": "encode",
-      "input": {"a": []},
-      "expected_bytes": "f904e161f800"
+      "input": {
+        "a": []
+      },
+      "expected_bytes": "fd d1 61 fc fe fe"
     },
     {
-      "//": "Array with multiple element types (3 elements → 0x0c)",
+      "//": "Array with multiple element types (3 elements)",
       "name": "array_varied_elements",
       "type": "encode",
-      "input": ["a", -1, "z"],
-      "expected_bytes": "f80ce16163e17a"
+      "input": [
+        "a",
+        -1,
+        "z"
+      ],
+      "expected_bytes": "fc d1 61 63 d1 7a fe"
     },
     {
-      "//": "Array with larger integers (3 elements → 0x0c)",
+      "//": "Array with larger integers (3 elements)",
       "name": "array_with_int16",
       "type": "encode",
-      "input": ["a", 1000, "z"],
-      "expected_bytes": "f80ce161d9e803e17a"
+      "input": [
+        "a",
+        1000,
+        "z"
+      ],
+      "expected_bytes": "fc d1 61 e5 e8 03 d1 7a fe"
     },
     {
       "//": "Complex nested structure (roundtrip since key order is unspecified)",
@@ -130,7 +172,11 @@
         "number": 50,
         "null": null,
         "boolean": true,
-        "array": ["x", 1000, -1.25],
+        "array": [
+          "x",
+          1000,
+          -1.25
+        ],
         "object": {
           "negative number": -100,
           "long string": "1234567890123456789012345678901234567890"
@@ -141,88 +187,152 @@
       "//": "Round-trip tests",
       "name": "roundtrip_nested_arrays",
       "type": "roundtrip",
-      "input": [[1, 2], [3, 4]]
+      "input": [
+        [
+          1,
+          2
+        ],
+        [
+          3,
+          4
+        ]
+      ]
     },
     {
       "name": "roundtrip_nested_objects",
       "type": "roundtrip",
-      "input": {"outer": {"inner": 42}}
+      "input": {
+        "outer": {
+          "inner": 42
+        }
+      }
     },
     {
       "name": "roundtrip_mixed_nesting",
       "type": "roundtrip",
-      "input": {"array": [1, {"nested": true}], "value": null}
+      "input": {
+        "array": [
+          1,
+          {
+            "nested": true
+          }
+        ],
+        "value": null
+      }
     },
     {
       "name": "roundtrip_deep_nesting",
       "type": "roundtrip",
-      "input": {"a": {"b": {"c": {"d": {"e": 5}}}}}
+      "input": {
+        "a": {
+          "b": {
+            "c": {
+              "d": {
+                "e": 5
+              }
+            }
+          }
+        }
+      }
     },
     {
       "//": "=== Object key edge cases ===",
       "name": "object_empty_string_key",
       "type": "roundtrip",
-      "input": {"": 1}
+      "input": {
+        "": 1
+      }
     },
     {
       "//": "Empty string key with complex value",
       "name": "object_empty_string_key_array_value",
       "type": "roundtrip",
-      "input": {"": [1, 2, 3]}
+      "input": {
+        "": [
+          1,
+          2,
+          3
+        ]
+      }
     },
     {
       "//": "Long string key (16+ bytes uses long string encoding)",
       "name": "object_long_string_key",
       "type": "roundtrip",
-      "input": {"this is a long key": 42}
+      "input": {
+        "this is a long key": 42
+      }
     },
     {
       "//": "Very long key (32 bytes)",
       "name": "object_very_long_string_key",
       "type": "roundtrip",
-      "input": {"12345678901234567890123456789012": "value"}
+      "input": {
+        "12345678901234567890123456789012": "value"
+      }
     },
     {
       "//": "Unicode object key - Japanese",
       "name": "object_unicode_key_japanese",
       "type": "roundtrip",
-      "input": {"\u65e5\u672c\u8a9e": "Japanese"}
+      "input": {
+        "日本語": "Japanese"
+      }
     },
     {
       "//": "Unicode object key - Emoji",
       "name": "object_unicode_key_emoji",
       "type": "roundtrip",
-      "input": {"\ud83d\ude00": "smiley"}
+      "input": {
+        "😀": "smiley"
+      }
     },
     {
       "//": "Unicode object key - Mixed",
       "name": "object_unicode_key_mixed",
       "type": "roundtrip",
-      "input": {"Hello \u4e16\u754c \ud83c\udf0d": "mixed"}
+      "input": {
+        "Hello 世界 🌍": "mixed"
+      }
     },
     {
       "//": "Multiple objects with various key types",
       "name": "object_mixed_key_types",
       "type": "roundtrip",
-      "input": {"": 0, "a": 1, "this is a long key name": 2, "\u65e5\u672c": 3}
+      "input": {
+        "": 0,
+        "a": 1,
+        "this is a long key name": 2,
+        "日本": 3
+      }
     },
     {
       "//": "Object key that looks like a number",
       "name": "object_numeric_string_key",
       "type": "roundtrip",
-      "input": {"123": "numeric looking key"}
+      "input": {
+        "123": "numeric looking key"
+      }
     },
     {
       "//": "Object key with spaces",
       "name": "object_key_with_spaces",
       "type": "roundtrip",
-      "input": {"key with spaces": "value"}
+      "input": {
+        "key with spaces": "value"
+      }
     },
     {
       "//": "Nested objects with unicode keys",
       "name": "object_nested_unicode_keys",
       "type": "roundtrip",
-      "input": {"\u65e5\u672c": {"\u8a9e": {"value": 42}}}
+      "input": {
+        "日本": {
+          "語": {
+            "value": 42
+          }
+        }
+      }
     },
     {
       "//": "=== Empty container nesting tests ===",
@@ -232,293 +342,340 @@
       "//": "Array of empty arrays",
       "name": "array_of_empty_arrays",
       "type": "roundtrip",
-      "input": [[], [], []]
+      "input": [
+        [],
+        [],
+        []
+      ]
     },
     {
       "//": "Array of empty objects",
       "name": "array_of_empty_objects",
       "type": "roundtrip",
-      "input": [{}, {}, {}]
+      "input": [
+        {},
+        {},
+        {}
+      ]
     },
     {
       "//": "Object with empty array values",
       "name": "object_with_empty_array_values",
       "type": "roundtrip",
-      "input": {"a": [], "b": [], "c": []}
+      "input": {
+        "a": [],
+        "b": [],
+        "c": []
+      }
     },
     {
       "//": "Object with empty object values",
       "name": "object_with_empty_object_values",
       "type": "roundtrip",
-      "input": {"a": {}, "b": {}, "c": {}}
+      "input": {
+        "a": {},
+        "b": {},
+        "c": {}
+      }
     },
     {
       "//": "Deeply nested empty arrays",
       "name": "deeply_nested_empty_arrays",
       "type": "roundtrip",
-      "input": [[[[[[]]]]]]
+      "input": [
+        [
+          [
+            [
+              [
+                []
+              ]
+            ]
+          ]
+        ]
+      ]
     },
     {
       "//": "Deeply nested empty objects",
       "name": "deeply_nested_empty_objects",
       "type": "roundtrip",
-      "input": {"a": {"b": {"c": {"d": {"e": {}}}}}}
+      "input": {
+        "a": {
+          "b": {
+            "c": {
+              "d": {
+                "e": {}
+              }
+            }
+          }
+        }
+      }
     },
     {
       "//": "Mixed empty containers",
       "name": "mixed_empty_containers",
       "type": "roundtrip",
-      "input": {"arr": [], "obj": {}, "nested": {"inner": []}}
+      "input": {
+        "arr": [],
+        "obj": {},
+        "nested": {
+          "inner": []
+        }
+      }
     },
     {
       "//": "Alternating empty arrays and objects",
       "name": "alternating_empty_containers",
       "type": "roundtrip",
-      "input": [{},[],{},[],{}]
+      "input": [
+        {},
+        [],
+        {},
+        [],
+        {}
+      ]
     },
     {
-      "//": "Empty array encode verification (0 elements → 0x00)",
+      "//": "Empty array encode verification",
       "name": "encode_empty_array",
       "type": "encode",
       "input": [],
-      "expected_bytes": "f800"
+      "expected_bytes": "fc fe"
     },
     {
-      "//": "Empty object encode verification (0 pairs → 0x00)",
+      "//": "Empty object encode verification",
       "name": "encode_empty_object",
       "type": "encode",
       "input": {},
-      "expected_bytes": "f900"
+      "expected_bytes": "fd fe"
     },
     {
-      "//": "Nested empty array encode verification (outer: 1 element → 0x04, inner: 0 elements → 0x00)",
+      "//": "Nested empty array encode verification",
       "name": "encode_nested_empty_array",
       "type": "encode",
-      "input": [[]],
-      "expected_bytes": "f8 04 f8 00"
+      "input": [
+        []
+      ],
+      "expected_bytes": "fc fc fe fe"
     },
     {
       "//": "Empty object in array encode verification (array: 1 element → 0x04, object: 0 pairs → 0x00)",
       "name": "encode_empty_object_in_array",
       "type": "encode",
-      "input": [{}],
-      "expected_bytes": "f8 04 f9 00"
+      "input": [
+        {}
+      ],
+      "expected_bytes": "fc fd fe fe"
     },
     {
-      "//": "=== Multi-chunk container tests ===",
-      "//note": "Chunk length field byte (for small counts) = (count << 2) | (continuation << 1). Continuation=1 means more chunks follow."
+      "//": "=== Additional container decode tests ==="
     },
     {
-      "//": "Multi-chunk array: chunk1 has 2 elements (cont=1), chunk2 has 1 element (cont=0)",
-      "//note": "Chunk1: count=2, cont=1 → 0x0a. Chunk2: count=1, cont=0 → 0x04",
-      "name": "decode_multichunk_array_2_1",
+      "//": "Array with 3 integer elements",
+      "name": "decode_array_3_ints",
       "type": "decode",
-      "input_bytes": "f8 0a 65 66 04 67",
-      "expected_value": [1, 2, 3]
+      "input_bytes": "fc 65 66 67 fe",
+      "expected_value": [
+        1,
+        2,
+        3
+      ]
     },
     {
-      "//": "Multi-chunk array: chunk1 has 1 element (cont=1), chunk2 has 2 elements (cont=0)",
-      "//note": "Chunk1: count=1, cont=1 → 0x06. Chunk2: count=2, cont=0 → 0x08",
-      "name": "decode_multichunk_array_1_2",
+      "//": "Array with 2 integer elements",
+      "name": "decode_array_2_ints",
       "type": "decode",
-      "input_bytes": "f8 06 65 08 66 67",
-      "expected_value": [1, 2, 3]
+      "input_bytes": "fc 65 66 fe",
+      "expected_value": [
+        1,
+        2
+      ]
     },
     {
-      "//": "Multi-chunk array: three chunks of 1 element each",
-      "//note": "Chunk1: count=1, cont=1 → 0x06. Chunk2: count=1, cont=1 → 0x06. Chunk3: count=1, cont=0 → 0x04",
-      "name": "decode_multichunk_array_1_1_1",
+      "//": "Array with 1 integer element",
+      "name": "decode_array_1_int",
       "type": "decode",
-      "input_bytes": "f8 06 65 06 66 04 67",
-      "expected_value": [1, 2, 3]
+      "input_bytes": "fc 65 fe",
+      "expected_value": [
+        1
+      ]
     },
     {
-      "//": "Multi-chunk array ending with empty final chunk (count=0, cont=0)",
-      "//note": "Chunk1: count=2, cont=1 → 0x0a. Chunk2: count=0, cont=0 → 0x00",
-      "name": "decode_multichunk_array_trailing_empty",
+      "//": "Array with mixed value types",
+      "name": "decode_array_mixed_types",
       "type": "decode",
-      "input_bytes": "f8 0a 65 66 00",
-      "expected_value": [1, 2]
+      "input_bytes": "fc d1 61 65 cd cf fe",
+      "expected_value": [
+        "a",
+        1,
+        null,
+        true
+      ]
     },
     {
-      "//": "Multi-chunk array: single element then empty final chunk",
-      "//note": "Chunk1: count=1, cont=1 → 0x06. Chunk2: count=0, cont=0 → 0x00",
-      "name": "decode_multichunk_array_1_then_empty",
+      "//": "Object with 2 pairs",
+      "name": "decode_object_2_pairs",
       "type": "decode",
-      "input_bytes": "f8 06 65 00",
-      "expected_value": [1]
+      "input_bytes": "fd d1 61 65 d1 62 66 fe",
+      "expected_value": {
+        "a": 1,
+        "b": 2
+      }
     },
     {
-      "//": "Multi-chunk array with mixed value types",
-      "//note": "Chunk1: count=2, cont=1 → 0x0a (string, int). Chunk2: count=2, cont=0 → 0x08 (null, bool)",
-      "name": "decode_multichunk_array_mixed_types",
+      "//": "Object with 3 pairs",
+      "name": "decode_object_3_pairs",
       "type": "decode",
-      "input_bytes": "f8 0a e161 65 08 f5 f7",
-      "expected_value": ["a", 1, null, true]
+      "input_bytes": "fd d1 61 65 d1 62 66 d1 63 67 fe",
+      "expected_value": {
+        "a": 1,
+        "b": 2,
+        "c": 3
+      }
     },
     {
-      "//": "Multi-chunk object: chunk1 has 1 pair (cont=1), chunk2 has 1 pair (cont=0)",
-      "//note": "Chunk1: count=1, cont=1 → 0x06. Chunk2: count=1, cont=0 → 0x04",
-      "name": "decode_multichunk_object_1_1",
+      "//": "Object with 1 pair",
+      "name": "decode_object_1_pair",
       "type": "decode",
-      "input_bytes": "f9 06 e161 65 04 e162 66",
-      "expected_value": {"a": 1, "b": 2}
+      "input_bytes": "fd d1 61 65 fe",
+      "expected_value": {
+        "a": 1
+      }
     },
     {
-      "//": "Multi-chunk object: chunk1 has 2 pairs (cont=1), chunk2 has 1 pair (cont=0)",
-      "//note": "Chunk1: count=2, cont=1 → 0x0a. Chunk2: count=1, cont=0 → 0x04",
-      "name": "decode_multichunk_object_2_1",
+      "//": "Array of objects",
+      "name": "decode_array_of_objects",
       "type": "decode",
-      "input_bytes": "f9 0a e161 65 e162 66 04 e163 67",
-      "expected_value": {"a": 1, "b": 2, "c": 3}
+      "input_bytes": "fc fd d1 61 65 fe fd d1 62 66 fe fe",
+      "expected_value": [
+        {
+          "a": 1
+        },
+        {
+          "b": 2
+        }
+      ]
     },
     {
-      "//": "Multi-chunk object ending with empty final chunk (count=0, cont=0)",
-      "//note": "Chunk1: count=2, cont=1 → 0x0a. Chunk2: count=0, cont=0 → 0x00",
-      "name": "decode_multichunk_object_trailing_empty",
+      "//": "Object containing arrays",
+      "name": "decode_object_of_arrays",
       "type": "decode",
-      "input_bytes": "f9 0a e161 65 e162 66 00",
-      "expected_value": {"a": 1, "b": 2}
+      "input_bytes": "fd d1 61 fc 65 66 fe d1 62 fc 67 68 fe fe",
+      "expected_value": {
+        "a": [
+          1,
+          2
+        ],
+        "b": [
+          3,
+          4
+        ]
+      }
     },
-    {
-      "//": "Multi-chunk object: single pair then empty final chunk",
-      "//note": "Chunk1: count=1, cont=1 → 0x06. Chunk2: count=0, cont=0 → 0x00",
-      "name": "decode_multichunk_object_1_then_empty",
-      "type": "decode",
-      "input_bytes": "f9 06 e161 65 00",
-      "expected_value": {"a": 1}
-    },
-    {
-      "//": "Multi-chunk object with three chunks",
-      "//note": "Chunk1: count=1, cont=1 → 0x06. Chunk2: count=1, cont=1 → 0x06. Chunk3: count=1, cont=0 → 0x04",
-      "name": "decode_multichunk_object_1_1_1",
-      "type": "decode",
-      "input_bytes": "f9 06 e161 65 06 e162 66 04 e163 67",
-      "expected_value": {"a": 1, "b": 2, "c": 3}
-    },
-    {
-      "//": "Multi-chunk nested: outer array in chunks, containing objects",
-      "//note": "Outer: chunk1 has 1 elem (cont=1) → 0x06, chunk2 has 1 elem (cont=0) → 0x04",
-      "name": "decode_multichunk_nested_array_of_objects",
-      "type": "decode",
-      "input_bytes": "f8 06 f904e16165 04 f904e16266",
-      "expected_value": [{"a": 1}, {"b": 2}]
-    },
-    {
-      "//": "Multi-chunk nested: outer object in chunks, containing arrays",
-      "//note": "Outer: chunk1 has 1 pair (cont=1) → 0x06, chunk2 has 1 pair (cont=0) → 0x04. Inner arrays: 2 elements → 0x08",
-      "name": "decode_multichunk_nested_object_of_arrays",
-      "type": "decode",
-      "input_bytes": "f9 06 e161 f8 08 65 66 04 e162 f8 08 67 68",
-      "expected_value": {"a": [1, 2], "b": [3, 4]}
-    },
-
-    {
-      "//": "=== Non-canonical length encoding tests ===",
-      "//note": "Decoders MUST accept non-canonical (oversized) length encodings"
-    },
-    {
-      "//": "Empty array with non-canonical 2-byte length (payload 0 encoded as 01 00 instead of 00)",
-      "name": "noncanonical_length_empty_array_2byte",
-      "type": "decode",
-      "input_bytes": "f8 01 00",
-      "expected_value": []
-    },
-    {
-      "//": "Array [0] with non-canonical 2-byte length (payload 2 encoded as 09 00 instead of 04)",
-      "name": "noncanonical_length_array_1elem_2byte",
-      "type": "decode",
-      "input_bytes": "f8 09 00 64",
-      "expected_value": [0]
-    },
-    {
-      "//": "Empty array with non-canonical 3-byte length (payload 0 encoded as 03 00 00)",
-      "name": "noncanonical_length_empty_array_3byte",
-      "type": "decode",
-      "input_bytes": "f8 03 00 00",
-      "expected_value": []
-    },
-    {
-      "//": "Empty object with non-canonical 2-byte length (payload 0 encoded as 01 00 instead of 00)",
-      "name": "noncanonical_length_empty_object_2byte",
-      "type": "decode",
-      "input_bytes": "f9 01 00",
-      "expected_value": {}
-    },
-    {
-      "//": "Object {\"a\": 0} with non-canonical 2-byte length (payload 2 encoded as 09 00 instead of 04)",
-      "name": "noncanonical_length_object_1pair_2byte",
-      "type": "decode",
-      "input_bytes": "f9 09 00 e1 61 64",
-      "expected_value": {"a": 0}
-    },
-    {
-      "//": "Empty object with non-canonical 3-byte length (payload 0 encoded as 03 00 00)",
-      "name": "noncanonical_length_empty_object_3byte",
-      "type": "decode",
-      "input_bytes": "f9 03 00 00",
-      "expected_value": {}
-    },
-
     {
       "//": "=== Null values in containers ===",
       "//note": "Tests for proper handling of null values inside arrays and objects. Decoders must correctly track container element counts when processing nulls."
     },
     {
-      "//": "Array containing multiple null values (2 elements → 0x08)",
+      "//": "Array containing multiple null values (2 elements)",
       "name": "array_of_nulls",
       "type": "encode",
-      "input": [null, null],
-      "expected_bytes": "f8 08 f5 f5"
+      "input": [
+        null,
+        null
+      ],
+      "expected_bytes": "fc cd cd fe"
     },
     {
-      "//": "Array with null values interspersed with other types (4 elements → 0x10)",
+      "//": "Array with null values interspersed with other types (4 elements)",
       "name": "array_with_nulls_mixed",
       "type": "encode",
-      "input": [1, null, 2, null],
-      "expected_bytes": "f8 10 65 f5 66 f5"
+      "input": [
+        1,
+        null,
+        2,
+        null
+      ],
+      "expected_bytes": "fc 65 cd 66 cd fe"
     },
     {
       "//": "Object with multiple null values",
       "name": "object_with_multiple_nulls",
       "type": "roundtrip",
-      "input": {"a": null, "b": null}
+      "input": {
+        "a": null,
+        "b": null
+      }
     },
     {
       "//": "Roundtrip: array of nulls",
       "name": "roundtrip_array_of_nulls",
       "type": "roundtrip",
-      "input": [null, null, null]
+      "input": [
+        null,
+        null,
+        null
+      ]
     },
     {
       "//": "Roundtrip: array with nulls and other values",
       "name": "roundtrip_array_nulls_mixed",
       "type": "roundtrip",
-      "input": [1, null, "a", null, true]
+      "input": [
+        1,
+        null,
+        "a",
+        null,
+        true
+      ]
     },
     {
       "//": "Roundtrip: object with null values",
       "name": "roundtrip_object_with_nulls",
       "type": "roundtrip",
-      "input": {"a": null, "b": 1, "c": null}
+      "input": {
+        "a": null,
+        "b": 1,
+        "c": null
+      }
     },
     {
       "//": "Roundtrip: nested array containing nulls",
       "name": "roundtrip_nested_array_with_nulls",
       "type": "roundtrip",
-      "input": [[null, null], [null]]
+      "input": [
+        [
+          null,
+          null
+        ],
+        [
+          null
+        ]
+      ]
     },
     {
       "//": "Roundtrip: object with nested null values",
       "name": "roundtrip_nested_object_with_nulls",
       "type": "roundtrip",
-      "input": {"outer": {"inner": null}, "also_null": null}
+      "input": {
+        "outer": {
+          "inner": null
+        },
+        "also_null": null
+      }
     },
     {
       "//": "Roundtrip: complex structure with nulls at various levels",
       "name": "roundtrip_complex_with_nulls",
       "type": "roundtrip",
-      "input": {"arr": [null, {"nested": null}], "val": null}
+      "input": {
+        "arr": [
+          null,
+          {
+            "nested": null
+          }
+        ],
+        "val": null
+      }
     }
   ]
 }

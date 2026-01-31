@@ -35,28 +35,18 @@ Contents
   - [Numbers](#numbers)
     - [Small Integer](#small-integer)
     - [Integer](#integer)
-    - [16-bit Float](#16-bit-float)
     - [32-bit Float](#32-bit-float)
     - [64-bit Float](#64-bit-float)
     - [Big Number](#big-number)
-      - [Special Big Number Encodings](#special-big-number-encodings)
   - [Containers](#containers)
     - [Array](#array)
     - [Object](#object)
   - [Boolean](#boolean)
   - [Null](#null)
-  - [Length Field](#length-field)
-    - [Length Field Header](#length-field-header)
-    - [Length Field Payload Format](#length-field-payload-format)
-    - [Length Payload Encoding Process](#length-payload-encoding-process)
-    - [Length Payload Decoding Process](#length-payload-decoding-process)
-    - [Chunking](#chunking)
   - [Interoperability Considerations](#interoperability-considerations)
     - [Value Ranges](#value-ranges)
   - [Security Rules](#security-rules)
     - [Resource Limits](#resource-limits)
-    - [Long Field Lengths](#long-field-lengths)
-    - [Chunking Restrictions](#chunking-restrictions)
     - [Invalid UTF-8](#invalid-utf-8)
     - [NUL Codepoint Restriction](#nul-codepoint-restriction)
     - [Unicode Normalization](#unicode-normalization)
@@ -170,22 +160,20 @@ BONJSON follows the same structural rules as [JSON](#json-standards), as illustr
 
 **Array**:
 
-    ──[array]──┬──[chunk]─┬─>──────────┬──┬─>
-               │          ├─>─[value]──┤  │
-               │          ╰─<─<─<─<─<──╯  │
-               ╰─<─<─<─<─<─<─<─<─<─<─<─<──╯
+    ──[0xFC]──┬─>────────────────┬──[0xFE]──>
+              ├─>─[value]──>─>───┤
+              ╰─<─<─<─<─<─<─<─<─╯
+
 **Object**:
 
-    ──[object]──┬──[chunk]─┬─>────────────────────┬──┬─>
-                │          ├─>─[string]──[value]──┤  │
-                │          ╰─<─<─<─<─<─<─<─<─<─<──╯  │
-                ╰─<─<─<─<─<─<─<─<─<─<─<─<─<─<─<─<─<──╯
+    ──[0xFD]──┬─>──────────────────────────┬──[0xFE]──>
+              ├─>─[string]──[value]──>─>───┤
+              ╰─<─<─<─<─<─<─<─<─<─<─<─<─<─╯
 
 **Structural validity rules**:
 
 * A document **MUST** contain exactly one top-level value. An empty document (zero bytes) is invalid.
-* Every container (array or object) **MUST** contain at least one [chunk](#chunking). Decoders **MUST** reject documents where a container's type code is followed by data that cannot be decoded as a valid [length field](#length-field).
-* The final chunk of a container **MUST** have a [continuation bit](#length-field-payload-format) of 0. A document that ends with an incomplete container (continuation bit 1 with no following chunk) is invalid.
+* Every container (array or object) **MUST** be properly terminated with an end marker (`0xFE`). A document that ends without the end marker for all open containers is invalid.
 
 **Note**: For robustness, decoders **MAY** offer an option to recover partial data from truncated documents (see [Convenience Considerations](#convenience-considerations)).
 
@@ -209,21 +197,21 @@ Every value is composed of an 8-bit type code, and in some cases also a payload:
 | Type Code | Payload                      | Type      | Description                                |
 | --------- | ---------------------------- | --------- | ------------------------------------------ |
 | 00 - c8   |                              | Number    | [Integers -100 through 100](#small-integer)|
-| c9 - cf   |                              |           | RESERVED                                   |
-| d0 - d7   | Unsigned integer of n bytes  | Number    | [Unsigned Integer](#integer)               |
-| d8 - df   | Signed integer of n bytes    | Number    | [Signed Integer](#integer)                 |
-| e0 - ef   | String of n bytes            | String    | [Short String](#short-string)              |
-| f0        | Arbitrary length string      | String    | [Long String](#long-string)                |
-| f1        | Arbitrary length number      | Number    | [Big Number](#big-number)                  |
-| f2        | 16-bit bfloat16 binary float | Number    | [16-bit float](#16-bit-float)              |
-| f3        | 32-bit ieee754 binary float  | Number    | [32-bit float](#32-bit-float)              |
-| f4        | 64-bit ieee754 binary float  | Number    | [64-bit float](#64-bit-float)              |
-| f5        |                              | Null      | [Null](#null)                              |
-| f6        |                              | Boolean   | [False](#boolean)                          |
-| f7        |                              | Boolean   | [True](#boolean)                           |
-| f8        |                              | Container | [Array](#array)                            |
-| f9        |                              | Container | [Object](#object)                          |
-| fa - ff   |                              |           | RESERVED                                   |
+| c9        |                              |           | RESERVED                                   |
+| ca        | Zigzag LEB128 number         | Number    | [Big Number](#big-number)                  |
+| cb        | 32-bit ieee754 binary float  | Number    | [32-bit float](#32-bit-float)              |
+| cc        | 64-bit ieee754 binary float  | Number    | [64-bit float](#64-bit-float)              |
+| cd        |                              | Null      | [Null](#null)                              |
+| ce        |                              | Boolean   | [False](#boolean)                          |
+| cf        |                              | Boolean   | [True](#boolean)                           |
+| d0 - df   | String of n bytes            | String    | [Short String](#short-string)              |
+| e0 - e3   | Unsigned integer of n bytes  | Number    | [Unsigned Integer](#integer)               |
+| e4 - e7   | Signed integer of n bytes    | Number    | [Signed Integer](#integer)                 |
+| e8 - fb   |                              |           | RESERVED                                   |
+| fc        |                              | Container | [Array](#array)                            |
+| fd        |                              | Container | [Object](#object)                          |
+| fe        |                              |           | Container end marker                       |
+| ff        | Arbitrary length string      | String    | [Long String](#long-string)                |
 
 **Note**: Decoders **MUST** reject documents containing reserved type codes.
 
@@ -243,53 +231,42 @@ Short strings have their byte length (up to 15) encoded directly into the lower 
 
     Type Code Byte
     ───────────────
-    1 1 1 0 L L L L
+    1 1 0 1 L L L L
             ╰─┴─┴─┤
                   ╰─> Length (0-15 bytes)
 
 
 **Examples**:
 
-    e0                                               // ""
-    e1 41                                            // "A"
-    ec e3 81 8a e3 81 af e3 82 88 e3 81 86           // "おはよう"
-    ef 31 35 20 62 79 74 65 20 73 74 72 69 6e 67 21  // "15 byte string!"
+    d0                                               // ""
+    d1 41                                            // "A"
+    dc e3 81 8a e3 81 af e3 82 88 e3 81 86           // "おはよう"
+    df 31 35 20 62 79 74 65 20 73 74 72 69 6e 67 21  // "15 byte string!"
 
 
 ### Long String
 
-Long strings begin with the [type code](#type-codes) (`0xf0`), followed by one or more [chunks](#chunking). Each chunk's count specifies the number of UTF-8 bytes that follow.
+Long strings begin with the type code `0xFF`, followed by the raw UTF-8 string data, terminated by another `0xFF` byte. This is safe because the byte `0xFF` never appears in valid UTF-8.
 
-    0xf0 [chunk] ...
+    0xFF [data bytes] 0xFF
 
 **Examples**:
 
-    f0 00                               // ""
-    f0 20 61 20 73 74 72 69 6e 67       // "a string" (in 1 chunk)
-    f0 06 61 12 20 73 74 72 0c 69 6e 67 // "a string" (in chunks: 1 byte, 4 bytes, 3 bytes)
-
-**Worked example**: Decoding the chunked string `f0 06 61 12 20 73 74 72 0c 69 6e 67`:
-
-1. `f0` = long string type code
-2. `06` = chunk 1 length field: payload = 0x06 >> 1 = 3 = (1 << 1) | 1, so length=1, continuation=1
-3. `61` = 1 byte of UTF-8 data: "a"
-4. `12` = chunk 2 length field: payload = 0x12 >> 1 = 9 = (4 << 1) | 1, so length=4, continuation=1
-5. `20 73 74 72` = 4 bytes of UTF-8 data: " str"
-6. `0c` = chunk 3 length field: payload = 0x0c >> 1 = 6 = (3 << 1) | 0, so length=3, continuation=0
-7. `69 6e 67` = 3 bytes of UTF-8 data: "ing"
-8. Result: "a" + " str" + "ing" = "a string"
+    ff ff                                           // "" (empty long string)
+    ff 61 20 73 74 72 69 6e 67 ff                   // "a string"
 
 ---
 
-    f0 01 02                            // (String of 64 Zs)
-    5a 5a 5a 5a 5a 5a 5a 5a             // ZZZZZZZZ
-    5a 5a 5a 5a 5a 5a 5a 5a             // ZZZZZZZZ
-    5a 5a 5a 5a 5a 5a 5a 5a             // ZZZZZZZZ
-    5a 5a 5a 5a 5a 5a 5a 5a             // ZZZZZZZZ
-    5a 5a 5a 5a 5a 5a 5a 5a             // ZZZZZZZZ
-    5a 5a 5a 5a 5a 5a 5a 5a             // ZZZZZZZZ
-    5a 5a 5a 5a 5a 5a 5a 5a             // ZZZZZZZZ
-    5a 5a 5a 5a 5a 5a 5a 5a             // ZZZZZZZZ
+    ff                                              // (String of 64 Zs)
+    5a 5a 5a 5a 5a 5a 5a 5a                         // ZZZZZZZZ
+    5a 5a 5a 5a 5a 5a 5a 5a                         // ZZZZZZZZ
+    5a 5a 5a 5a 5a 5a 5a 5a                         // ZZZZZZZZ
+    5a 5a 5a 5a 5a 5a 5a 5a                         // ZZZZZZZZ
+    5a 5a 5a 5a 5a 5a 5a 5a                         // ZZZZZZZZ
+    5a 5a 5a 5a 5a 5a 5a 5a                         // ZZZZZZZZ
+    5a 5a 5a 5a 5a 5a 5a 5a                         // ZZZZZZZZ
+    5a 5a 5a 5a 5a 5a 5a 5a                         // ZZZZZZZZ
+    ff
 
 
 
@@ -304,8 +281,8 @@ All primitive numeric types are encoded exactly as they would appear in memory o
 
  * `NaN` and `infinity` are not valid BONJSON values. See [Values incompatible with JSON](#values-incompatible-with-json).
  * Decoders **MUST** accept any valid numeric encoding for a value, even if it is not the most compact representation. Only the mathematical value matters, not the encoding used to represent it.
- * A value such as `1.0` **MAY** be encoded as an integer (`0x65`) or as a float (`f3 00 00 80 3f`). Decoders **MUST** treat these as equivalent.
- * Negative zero (`-0.0`) **MUST** be encoded using a float or [big number](#big-number) encoding that preserves the sign. Encoding `-0.0` as integer `0` would lose the sign and is therefore considered data loss.
+ * A value such as `1.0` **MAY** be encoded as an integer (`0x65`) or as a float (`cb 00 00 80 3f`). Decoders **MUST** treat these as equivalent.
+ * Negative zero (`-0.0`) **MUST** be encoded using a float encoding that preserves the sign. Encoding `-0.0` as integer `0` would lose the sign and is therefore considered data loss.
 
 
 ### Small Integer
@@ -323,14 +300,20 @@ Small integers (-100 to 100) are encoded into the [type code](#type-codes) itsel
 
 ### Integer
 
-Integers are encoded in little-endian byte order following the [type code](#type-codes). The lower nybble of the type code determines the size of the integer in bytes, and whether it is signed or unsigned.
+Integers are encoded in little-endian byte order following the [type code](#type-codes). The type code determines the size and signedness of the integer:
 
-    Type Code Byte
-    ───────────────
-    1 1 0 1 S L L L
-            | ╰─┼─╯
-            |   ╰───> Length (add 1 to yield a length from 1 to 8 bytes)
-            ╰───────> Signed (0 = unsigned, 1 = signed)
+| Type Code | Size    | Signedness |
+| --------- | ------- | ---------- |
+| e0        | 1 byte  | Unsigned   |
+| e1        | 2 bytes | Unsigned   |
+| e2        | 4 bytes | Unsigned   |
+| e3        | 8 bytes | Unsigned   |
+| e4        | 1 byte  | Signed     |
+| e5        | 2 bytes | Signed     |
+| e6        | 4 bytes | Signed     |
+| e7        | 8 bytes | Signed     |
+
+Integer sizes are restricted to CPU-native widths (1, 2, 4, 8 bytes) for efficient decoding without byte-shifting or padding.
 
 Encoders **SHOULD** use the smallest encoding that can represent the value:
 
@@ -338,125 +321,88 @@ Encoders **SHOULD** use the smallest encoding that can represent the value:
 2. Otherwise, use whichever of signed or unsigned requires fewer bytes.
 3. If both signed and unsigned require the same number of bytes, prefer signed.
 
-For example: 127 fits in 1 byte as either signed or unsigned, so use signed (`d8 7f`). 128 requires 2 bytes signed but only 1 byte unsigned, so use unsigned (`d0 80`).
+For example: 127 fits in 1 byte as either signed or unsigned, so use signed (`e4 7f`). 128 requires 2 bytes signed but only 1 byte unsigned, so use unsigned (`e0 80`).
 
 **Examples**:
 
-    d0 b4                      //  180
-    d9 18 fc                   // -1000
-    d1 00 80                   //  0x8000
-    dd bc 9a 78 56 34 12       //  0x123456789abc
-    df 00 00 00 00 00 00 00 80 // -0x8000000000000000
-    d7 da da da de d0 d0 d0 de //  0xded0d0d0dedadada (is all I want to say to you)
-
-
-### 16-bit Float
-
-16-bit float is encoded as a little-endian 16-bit [bfloat16](https://en.wikipedia.org/wiki/Bfloat16_floating-point_format) following the [type code](#type-codes) (`0xf2`).
-
-Bfloat16 is a truncated form of IEEE 754 binary32, consisting of 1 sign bit, 8 exponent bits, and 7 significand bits. It preserves the full exponent range of binary32 (±3.4 × 10³⁸) while reducing precision. Conversion to/from binary32 involves simply truncating or zero-extending the significand.
-
-**Example**:
-
-    f2 90 3f // 1.125
+    e0 b4                      //  180
+    e5 18 fc                   // -1000
+    e1 00 80                   //  0x8000
+    e3 da da da de d0 d0 d0 de //  0xded0d0d0dedadada (is all I want to say to you)
+    e7 00 00 00 00 00 00 00 80 // -0x8000000000000000
 
 
 ### 32-bit Float
 
-32-bit float is encoded as a little-endian [32-bit ieee754 binary float](https://en.wikipedia.org/wiki/Single-precision_floating-point_format) following the [type code](#type-codes) (`0xf3`).
+32-bit float is encoded as a little-endian [32-bit ieee754 binary float](https://en.wikipedia.org/wiki/Single-precision_floating-point_format) following the [type code](#type-codes) (`0xcb`).
 
 **Example**:
 
-    f3 00 b8 1f 42 // 0x1.3f7p5
+    cb 00 b8 1f 42 // 0x1.3f7p5
 
 
 ### 64-bit Float
 
-64-bit float is encoded as a little-endian [64-bit ieee754 binary float](https://en.wikipedia.org/wiki/Double-precision_floating-point_format) following the [type code](#type-codes) (`0xf4`).
+64-bit float is encoded as a little-endian [64-bit ieee754 binary float](https://en.wikipedia.org/wiki/Double-precision_floating-point_format) following the [type code](#type-codes) (`0xcc`).
 
 **Example**:
 
-    f4 58 39 b4 c8 76 be f3 3f // 1.234
+    cc 58 39 b4 c8 76 be f3 3f // 1.234
 
 
 ### Big Number
 
-Big Number ([type code](#type-codes) `0xf1`) allows for encoding an incredibly large range of base-10 numbers. Although it doesn't match the unlimited range of [JSON](#json-standards), it does allow for up to 75 significant digits and an exponent range of ± 8 million, which is well beyond virtually all real-world use cases.
+Big Number ([type code](#type-codes) `0xca`) encodes arbitrary-precision base-10 numbers using [zigzag](https://en.wikipedia.org/wiki/Variable-length_quantity#Zigzag_encoding) [LEB128](https://en.wikipedia.org/wiki/LEB128) encoding.
 
 The structure of a big number is as follows:
 
-    [header] [exponent bytes] [significand bytes]
+    0xCA [exponent] [signed significand]
 
- * The `header` is a byte containing sign and field-length information.
- * The `exponent` represents a base-10 exponent, and is encoded as a signed integer in little endian byte order.
- * The `significand` is encoded as an unsigned integer in little endian byte order. The `header` contains the significand's sign.
+ * The `exponent` is encoded as a zigzag LEB128 value representing a base-10 exponent.
+ * The `signed significand` is encoded as a zigzag LEB128 value. The sign of the significand is embedded in the zigzag encoding.
 
-The `header` byte consists of 3 fields:
+The final value is derived as: `significand` × 10^`exponent`
 
-      Header Byte
-    ───────────────
-    S S S S S E E N
-    ╰─┴─┼─┴─╯ ╰─┤ ╰─> Significand sign (0 = positive, 1 = negative)
-        │       ╰───> Exponent Length (0-3 bytes)
-        ╰───────────> Significand Length (0-31 bytes)
+**Zigzag encoding** maps signed integers to unsigned values: 0→0, -1→1, 1→2, -2→3, 2→4, etc. The formula is: `unsigned = (signed << 1) ^ (signed >> 63)`. Decoding: `signed = (unsigned >> 1) ^ -(unsigned & 1)`.
 
-The final value is derived as: `sign` × `significand` × 10^`exponent`
-
-**Note**: When the exponent length is 0, the exponent is 0.
-
-#### Special Big Number Encodings
-
-When the `significand length` field is 0, the `exponent length` field is repurposed to encode special values (listed in the table below), and there are no `significand` or `exponent` bytes following the header. In this case, the entire big number encoding occupies only two bytes: the type code and the header byte.
-
-The `negative` bit represents the sign as usual.
-
-**Note**: These special values are invalid by default. See [Values incompatible with JSON](#values-incompatible-with-json) for details and configuration options.
-
-| Exponent Length Bits | Meaning            | Valid in BONJSON |
-| -------------------- | ------------------ | ---------------- |
-| `0 0`                | `0`                | ✔️               |
-| `0 1`                | `infinity`         | ❌               |
-| `1 0`                | `NaN` (quiet)      | ❌               |
-| `1 1`                | `NaN` (signaling)  | ❌               |
-
-**Note**: When the significand is zero and the negative bit is set, this represents negative zero (-0), which is semantically equivalent to IEEE 754 negative zero. Decoders **MUST** preserve the sign when converting to floating-point types that support signed zero.
+**LEB128 encoding** stores unsigned integers in 7-bit groups, least significant first. Each byte's high bit indicates whether more bytes follow (1 = more, 0 = last byte).
 
 **Examples**:
 
-    f1 48 00 10 32 54 76 98 ba dc fe  // 0xfedcba987654321000 (9 bytes significand, no exponent, positive)
-    f1 0a ff 0f                       // 1.5 (15 x 10⁻¹) (1 byte significand, 1 byte exponent, positive)
-    f1 01                             // -0 (IEEE 754 negative zero: no significand, no exponent, negative)
-    f1 8d 8d 01 97 EB F2 0E C3 98 06  // -13837758495464977165497261864967377972119 x 10⁻⁹⁰⁰⁰
-       C1 47 71 5E 65 4F 58 5F AA 28  // (17 bytes significand, 2 bytes exponent, negative)
+    ca 00 00                   // 0 (exponent=0, significand=0)
+    ca 00 04                   // 2 (exponent=0, significand=zigzag(2)=4)
+    ca 00 01                   // -1 (exponent=0, significand=zigzag(-1)=1)
+    ca 01 1e                   // 1.5 (exponent=zigzag(-1)=1, significand=zigzag(15)=30=0x1e)
+                               //   → 15 × 10⁻¹ = 1.5
+
+**Note**: Negative zero (`-0.0`) **CANNOT** be represented as a big number because zigzag encoding maps both `+0` and `-0` significands to `0`. Use IEEE 754 float encoding for negative zero.
 
 
 
 Containers
 ----------
 
-Containers use [chunked](#chunking) encoding: the container [type code](#type-codes) is followed by one or more chunks. This allows decoders to pre-allocate storage while still supporting progressive encoding when the total count is not known up front.
+Containers use delimiter-terminated encoding: the container [type code](#type-codes) is followed by zero or more children, terminated by an end marker (`0xFE`).
 
 
 ### Array
 
-An array consists of an `array` type code (`0xf8`), followed by one or more [chunks](#chunking). Each chunk's count specifies the number of array elements that follow.
+An array consists of an `array` type code (`0xFC`), followed by zero or more values, and terminated by an end marker (`0xFE`).
 
-    [array] [chunk] ...
-     0xf8
+    [0xFC] [value ...] [0xFE]
 
 **Examples**:
 
-    f8 00                    // [] (empty array: count=0, cont=0)
-    f8 0c e1 61 65 f5        // ["a", 1, null] (3 elements in one chunk)
-    f8 0a e1 61 65 04 f5     // ["a", 1, null] (2 elements, then 1 element in separate chunks)
+    fc fe                      // [] (empty array)
+    fc 65 fe                   // [1]
+    fc d1 61 65 cd fe          // ["a", 1, null]
 
 
 ### Object
 
-An object consists of an `object` type code (`0xf9`), followed by one or more [chunks](#chunking). Each chunk's count specifies the number of key-value pairs that follow, where each pair is a [string](#strings) key followed by a value.
+An object consists of an `object` type code (`0xFD`), followed by zero or more key-value pairs, and terminated by an end marker (`0xFE`). Each pair is a [string](#strings) key followed by a value.
 
-    [object] [chunk] ...
-      0xf9
+    [0xFD] [string value ...] [0xFE]
 
 **Notes**:
 
@@ -465,8 +411,8 @@ An object consists of an `object` type code (`0xf9`), followed by one or more [c
 
 **Examples**:
 
-    f9 00                                // {} (empty object: count=0, cont=0)
-    f9 08 e1 62 64 e4 74 65 73 74 e1 78  // {"b": 0, "test": "x"} (2 pairs in one chunk)
+    fd fe                                    // {} (empty object)
+    fd d1 62 64 d4 74 65 73 74 d1 78 fe     // {"b": 0, "test": "x"}
 
 
 
@@ -475,163 +421,15 @@ Boolean
 
 Boolean values are encoded into the [type codes](#type-codes) themselves:
 
- * False has type code `0xf6`
- * True has type code `0xf7`
+ * False has type code `0xce`
+ * True has type code `0xcf`
 
 
 
 Null
 ----
 
-Null has [type code](#type-codes) `0xf5`.
-
-
-
-Length Field
-------------
-
-Length fields are used to delimit long data types (such as [strings](#strings)), and also support splitting data into multiple chunks (which is useful for progressive encoding, where the total length of the data is not known up front).
-
-Length-delimited data is safer because the receiving end can make decisions about the length of the data before attempting to ingest it.
-
-A `length field` is composed of a `header` and possible `payload bytes`.
-
-    [header] [payload bytes]
-
-### Length Field Header
-
-The `header` determines how many bytes comprise the length field itself, so that it doesn't occupy more bytes than are necessary.
-
-The lower `header` bits contain a `count` field, encoded in a reversed unary code (going from low bit to high bit - or describing visually: right-to-left rather than left-to-right). The count field uses trailing `1` bits terminated by a `0` bit.
-
-The upper `header` bits contain `payload` data (when there's room)
-
-| Header     | Count | Extra Payload Bytes | Total Payload Bits |
-| ---------- | ----- | ------------------- | ------------------ |
-| `.......0` |   1   |          0          |          7         |
-| `......01` |   2   |          1          |         14         |
-| `.....011` |   3   |          2          |         21         |
-| `....0111` |   4   |          3          |         28         |
-| `...01111` |   5   |          4          |         35         |
-| `..011111` |   6   |          5          |         42         |
-| `.0111111` |   7   |          6          |         49         |
-| `01111111` |   8   |          7          |         56         |
-| `11111111` |   9   |          8          |         64         |
-
-* Header bits shown as `0` and `1` are the bit patterns of the `count` field. It can be trivially decoded using a `ctz` (count trailing zeroes) compiler intrinsic on the bitwise-inverted header.
-* Header bits shown as `.` are the lower bits of the `payload`.
-
-The `count` field serves two purposes:
-
-* It tells how many bytes this length field occupies (including the `header` byte itself).
-* It tells how many bits to shift right when decoding in order to eliminate the `count` field (for payload sizes <= 56 bits).
-
-Any upper `header` bits that aren't part of the `count` field hold the lower bits of the payload data. When `count` is greater than 1, the payload data spills over into (`count - 1`) `payload bytes`.
-
-The entire encoded stream is stored in little endian byte order so that it can be efficiently read into a zeroed register on little endian architectures.
-
-Consequently, the `header` occupies the lowest byte when the encoded data is loaded into a register, and the `payload bytes` progressively fill the higher bytes in typical little-endian ordering. Once loaded, one simply shifts the register right by `count` bits to eliminate the `count` field and yield the `payload`.
-
-This encoding has the same size overhead as [LEB128](https://en.wikipedia.org/wiki/LEB128) (1 bit per byte), but is far more efficient to decode because the full size of the field can be determined from the first byte, and the overhead bits can be eliminated in a single shift operation.
-
-**Note**: Encoders **SHOULD** use the most compact encoding possible for length fields. Decoders **MUST** accept non-canonical (oversized) length encodings. A length encoding is canonical if and only if it uses the minimum number of bytes required per the header table above. For example, length 0 with continuation 0 (payload 0) is canonically encoded as `00` (1 byte), but `01 00` (2 bytes) is also valid and decodes to the same value. Non-canonical encodings are permitted because some encoders may not know the total length in advance, and pre-allocating space for a larger length field (to be filled in later) can avoid producing many small chunks.
-
-
-### Length Field Payload Format
-
-A length field `payload` is itself composed of two components:
-
-      Payload
-    -----------
-    ... L L L C
-    ╰─┴─┼─┴─╯ ╰─> Continuation bit (1 means another chunk follows this one)
-        ╰───────> Length (up to 0x7FFFFFFFFFFFFFFF)
-
-The low bit of the `payload` is the `continuation bit`. When this bit is 1, there is another `length field` following the data chunk that this `length field` refers to.
-
-**Explicit formulas**:
-- Encoding: `payload = (length << 1) | continuation`
-- Decoding: `continuation = payload & 1`, `length = payload >> 1`
-
-
-### Length Payload Encoding Process
-
-**For payloads containing 0 to 56 bits of data:**
-
-* Determine the 1-based `position` of the _highest_ 1-bit (1-56) of the `payload`. If the `payload` is 0, use position 1.
-* The overhead tradeoff is 7 bits per byte, so our `extra bytes count` (0-7) is `floor((position - 1) / 7)`.
-* Copy your `payload` to a 64-bit `register`.
-* Shift `register` left by `extra bytes count` + 1. This makes room for the `count` field (a terminating 0 bit plus `extra bytes count` trailing 1 bits).
-* Set the lowest `extra bytes count` bits of `register` to 1 (the trailing 1s of the count field). The terminating 0 is already in place from the shift.
-* Write `extra bytes count`+1 bytes of `register` in little endian byte order to the `destination buffer`.
-* `destination buffer` now contains the encoded length field in `extra bytes count`+1 bytes.
-
-**For payloads containing 57 to 64 bits of data:**
-
-* Write the `header` byte 0xff.
-* Write the 8 bytes of `payload` in little endian order.
-
-
-### Length Payload Decoding Process
-
-* Read the `header` byte.
-
-**If the `header` byte is 0xff:**
-
-* Discard the `header`
-* Read the next 8 bytes in little endian order as the `payload`.
-
-**Otherwise:**
-
-* Bitwise-invert the `header` to get `inverted_header`.
-* Determine the 1-based bit position of the _lowest_ 1-bit (1-8) of `inverted_header`. This is your `count`. (Equivalently: find the lowest 0-bit in the original `header`.)
-* Read `count` bytes (including re-reading the `header` byte) as little-endian data into a zeroed 64-bit `register`.
-* Shift `register` right by `count` bits.
-* `register` now contains the decoded `payload`.
-
-
-**Examples**:
-
-    00                          // Length 0 and continuation 0
-    02                          // Length 0 and continuation 1
-    04                          // Length 1 and continuation 0
-    06                          // Length 1 and continuation 1
-    fc                          // Length 63 and continuation 0
-    fe                          // Length 63 and continuation 1
-    01 02                       // Length 64 and continuation 0
-    05 02                       // Length 64 and continuation 1
-    0b 24 f4                    // Length 1,000,000 and continuation 1
-    ff fe ff ff ff ff ff ff ff  // Length 9,223,372,036,854,775,807 and continuation 0
-
-**Worked example**: Decoding `0b 24 f4` (Length 1,000,000, continuation 1):
-
-1. Read header byte `0b` = binary `00001011`
-2. Invert to get `11110100`, lowest 1-bit is at position 3 (1-based), so `count` = 3
-3. Read 3 bytes as little-endian: `0b 24 f4` = `0xf4240b`
-4. Shift right by 3 bits: `0xf4240b >> 3` = `0x1e8481` = 2,000,001
-5. Payload 2,000,001 = (1,000,000 << 1) | 1, so length = 1,000,000, continuation = 1
-
-### Chunking
-
-Chunking is a mechanism for encoding variable-length data using one or more length-prefixed segments. This allows encoders to begin encoding data before the total size is known (progressive encoding), while still allowing decoders to pre-allocate storage when the size is known up front.
-
-A `chunk` is comprised of a [length field](#length-field) specifying a count, followed by that many items of data:
-
-    [count] [items ...]
-
-The meaning of `count` depends on the data type being chunked:
-
-| Type                        | Count represents           |
-| --------------------------- | -------------------------- |
-| [Long String](#long-string) | Bytes of UTF-8 string data |
-| [Array](#array)             | Array elements             |
-| [Object](#object)           | Key-value pairs            |
-
-Chunking continues until a chunk whose length field's [continuation bit](#length-field-payload-format) is 0. If a chunk has a continuation bit of 1, another chunk **MUST** follow; a document that ends after such a chunk is invalid.
-
-A chunk with count 0 **MUST** have a [continuation bit](#length-field-payload-format) of 0. Allowing otherwise would open up the decoder to DOS attacks.
-
-**Note**: A trailing empty chunk (count=0, continuation=0) after one or more non-empty chunks is valid, though unusual. This can be useful in closed systems where encoders deliberately append empty chunks to allow decoders to use the original data zero-copy.
+Null has [type code](#type-codes) `0xcd`.
 
 
 
@@ -659,7 +457,7 @@ JavaScript in particular can natively handle:
  * 64 bit floating point values
  * 53 bit integer values (plus the sign)
 
-**Warning**: [Big numbers](#big-number) can encode values with exponents up to ±8 million. Converting such values to decimal strings or performing arbitrary-precision arithmetic could consume excessive memory or CPU. Decoders **MUST** impose limits on numeric range as specified in [Resource Limits](#resource-limits).
+**Warning**: [Big numbers](#big-number) can encode very large values. Converting such values to decimal strings or performing arbitrary-precision arithmetic could consume excessive memory or CPU. Decoders **MUST** impose limits on numeric range as specified in [Resource Limits](#resource-limits).
 
 
 
@@ -681,9 +479,8 @@ Decoders **MUST** enforce limits on resource consumption to prevent denial-of-se
 | ---------------------- | -------------------- | -------------------------------------------------------------------------------------------------------- |
 | Maximum document size  | 2,000,000,000 bytes  | Total size of the encoded document                                                                       |
 | Maximum nesting depth  | 500                  | Arrays and objects nested within each other. Any value at the root level has depth 1; each value inside a container is one level deeper than the container itself. Examples: `[1]` has depth 2 (array at depth 1, element at depth 2); `[[]]` has depth 2; `[[1]]` has depth 3 (outer array at 1, inner array at 2, element at 3). |
-| Maximum container size | 1,000,000 elements   | Total elements in a single array or key-value pairs in a single object, summed across all chunks         |
-| Maximum string length  | 10,000,000 bytes     | Total encoded byte length summed across all chunks, validated during decoding (before string assembly)   |
-| Maximum chunk count    | 100                  | Per individual string or container (nested containers each have their own count); a single-chunk counts as 1. See [Chunking Restrictions](#chunking-restrictions) |
+| Maximum container size | 1,000,000 elements   | Total elements in a single array or key-value pairs in a single object                                   |
+| Maximum string length  | 10,000,000 bytes     | Total encoded byte length of a single string                                                             |
 | Numeric range          | 64-bit float/integer | Minimum supported range; not a configurable limit. See [Value Ranges](#value-ranges)                     |
 
 Implementations **SHOULD** support at minimum 64-bit IEEE 754 floats and 64-bit signed and unsigned integers. JavaScript environments are limited to 53-bit integer precision; implementations targeting JavaScript **SHOULD** document this limitation.
@@ -691,24 +488,6 @@ Implementations **SHOULD** support at minimum 64-bit IEEE 754 floats and 64-bit 
 Implementations **MUST** document their default limits and any configuration options they provide.
 
 **Warning**: Choosing excessively high limits (or no limits) can make implementations vulnerable to resource exhaustion attacks. Even seemingly reasonable limits can be dangerous in combination (e.g., 1000 nesting depth × 1000 elements per level = 1 billion total nodes). Setting a limit to 0 typically means "no limit" and is **NOT RECOMMENDED** for production use.
-
-
-### Long Field Lengths
-
-Any data format that includes length fields is by definition open to abuse. BONJSON decoders **MUST** provide protection against this:
-
-* Enforce maximum string length limits as specified in [Resource Limits](#resource-limits).
-* If the document length is known, decoders **MUST** reject any length field that specifies a value exceeding the remaining document length.
-
-
-### Chunking Restrictions
-
-Allowing unlimited [chunking](#chunking) opens the door for abusive DOS payloads (chunk bombs). Decoders **MUST** enforce maximum chunk count limits as specified in [Resource Limits](#resource-limits).
-
-Decoders **MAY** also offer additional mitigation options:
-
-* Limit chunks even more after a certain amount of data has been received (to prevent sending a large amount of normal data, followed by abusive chunks).
-* Refuse chunking entirely (reject any chunk that contains a [continuation bit](#length-field-payload-format) of 1).
 
 
 ### Invalid UTF-8
@@ -751,18 +530,16 @@ The handling of Unicode normalization depends on the [compliance level](#complia
 * **Secure compliance**: Decoders normalize strings to [NFC](https://unicode.org/reports/tr15/#Norm_Forms) before performing [duplicate key](#duplicate-object-keys) detection. This prevents the attack described above.
 * **Basic compliance**: Decoders perform byte-for-byte comparison without normalization. This is vulnerable to key collision attacks on auto-normalizing platforms.
 
-**Important**: For [chunked](#chunking) [long strings](#long-string), both UTF-8 validation and NFC normalization **MUST** be applied after the complete string has been assembled, not per-chunk. Individual chunks may split multi-byte UTF-8 sequences; only the fully assembled string must be valid UTF-8. Similarly, normalizing per-chunk would fail to compose characters that span chunk boundaries (e.g., a base character in one chunk and its combining mark in the next).
-
-**Note**: Length fields in the encoded document refer to the byte length of the original (non-normalized) UTF-8 data. After NFC normalization, the resulting string may have a different byte length. For example, `café` encoded with a decomposed `é` (U+0065 U+0301) occupies 6 bytes, but after NFC normalization becomes 5 bytes (using precomposed U+00E9). This is expected behavior.
+**Note**: Short string type codes encode the byte length of the original (non-normalized) UTF-8 data. After NFC normalization, the resulting string may have a different byte length. For example, `café` encoded with a decomposed `é` (U+0065 U+0301) occupies 6 bytes, but after NFC normalization becomes 5 bytes (using precomposed U+00E9). This is expected behavior.
 
 **Note**: Implementations **SHOULD** use the latest available Unicode version for NFC normalization. While different Unicode versions may produce different results for edge cases involving newly added characters, this is unavoidable and generally affects only obscure codepoints.
 
 
 ### Values incompatible with JSON
 
-NaN and infinity are unrepresentable in JSON, but are technically possible to encode in BONJSON because it stores binary floating point values directly and [big numbers](#big-number) have special exponent encodings for these values.
+NaN and infinity are unrepresentable in JSON, but are technically possible to encode in BONJSON because it stores binary floating point values directly.
 
-Codecs **MUST** by default reject NaN and infinity values regardless of encoding (whether in [float](#16-bit-float) bit patterns or [big number](#big-number) special encodings), and **MAY** offer the following configuration options:
+Codecs **MUST** by default reject NaN and infinity values (whether in [float](#32-bit-float) bit patterns), and **MAY** offer the following configuration options:
 
 * Reject the document (this **MUST** be the default behavior)
 * Stringify the value (replace the numeric value with a string: `"NaN"`, `"Infinity"`, or `"-Infinity"`)
@@ -783,8 +560,6 @@ Decoders **MAY** offer an option to stringify such values, replacing the numeric
 Duplicate [object](#object) keys (the same key appearing multiple times in the same object) are being actively exploited in the wild to compromise security and exfiltrate data. Allowing duplicate keys is **extremely** dangerous. However, some systems must allow it for interoperability reasons.
 
 **Note**: Key equality is determined by byte-for-byte comparison of UTF-8 encoded strings. For [secure compliance](#secure-compliance), strings are NFC-normalized before comparison. For [basic compliance](#basic-compliance), raw (non-normalized) strings are compared. See [Unicode Normalization](#unicode-normalization) for security implications.
-
-**Important**: For [chunked](#chunking) objects, duplicate key detection **MUST** work across chunk boundaries. An object with key `"a"` in one chunk and key `"a"` in a subsequent chunk contains duplicate keys and **MUST** be handled according to the configured duplicate key policy.
 
 Decoders **MAY** offer the following configuration options:
 
@@ -854,34 +629,36 @@ Full Example
 **BONJSON**:
 
 ```text
-    f9 14                                                  // { (5 pairs)
-       e6 6e 75 6d 62 65 72                                //     "number":
-       96                                                  //     50,
-       e4 6e 75 6c 6c                                      //     "null":
-       f5                                                  //     null,
-       e7 62 6f 6f 6c 65 61 6e                             //     "boolean":
-       f7                                                  //     true,
-       e5 61 72 72 61 79                                   //     "array":
-       f8 0c                                               //     [ (3 elements)
-          e1 78                                            //         "x",
-          d9 e8 03                                         //         1000,
-          f2 a0 bf                                         //         -1.25
-                                                           //     ],
-       e6 6f 62 6a 65 63 74                                //     "object":
-       f9 08                                               //     { (2 pairs)
-          ef 6e 65 67 61 74 69 76 65 20 6e 75 6d 62 65 72  //         "negative number":
-          00                                               //         -100,
-          eb 6c 6f 6e 67 20 73 74 72 69 6e 67              //         "long string":
-          f0 a0                                            //         "1234567890123456789012345678901234567890"
-             31 32 33 34 35 36 37 38 39 30                 //
-             31 32 33 34 35 36 37 38 39 30                 //
-             31 32 33 34 35 36 37 38 39 30                 //
-             31 32 33 34 35 36 37 38 39 30                 //
-                                                           //     }
-                                                           // }
+    fd                                                 // { (object start)
+       d6 6e 75 6d 62 65 72                            //     "number":
+       96                                              //     50,
+       d4 6e 75 6c 6c                                  //     "null":
+       cd                                              //     null,
+       d7 62 6f 6f 6c 65 61 6e                         //     "boolean":
+       cf                                              //     true,
+       d5 61 72 72 61 79                                //     "array":
+       fc                                              //     [ (array start)
+          d1 78                                         //         "x",
+          e5 e8 03                                      //         1000,
+          cb 00 00 a0 bf                                //         -1.25
+       fe                                              //     ] (array end),
+       d6 6f 62 6a 65 63 74                             //     "object":
+       fd                                              //     { (object start)
+          df 6e 65 67 61 74 69 76 65 20 6e 75 6d 62    //         "negative number":
+             65 72                                      //
+          00                                            //         -100,
+          db 6c 6f 6e 67 20 73 74 72 69 6e 67          //         "long string":
+          ff                                            //         "1234567890123456789012345678901234567890"
+             31 32 33 34 35 36 37 38 39 30              //
+             31 32 33 34 35 36 37 38 39 30              //
+             31 32 33 34 35 36 37 38 39 30              //
+             31 32 33 34 35 36 37 38 39 30              //
+          ff                                            //
+       fe                                              //     } (object end)
+    fe                                                 // } (object end)
 ```
 
-    Size:    121 bytes
+    Size:    123 bytes
 
 
 
@@ -906,64 +683,51 @@ value             = array | object | number | boolean | string | null;
 
 # Types
 
-# Containers use chunked encoding with element/pair counts.
-# Each chunk specifies exactly how many elements/pairs follow.
-array                  = u8(0xf8) & element_chunk(1)* & element_chunk(0);
-element_chunk(hasNext) = chunked(var(count, ~), hasNext) & value*;
-object                 = u8(0xf9) & pair_chunk(1)* & pair_chunk(0);
-pair_chunk(hasNext)    = chunked(var(count, ~), hasNext) & (string & value)*;
+# Containers use delimiter-terminated encoding.
+# 0xFC/0xFD opens, 0xFE closes.
+array             = u8(0xfc) & value* & u8(0xfe);
+object            = u8(0xfd) & (string & value)* & u8(0xfe);
 
-number            = int_small | int_unsigned | int_signed | float_16 | float_32 | float_64 | big_number;
+number            = int_small | int_unsigned | int_signed | float_32 | float_64 | big_number;
 int_small         = u8(var(code, 0x00~0xc8));  # value = code - 100
-int_unsigned      = u4(0xd) & u1(0) & u3(var(count, ~)) & ordered(uint((count+1)*8, ~));
-int_signed        = u4(0xd) & u1(1) & u3(var(count, ~)) & ordered(sint((count+1)*8, ~));
-float_16          = u8(0xf2) & ordered(f16(~));
-float_32          = u8(0xf3) & ordered(f32(~));
-float_64          = u8(0xf4) & ordered(f64(~));
-big_number        = u8(0xf1)
-                  & var(header, big_number_header)
-                  & [
-                        header.sig_length > 0: ordered(sint(header.exp_length*8, ~))
-                                             & ordered(uint(header.sig_length*8, ~))
-                                             ;
-                    ]
+int_unsigned      = u8(0xe0) & ordered(uint( 8, ~))
+                  | u8(0xe1) & ordered(uint(16, ~))
+                  | u8(0xe2) & ordered(uint(32, ~))
+                  | u8(0xe3) & ordered(uint(64, ~))
                   ;
-big_number_header = u5(var(sig_length, ~)) & u2(var(exp_length, ~)) & u1(var(sig_negative, ~));
+int_signed        = u8(0xe4) & ordered(sint( 8, ~))
+                  | u8(0xe5) & ordered(sint(16, ~))
+                  | u8(0xe6) & ordered(sint(32, ~))
+                  | u8(0xe7) & ordered(sint(64, ~))
+                  ;
+float_32          = u8(0xcb) & ordered(f32(~));
+float_64          = u8(0xcc) & ordered(f64(~));
+big_number        = u8(0xca) & zigzag_leb128(~) & zigzag_leb128(~);
 
 boolean           = true | false;
-false             = u8(0xf6);
-true              = u8(0xf7);
+false             = u8(0xce);
+true              = u8(0xcf);
 
-null              = u8(0xf5);
+null              = u8(0xcd);
 
-string                = string_short | string_long;
-string_short          = u4(0xe) & u4(var(count, ~)) & sized(count*8, char_string*);
-string_long           = u8(0xf0) & string_chunk(1)* & string_chunk(0);
-string_chunk(hasNext) = chunked(var(count, ~), hasNext) & sized(count*8, char_string*);
+string            = string_short | string_long;
+string_short      = u8(var(code, 0xd0~0xdf)) & sized((code - 0xd0) * 8, char_string*);
+string_long       = u8(0xff) & char_string* & u8(0xff);
 
-chunked(len, hasNext) = length(len * 2 + hasNext);
-length(l)             = ordered([
-                                    l >=                 0 & l <=               0x7f: uint( 7, l) & uint(1, 0x00);
-                                    l >=              0x80 & l <=             0x3fff: uint(14, l) & uint(2, 0x01);
-                                    l >=            0x4000 & l <=           0x1fffff: uint(21, l) & uint(3, 0x03);
-                                    l >=          0x200000 & l <=          0xfffffff: uint(28, l) & uint(4, 0x07);
-                                    l >=        0x10000000 & l <=        0x7ffffffff: uint(35, l) & uint(5, 0x0f);
-                                    l >=       0x800000000 & l <=      0x3ffffffffff: uint(42, l) & uint(6, 0x1f);
-                                    l >=     0x40000000000 & l <=    0x1ffffffffffff: uint(49, l) & uint(7, 0x3f);
-                                    l >=   0x2000000000000 & l <=   0xffffffffffffff: uint(56, l) & uint(8, 0x7f);
-                                    l >= 0x100000000000000 & l <= 0xffffffffffffffff: uint(64, l) & uint(8, 0xff);
-                                ]);
+# Zigzag LEB128: variable-length signed integer encoding.
+# Zigzag maps signed to unsigned: 0→0, -1→1, 1→2, -2→3, ...
+# LEB128 stores 7 data bits per byte, MSbit=1 means more bytes follow.
+zigzag_leb128(v)  = leb128(zigzag(v));
+zigzag(v)         = uint(~, (v << 1) ^ (v >> 63));  # signed to unsigned
+leb128(v)         = [
+                        v <= 0x7f:         uint(7, v) & u1(0);
+                        v >  0x7f:         uint(7, v) & u1(1) & leb128(v >> 7);
+                    ];
 
 # Primitives & Functions
 
 u1(v)             = uint(1, v);
-u2(v)             = uint(2, v);
-u3(v)             = uint(3, v);
-u4(v)             = uint(4, v);
-u5(v)             = uint(5, v);
 u8(v)             = uint(8, v);
-i8(v)             = sint(8, v);
-f16(v)            = sized(16, f32(v)); # bfloat16
 f32(v)            = float(32, v);
 f64(v)            = float(64, v);
 

@@ -4,38 +4,38 @@
   "//": "Tests various valid hex string formats",
   "tests": [
     {
-      "//": "Lowercase hex without spaces (0xe2 = 2-byte short string)",
+      "//": "Lowercase hex without spaces (0xd2 = 2-byte short string)",
       "name": "hex_lowercase_compact",
       "type": "decode",
-      "input_bytes": "e26865",
+      "input_bytes": "d26865",
       "expected_value": "he"
     },
     {
-      "//": "Uppercase hex without spaces (0xE2 = 2-byte short string)",
+      "//": "Uppercase hex without spaces (0xD2 = 2-byte short string)",
       "name": "hex_uppercase_compact",
       "type": "decode",
-      "input_bytes": "E26865",
+      "input_bytes": "D26865",
       "expected_value": "he"
     },
     {
-      "//": "Mixed case hex (0xe5 = 5-byte short string)",
+      "//": "Mixed case hex (0xd5 = 5-byte short string)",
       "name": "hex_mixed_case",
       "type": "decode",
-      "input_bytes": "e5 68 65 6C 6c 6F",
+      "input_bytes": "d5 68 65 6C 6c 6F",
       "expected_value": "hello"
     },
     {
-      "//": "Hex with spaces (0xe5 = 5-byte short string)",
+      "//": "Hex with spaces (0xd5 = 5-byte short string)",
       "name": "hex_with_spaces",
       "type": "decode",
-      "input_bytes": "e5 68 65 6c 6c 6f",
+      "input_bytes": "d5 68 65 6c 6c 6f",
       "expected_value": "hello"
     },
     {
       "//": "Hex with multiple spaces",
       "name": "hex_multiple_spaces",
       "type": "decode",
-      "input_bytes": "e5  68  65  6c  6c  6f",
+      "input_bytes": "d5  68  65  6c  6c  6f",
       "expected_value": "hello"
     },
     {
