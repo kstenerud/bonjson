@@ -109,6 +109,10 @@ A **basic** encoder:
 
 Secure compliance provides protection against Unicode-based key collision attacks and is **RECOMMENDED** for all implementations that can support it.
 
+A **secure** encoder:
+
+* **SHOULD** produce [NFC-normalized](https://unicode.org/reports/tr15/#Norm_Forms) strings when possible
+
 A **secure** decoder:
 
 * **MUST** validate UTF-8 encoding (reject [invalid UTF-8](#invalid-utf-8))
@@ -156,15 +160,15 @@ BONJSON follows the same structural rules as [JSON](#json-standards), as illustr
 
 **Array**:
 
-    ──[0xFC]──┬─>────────────────┬──[0xFE]──>
-              ├─>─[value]──>─>───┤
-              ╰─<─<─<─<─<─<─<─<─╯
+    ──[0xFC]──┬─>───────────┬──[0xFE]──>
+              ├─>─[value]─>─┤
+              ╰─<─<─<─<─<─<─╯
 
 **Object**:
 
-    ──[0xFD]──┬─>──────────────────────────┬──[0xFE]──>
-              ├─>─[string]──[value]──>─>───┤
-              ╰─<─<─<─<─<─<─<─<─<─<─<─<─<─╯
+    ──[0xFD]──┬─>─────────────────────┬──[0xFE]──>
+              ├─>─[string]──[value]─>─┤
+              ╰─<─<─<─<─<─<─<─<─<─<─<─╯
 
 **Structural validity rules**:
 
@@ -209,7 +213,7 @@ Every value is composed of an 8-bit type code, and in some cases also a payload:
 | fe        |                              |           | Container end marker                       |
 | ff        | Arbitrary length string      | String    | [Long String](#long-string)                |
 
-**Note**: Type codes marked RESERVED are not used in BONJSON and will never be assigned meaning in this specification. Decoders **MUST** reject documents containing reserved type codes.
+**Note**: Type codes marked RESERVED are not used in BONJSON. Decoders **MUST** reject documents containing reserved type codes.
 
 
 
@@ -244,26 +248,25 @@ Short strings have their byte length (up to 15) encoded directly into the lower 
 
 ### Long String
 
-Long strings begin with the type code `0xFF`, followed by the raw UTF-8 string data, terminated by another `0xFF` byte. This is safe because the byte `0xFF` never appears in valid UTF-8.
+Long strings begin with the type code `0xFF`, followed by the raw UTF-8 string data, terminated by another `0xFF` byte. This is safe because the byte `0xFF` (`11111111`) can never appear in valid UTF-8: it is not a valid single-byte character (ASCII range is `00`-`7F`), not a valid leading byte (leading bytes range from `C2`-`F4`), and not a valid continuation byte (continuation bytes have the form `10xxxxxx`, i.e. `80`-`BF`).
 
     0xFF [data bytes] 0xFF
 
 **Examples**:
 
     ff ff                                           // "" (empty long string)
+
     ff 61 20 73 74 72 69 6e 67 ff                   // "a string"
 
----
-
     ff                                              // (String of 64 Zs)
-    5a 5a 5a 5a 5a 5a 5a 5a                         // ZZZZZZZZ
-    5a 5a 5a 5a 5a 5a 5a 5a                         // ZZZZZZZZ
-    5a 5a 5a 5a 5a 5a 5a 5a                         // ZZZZZZZZ
-    5a 5a 5a 5a 5a 5a 5a 5a                         // ZZZZZZZZ
-    5a 5a 5a 5a 5a 5a 5a 5a                         // ZZZZZZZZ
-    5a 5a 5a 5a 5a 5a 5a 5a                         // ZZZZZZZZ
-    5a 5a 5a 5a 5a 5a 5a 5a                         // ZZZZZZZZ
-    5a 5a 5a 5a 5a 5a 5a 5a                         // ZZZZZZZZ
+       5a 5a 5a 5a 5a 5a 5a 5a                      // ZZZZZZZZ
+       5a 5a 5a 5a 5a 5a 5a 5a                      // ZZZZZZZZ
+       5a 5a 5a 5a 5a 5a 5a 5a                      // ZZZZZZZZ
+       5a 5a 5a 5a 5a 5a 5a 5a                      // ZZZZZZZZ
+       5a 5a 5a 5a 5a 5a 5a 5a                      // ZZZZZZZZ
+       5a 5a 5a 5a 5a 5a 5a 5a                      // ZZZZZZZZ
+       5a 5a 5a 5a 5a 5a 5a 5a                      // ZZZZZZZZ
+       5a 5a 5a 5a 5a 5a 5a 5a                      // ZZZZZZZZ
     ff
 
 
@@ -277,10 +280,12 @@ All primitive numeric types are encoded exactly as they would appear in memory o
 
 **Notes**:
 
- * `NaN` and `infinity` are not valid BONJSON values. See [Values incompatible with JSON](#values-incompatible-with-json).
+ * `NaN` and `infinity` are by default not valid, but decoders **MAY** choose to accept them anyway. See [Values incompatible with JSON](#values-incompatible-with-json).
+ * Numeric type fidelity is not guaranteed. The encoding used (integer, float, big number) carries no semantic meaning — only the mathematical value matters. A decoder **MAY** decode any numeric encoding into whatever native type best represents the value.
  * Decoders **MUST** accept any valid numeric encoding for a value, even if it is not the most compact representation. Only the mathematical value matters, not the encoding used to represent it.
  * A value such as `1.0` **MAY** be encoded as an integer (`0x65`) or as a float (`cb 00 00 80 3f`). Decoders **MUST** treat these as equivalent.
- * Negative zero (`-0.0`) **MUST** be encoded using a float encoding that preserves the sign. Encoding `-0.0` as integer `0` would lose the sign and is therefore considered data loss.
+ * Subnormal (denormalized) float values are valid and **MUST** be accepted by decoders.
+ * Negative zero (`-0.0`) **MUST** be encoded using a float encoding that preserves the sign. Encoders **SHOULD** prefer [32-bit float](#32-bit-float) (`cb 00 00 00 80`) as the most compact representation. Encoding `-0.0` as integer `0` would lose the sign and is therefore considered data loss.
 
 
 ### Small Integer
@@ -321,7 +326,7 @@ Encoders **SHOULD** use the smallest encoding that can represent the value:
 
 For example: 127 fits in 1 byte as either signed or unsigned, so use signed (`e4 7f`). 128 requires 2 bytes signed but only 1 byte unsigned, so use unsigned (`e0 80`).
 
-**Note**: Using a larger-than-necessary encoding (e.g., encoding `1` as a 64-bit integer) produces a valid document that decoders **MUST** accept. However, it wastes bytes and is **NOT RECOMMENDED**.
+**Note**: Using a larger-than-necessary encoding (e.g., encoding `1` as a 64-bit integer) produces a valid document that decoders **MUST** accept. However, it wastes bytes and is not recommended.
 
 **Examples**:
 
@@ -363,21 +368,23 @@ The structure of a big number is as follows:
 
 The final value is derived as: `significand` × 10^`exponent`
 
-**Zigzag encoding** maps signed integers to unsigned values: 0→0, -1→1, 1→2, -2→3, 2→4, etc. The encoding formula is: `unsigned = (signed << 1) ^ (signed >> (bit_width - 1))`, where `>>` is an arithmetic (sign-extending) right shift. Decoding: `signed = (unsigned >> 1) ^ -(unsigned & 1)`. These formulas are conceptual — implementations **MUST** support arbitrary-precision integers, not just 64-bit values.
+**Zigzag encoding** maps signed integers to unsigned values: 0→0, -1→1, 1→2, -2→3, 2→4, etc. The encoding formula is: `unsigned = (signed << 1) ^ (signed >> (bit_width - 1))`, where `>>` is an arithmetic (sign-extending) right shift. Decoding: `signed = (unsigned >> 1) ^ -(unsigned & 1)`. These formulas are conceptual — implementations **MUST** support arbitrary-precision integers, not just 64-bit values (unless larger values are not supported by the implementation or configuration - see [Resource Limits](#resource-limits)).
 
 **Note**: Zigzag encoding has no representation for negative zero. Both `+0` and `-0` map to unsigned `0`. To encode negative zero (`-0.0`), use an [IEEE 754 float encoding](#32-bit-float).
 
-**LEB128 encoding** stores unsigned integers in 7-bit groups, least significant first. Each byte's high bit indicates whether more bytes follow (1 = more, 0 = last byte). The total length of a LEB128 sequence is bounded by the decoder's [numeric range resource limit](#resource-limits); decoders **MUST** reject LEB128 sequences that would decode to values outside of their supported range.
+**LEB128 encoding** stores unsigned integers in 7-bit groups, least significant first. Each byte's high bit indicates whether more bytes follow (1 = more, 0 = last byte). The total length of a LEB128 sequence is bounded by the decoder's [numeric range](#resource-limits) limit; decoders **MUST** reject LEB128 sequences that would decode to values outside of their supported range.
 
 **Examples**:
 
-    ca 00 00                   // 0 (exponent=0, significand=0)
-    ca 00 04                   // 2 (exponent=0, significand=zigzag(2)=4)
-    ca 00 01                   // -1 (exponent=0, significand=zigzag(-1)=1)
-    ca 01 1e                   // 1.5 (exponent=zigzag(-1)=1, significand=zigzag(15)=30=0x1e)
+    ca 00 00                   // 0 (exponent=zigzag(0x00)=0, significand=zigzag(0x00)=0)
+    ca 00 04                   // 2 (exponent=zigzag(0x00)=0, significand=zigzag(0x04)=2)
+    ca 00 01                   // -1 (exponent=zigzag(0x00)=0, significand=zigzag(0x01)=-1)
+    ca 01 1e                   // 1.5 (exponent=zigzag(0x01)=-1, significand=zigzag(0x1e)=15)
                                //   → 15 × 10⁻¹ = 1.5
+    ca 04 14                   // 1000 (exponent=zigzag(0x04)=2, significand=zigzag(0x14)=10)
+                               //   → 10 × 10² = 1000
 
-**Encoder normalization**: If the significand is zero, encoders **SHOULD** normalize the exponent to zero (i.e., encode as `ca 00 00` rather than using a non-zero exponent).
+**Encoder normalization**: Encoders **SHOULD** produce the most compact representation by normalizing trailing zeros out of the significand and into the exponent. For example, the value 1000 is more compactly encoded as `significand=1, exponent=3` than `significand=1000, exponent=0`. If the significand is zero, encoders **SHOULD** also normalize the exponent to zero (i.e., encode as `ca 00 00` rather than using a non-zero exponent). See also [Interoperability Considerations](#interoperability-considerations).
 
 
 
@@ -408,8 +415,9 @@ An object consists of an `object` type code (`0xFD`), followed by zero or more k
 
 **Notes**:
 
-* Keys **MUST** be [strings](#strings).
+* Keys **MUST** be [strings](#strings). A document containing a non-string type code in key position **MUST** be rejected.
 * Every key **MUST** be followed by a value. A document that ends after a key but before its corresponding value is invalid.
+* [Duplicate keys](#duplicate-object-keys) **MUST** cause the document to be rejected by default. Decoders **MAY** offer configuration options as described in the [Duplicate object keys](#duplicate-object-keys) section.
 
 **Examples**:
 
@@ -447,7 +455,7 @@ Although JSON allows an unlimited range for most values, it's important to take 
 
 Encoders **SHOULD** always use the smallest encoding for the value being encoded in order to ensure maximum compatibility.
 
-A codec **MAY** choose its own value range restrictions, but **SHOULD** at least support reasonable industry-standard ranges for maximum interoperability, and **MUST** publish what its restrictions are.
+A codec **MAY** [choose its own value range restrictions](#resource-limits), but **SHOULD** at least support reasonable industry-standard ranges for maximum interoperability, and **MUST** publish what its restrictions are.
 
 Most systems can natively handle:
 
@@ -483,13 +491,13 @@ Decoders **MUST** enforce limits on resource consumption to prevent denial-of-se
 | Maximum nesting depth  | 500                  | Before any value is written, the depth is 0. The top-level value has depth 1. Each value inside a container is one level deeper than the container itself. Examples: `1` has depth 1; `[]` has depth 1; `[1]` has depth 2 (array at 1, element at 2); `[[]]` has depth 2 (outer array at 1, inner array at 2); `[[1]]` has depth 3 (outer at 1, inner at 2, element at 3). |
 | Maximum container size | 1,000,000 elements   | Total elements in a single array or key-value pairs in a single object                                   |
 | Maximum string length  | 10,000,000 bytes     | Total encoded byte length of a single string                                                             |
-| Numeric range          | 64-bit float/integer | Minimum supported range; not a configurable limit. See [Value Ranges](#value-ranges)                     |
+| Numeric range          | Platform default     | Maximum absolute value for integers and floats. **SHOULD** default to the platform's native limits (e.g., 64-bit float/integer). See [Value Ranges](#value-ranges) |
 
 Implementations **SHOULD** support at minimum 64-bit IEEE 754 floats and 64-bit signed and unsigned integers. JavaScript environments are limited to 53-bit integer precision; implementations targeting JavaScript **SHOULD** document this limitation.
 
 Implementations **MUST** document their default limits and any configuration options they provide.
 
-**Warning**: Choosing excessively high limits (or no limits) can make implementations vulnerable to resource exhaustion attacks. Even seemingly reasonable limits can be dangerous in combination (e.g., 1000 nesting depth × 1000 elements per level = 1 billion total nodes). Setting a limit to 0 typically means "no limit" and is **NOT RECOMMENDED** for production use.
+**Warning**: Choosing excessively high limits (or no limits) can make implementations vulnerable to resource exhaustion attacks. Even seemingly reasonable limits can be dangerous in combination (e.g., 1000 nesting depth × 1000 elements per level = 1 billion total nodes). Setting a limit to 0 typically means "no limit" and is not recommended for production use.
 
 
 ### Invalid UTF-8
@@ -504,14 +512,14 @@ Invalid UTF-8 sequences include:
 * Invalid continuation bytes
 * Truncated multi-byte sequences
 
-Further information about how invalid UTF-8 can become a security nightmare is available at [RFC 3629, section 10](https://www.rfc-editor.org/rfc/rfc3629#section-10), [Unicode Technical Report #36](https://www.unicode.org/reports/tr36/tr36-15.html), and [Corrigendum #1: UTF-8 Shortest Form](https://www.unicode.org/versions/corrigendum1.html). Overlong UTF-8 encodings were famously involved in the 2001 exploit of IIS web servers by encoding "../" as `C0 AE 2E 2F` instead of the expected `2E 2E 2F`.
+Further information about how invalid UTF-8 can become a security nightmare is available at [RFC 3629, section 10](https://www.rfc-editor.org/rfc/rfc3629#section-10), [Unicode Technical Report #36](https://www.unicode.org/reports/tr36/tr36-15.html), and [Corrigendum #1: UTF-8 Shortest Form](https://www.unicode.org/versions/corrigendum1.html). Overlong UTF-8 encodings were famously involved in the 2001 exploit of IIS web servers by encoding "../" as `C0 AE 2E 2F` instead of the expected `2E 2E 2F`, thus fooling its naive rejection filters.
 
 For compatibility with broken data sources, decoders **MAY** offer the following configuration options:
 
 * Reject the document (this **MUST** be the default behavior)
 * Replace invalid sequences with the REPLACEMENT CHARACTER U+FFFD (less secure)
 * Delete invalid sequences from the string (even less secure)
-* Pass through invalid sequences unchanged (dangerous and **NOT RECOMMENDED**)
+* Pass through invalid sequences unchanged (dangerous and not recommended)
 
 
 ### NUL Codepoint Restriction
@@ -530,7 +538,7 @@ Some platforms (notably Swift and Objective-C) automatically normalize strings w
 The handling of Unicode normalization depends on the [compliance level](#compliance-levels):
 
 * **Secure compliance**: Decoders normalize strings to [NFC](https://unicode.org/reports/tr15/#Norm_Forms) before performing [duplicate key](#duplicate-object-keys) detection. This prevents the attack described above.
-* **Basic compliance**: Decoders perform byte-for-byte comparison without normalization. This is vulnerable to key collision attacks on auto-normalizing platforms.
+* **Basic compliance**: Decoders perform byte-for-byte comparison without normalization. This is vulnerable to key collision attacks if the keys later get normalized.
 
 **Note**: Short string type codes encode the byte length of the original (non-normalized) UTF-8 data. After NFC normalization, the resulting string may have a different byte length. For example, `café` encoded with a decomposed `é` (U+0065 U+0301) occupies 6 bytes, but after NFC normalization becomes 5 bytes (using precomposed U+00E9). This is expected behavior.
 
@@ -587,7 +595,7 @@ Convenience Considerations
 
 Decoders **SHOULD** offer an option (disabled by default) to allow for partial data to be recovered (along with an error condition) when decoding fails partway through.
 
-This would involve discarding any partially decoded value (and its associated object member name - if any), and then artificially terminating all open arrays and objects to produce a well-formed tree.
+This would involve discarding any partially decoded value (and its associated object member name - if any), and then artificially terminating all open arrays and objects to produce a well-formed tree. In practice this usually means just returning the structure that has been decoded thus far, since all containers will exist, and any key without a matching value will not have been added yet.
 
 
 
@@ -638,24 +646,24 @@ Full Example
        cd                                              //     null,
        d7 62 6f 6f 6c 65 61 6e                         //     "boolean":
        cf                                              //     true,
-       d5 61 72 72 61 79                                //     "array":
+       d5 61 72 72 61 79                               //     "array":
        fc                                              //     [ (array start)
-          d1 78                                         //         "x",
-          e5 e8 03                                      //         1000,
-          cb 00 00 a0 bf                                //         -1.25
+          d1 78                                        //         "x",
+          e5 e8 03                                     //         1000,
+          cb 00 00 a0 bf                               //         -1.25
        fe                                              //     ] (array end),
-       d6 6f 62 6a 65 63 74                             //     "object":
+       d6 6f 62 6a 65 63 74                            //     "object":
        fd                                              //     { (object start)
           df 6e 65 67 61 74 69 76 65 20 6e 75 6d 62    //         "negative number":
-             65 72                                      //
-          00                                            //         -100,
+             65 72                                     //
+          00                                           //         -100,
           db 6c 6f 6e 67 20 73 74 72 69 6e 67          //         "long string":
-          ff                                            //         "1234567890123456789012345678901234567890"
-             31 32 33 34 35 36 37 38 39 30              //
-             31 32 33 34 35 36 37 38 39 30              //
-             31 32 33 34 35 36 37 38 39 30              //
-             31 32 33 34 35 36 37 38 39 30              //
-          ff                                            //
+          ff                                           //         "1234567890123456789012345678901234567890"
+             31 32 33 34 35 36 37 38 39 30             //
+             31 32 33 34 35 36 37 38 39 30             //
+             31 32 33 34 35 36 37 38 39 30             //
+             31 32 33 34 35 36 37 38 39 30             //
+          ff                                           //
        fe                                              //     } (object end)
     fe                                                 // } (object end)
 ```
@@ -720,10 +728,10 @@ string_long       = u8(0xff) & char_string* & u8(0xff);
 # Zigzag maps signed to unsigned: 0→0, -1→1, 1→2, -2→3, ...
 # LEB128 stores 7 data bits per byte, MSbit=1 means more bytes follow.
 zigzag_leb128(v)  = leb128(zigzag(v));
-zigzag(v)         = uint(~, (v << 1) ^ (v >> 63));  # signed to unsigned
+zigzag(v)         = uint(~, (v << 1) ^ (v >> (bit_width(v) - 1)));  # signed to unsigned
 leb128(v)         = [
-                        v <= 0x7f:         uint(7, v) & u1(0);
-                        v >  0x7f:         uint(7, v) & u1(1) & leb128(v >> 7);
+                        v <= 0x7f: uint(7, v) & u1(0);
+                        v >  0x7f: uint(7, v) & u1(1) & leb128(v >> 7);
                     ];
 
 # Primitives & Functions

@@ -48,8 +48,8 @@ string_long       = u8(0xff) & char_string* & u8(0xff);
 zigzag_leb128(v)  = leb128(zigzag(v));
 zigzag(v)         = uint(~, (v << 1) ^ (v >> 63));  # signed to unsigned
 leb128(v)         = [
-                        v <= 0x7f:         uint(7, v) & u1(0);
-                        v >  0x7f:         uint(7, v) & u1(1) & leb128(v >> 7);
+                        v <= 0x7f: uint(7, v) & u1(0);
+                        v >  0x7f: uint(7, v) & u1(1) & leb128(v >> 7);
                     ];
 
 # Primitives & Functions
