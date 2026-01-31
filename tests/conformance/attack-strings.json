@@ -10,77 +10,77 @@
       "//": "0xFC (array start) as sole byte in short string",
       "name": "short_string_fc_only",
       "type": "decode_error",
-      "input_bytes": "424f4a01d1fc",
+      "input_bytes": "d1fc",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "0xFD (object start) as sole byte in short string",
       "name": "short_string_fd_only",
       "type": "decode_error",
-      "input_bytes": "424f4a01d1fd",
+      "input_bytes": "d1fd",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "0xFE (container end) as sole byte in short string",
       "name": "short_string_fe_only",
       "type": "decode_error",
-      "input_bytes": "424f4a01d1fe",
+      "input_bytes": "d1fe",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "0xFF (long string marker) as sole byte in short string",
       "name": "short_string_ff_only",
       "type": "decode_error",
-      "input_bytes": "424f4a01d1ff",
+      "input_bytes": "d1ff",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "0xFC between valid ASCII in short string",
       "name": "short_string_fc_middle",
       "type": "decode_error",
-      "input_bytes": "424f4a01d361fc62",
+      "input_bytes": "d361fc62",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "0xFD between valid ASCII in short string",
       "name": "short_string_fd_middle",
       "type": "decode_error",
-      "input_bytes": "424f4a01d361fd62",
+      "input_bytes": "d361fd62",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "0xFE between valid ASCII in short string",
       "name": "short_string_fe_middle",
       "type": "decode_error",
-      "input_bytes": "424f4a01d361fe62",
+      "input_bytes": "d361fe62",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "0xFF between valid ASCII in short string",
       "name": "short_string_ff_middle",
       "type": "decode_error",
-      "input_bytes": "424f4a01d361ff62",
+      "input_bytes": "d361ff62",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "All four structural bytes in one short string",
       "name": "short_string_all_structural_bytes",
       "type": "decode_error",
-      "input_bytes": "424f4a01d4fcfdfeff",
+      "input_bytes": "d4fcfdfeff",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "0xFC at start of multi-byte short string",
       "name": "short_string_fc_start",
       "type": "decode_error",
-      "input_bytes": "424f4a01d3fc6162",
+      "input_bytes": "d3fc6162",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "0xFE at end of multi-byte short string",
       "name": "short_string_fe_end",
       "type": "decode_error",
-      "input_bytes": "424f4a01d36162fe",
+      "input_bytes": "d36162fe",
       "expected_error": "invalid_utf8"
     },
     {
@@ -91,42 +91,42 @@
       "//": "0xFC as sole data byte in long string",
       "name": "long_string_fc_only",
       "type": "decode_error",
-      "input_bytes": "424f4a01fffcff",
+      "input_bytes": "fffcff",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "0xFD as sole data byte in long string",
       "name": "long_string_fd_only",
       "type": "decode_error",
-      "input_bytes": "424f4a01fffdff",
+      "input_bytes": "fffdff",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "0xFE as sole data byte in long string",
       "name": "long_string_fe_only",
       "type": "decode_error",
-      "input_bytes": "424f4a01fffeff",
+      "input_bytes": "fffeff",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "0xFC between ASCII in long string",
       "name": "long_string_fc_middle",
       "type": "decode_error",
-      "input_bytes": "424f4a01ff61fc62ff",
+      "input_bytes": "ff61fc62ff",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "0xFD between ASCII in long string",
       "name": "long_string_fd_middle",
       "type": "decode_error",
-      "input_bytes": "424f4a01ff61fd62ff",
+      "input_bytes": "ff61fd62ff",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "0xFE between ASCII in long string",
       "name": "long_string_fe_middle",
       "type": "decode_error",
-      "input_bytes": "424f4a01ff61fe62ff",
+      "input_bytes": "ff61fe62ff",
       "expected_error": "invalid_utf8"
     },
     {
@@ -134,21 +134,21 @@
       "//note": "FF 61 FC FD FE 62 FF = long string 'a\\xFC\\xFD\\xFE b'",
       "name": "long_string_three_structural_bytes",
       "type": "decode_error",
-      "input_bytes": "424f4a01ff61fcfdfe62ff",
+      "input_bytes": "ff61fcfdfe62ff",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "0xFC at start of long string data",
       "name": "long_string_fc_start",
       "type": "decode_error",
-      "input_bytes": "424f4a01fffc6162ff",
+      "input_bytes": "fffc6162ff",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "0xFE at end of long string data (just before FF terminator)",
       "name": "long_string_fe_before_terminator",
       "type": "decode_error",
-      "input_bytes": "424f4a01ff6162feff",
+      "input_bytes": "ff6162feff",
       "expected_error": "invalid_utf8"
     },
     {
@@ -156,11 +156,11 @@
       "//note": "These test that the decoder doesn't confuse data bytes with structural markers. FE inside a long string must NOT be treated as container end. FC/FD must NOT start nested containers."
     },
     {
-      "//": "Array containing long string with 0xFE data byte — FE must not end the container",
-      "//note": "FC FF FE FF FE = array( long_string('\\xFE') ) — structurally valid, but string is invalid UTF-8",
+      "//": "Array containing long string with 0xFE data byte \u2014 FE must not end the container",
+      "//note": "FC FF FE FF FE = array( long_string('\\xFE') ) \u2014 structurally valid, but string is invalid UTF-8",
       "name": "array_long_string_with_fe_byte",
       "type": "decode_error",
-      "input_bytes": "424f4a01fcfffefffe",
+      "input_bytes": "fcfffefffe",
       "expected_error": "invalid_utf8"
     },
     {
@@ -168,23 +168,23 @@
       "//note": "FC D1 FE FE = array( short_string('\\xFE') )",
       "name": "array_short_string_with_fe_byte",
       "type": "decode_error",
-      "input_bytes": "424f4a01fcd1fefe",
+      "input_bytes": "fcd1fefe",
       "expected_error": "invalid_utf8"
     },
     {
-      "//": "Array containing long string with 0xFC data byte — FC must not start a nested array",
+      "//": "Array containing long string with 0xFC data byte \u2014 FC must not start a nested array",
       "//note": "FC FF FC FF FE = array( long_string('\\xFC') )",
       "name": "array_long_string_with_fc_byte",
       "type": "decode_error",
-      "input_bytes": "424f4a01fcfffcfffe",
+      "input_bytes": "fcfffcfffe",
       "expected_error": "invalid_utf8"
     },
     {
-      "//": "Array containing long string with 0xFD data byte — FD must not start a nested object",
+      "//": "Array containing long string with 0xFD data byte \u2014 FD must not start a nested object",
       "//note": "FC FF FD FF FE = array( long_string('\\xFD') )",
       "name": "array_long_string_with_fd_byte",
       "type": "decode_error",
-      "input_bytes": "424f4a01fcfffdfffe",
+      "input_bytes": "fcfffdfffe",
       "expected_error": "invalid_utf8"
     },
     {
@@ -192,7 +192,7 @@
       "//note": "FD D1 FC 64 FE = object( key='\\xFC', value=0 )",
       "name": "object_key_short_string_with_fc",
       "type": "decode_error",
-      "input_bytes": "424f4a01fdd1fc64fe",
+      "input_bytes": "fdd1fc64fe",
       "expected_error": "invalid_utf8"
     },
     {
@@ -200,7 +200,7 @@
       "//note": "FD FF FE FF 64 FE = object( key='\\xFE', value=0 )",
       "name": "object_key_long_string_with_fe",
       "type": "decode_error",
-      "input_bytes": "424f4a01fdfffeff64fe",
+      "input_bytes": "fdfffeff64fe",
       "expected_error": "invalid_utf8"
     },
     {
@@ -208,7 +208,7 @@
       "//note": "FD D1 61 FF FD FF FE = object( key='a', value='\\xFD' )",
       "name": "object_value_long_string_with_fd",
       "type": "decode_error",
-      "input_bytes": "424f4a01fdd161fffdfffffe",
+      "input_bytes": "fdd161fffdfffffe",
       "expected_error": "invalid_utf8"
     },
     {
@@ -216,7 +216,7 @@
       "//note": "FD D1 61 FC D1 FE FE FE = object( key='a', value=array( short_string('\\xFE') ) )",
       "name": "nested_object_array_string_with_fe",
       "type": "decode_error",
-      "input_bytes": "424f4a01fdd161fcd1fefefe",
+      "input_bytes": "fdd161fcd1fefefe",
       "expected_error": "invalid_utf8"
     },
     {
@@ -224,33 +224,33 @@
       "//note": "When a long string's data is truncated (no FF terminator found), the decoder must report truncation, not silently misparse."
     },
     {
-      "//": "Long string data contains only FE, no FF terminator — FE is data, not terminator",
-      "//note": "FF 61 62 FE (no terminating FF) → truncated",
+      "//": "Long string data contains only FE, no FF terminator \u2014 FE is data, not terminator",
+      "//note": "FF 61 62 FE (no terminating FF) \u2192 truncated",
       "name": "long_string_unterminated_with_fe",
       "type": "decode_error",
-      "input_bytes": "424f4a01ff6162fe",
+      "input_bytes": "ff6162fe",
       "expected_error": "truncated"
     },
     {
-      "//": "Long string in array, data contains FE but no FF — must not end string or container",
-      "//note": "FC FF 61 62 FE (no FF) → truncated",
+      "//": "Long string in array, data contains FE but no FF \u2014 must not end string or container",
+      "//note": "FC FF 61 62 FE (no FF) \u2192 truncated",
       "name": "long_string_in_array_unterminated_fe",
       "type": "decode_error",
-      "input_bytes": "424f4a01fcff6162fe",
+      "input_bytes": "fcff6162fe",
       "expected_error": "truncated"
     },
     {
-      "//": "Long string in array, data contains FC but no FF — FC is data, not array start",
+      "//": "Long string in array, data contains FC but no FF \u2014 FC is data, not array start",
       "name": "long_string_in_array_unterminated_fc",
       "type": "decode_error",
-      "input_bytes": "424f4a01fcff6162fc",
+      "input_bytes": "fcff6162fc",
       "expected_error": "truncated"
     },
     {
-      "//": "Long string in array, data contains FD but no FF — FD is data, not object start",
+      "//": "Long string in array, data contains FD but no FF \u2014 FD is data, not object start",
       "name": "long_string_in_array_unterminated_fd",
       "type": "decode_error",
-      "input_bytes": "424f4a01fcff6162fd",
+      "input_bytes": "fcff6162fd",
       "expected_error": "truncated"
     },
     {
@@ -261,65 +261,97 @@
       "//": "Empty long string in array: FC FF FF FE",
       "name": "valid_empty_long_string_in_array",
       "type": "decode",
-      "input_bytes": "424f4a01fcfffffe",
-      "expected_value": [""]
+      "input_bytes": "fcfffffe",
+      "expected_value": [
+        ""
+      ]
     },
     {
       "//": "Two consecutive long strings in array: FC FF 61 FF FF 62 FF FE",
       "name": "valid_two_long_strings_in_array",
       "type": "decode",
-      "input_bytes": "424f4a01fcff61ffff62fffe",
-      "expected_value": ["a", "b"]
+      "input_bytes": "fcff61ffff62fffe",
+      "expected_value": [
+        "a",
+        "b"
+      ]
     },
     {
       "//": "Long string value in object: FD D1 61 FF 62 FF FE",
       "name": "valid_long_string_value_in_object",
       "type": "decode",
-      "input_bytes": "424f4a01fdd161ff62fffe",
-      "expected_value": {"a": "b"}
+      "input_bytes": "fdd161ff62fffe",
+      "expected_value": {
+        "a": "b"
+      }
     },
     {
       "//": "Long string key and value in object: FD FF 61 FF FF 62 FF FE",
       "name": "valid_long_string_key_and_value",
       "type": "decode",
-      "input_bytes": "424f4a01fdff61ffff62fffe",
-      "expected_value": {"a": "b"}
+      "input_bytes": "fdff61ffff62fffe",
+      "expected_value": {
+        "a": "b"
+      }
     },
     {
       "//": "Empty long string as object key: FD FF FF 64 FE",
       "name": "valid_empty_long_string_key",
       "type": "decode",
-      "input_bytes": "424f4a01fdffff64fe",
-      "expected_value": {"": 0}
+      "input_bytes": "fdffff64fe",
+      "expected_value": {
+        "": 0
+      }
     },
     {
       "//": "Array with mix of short and long strings: FC D1 61 FF 62 FF D1 63 FE",
       "name": "valid_mixed_short_long_strings",
       "type": "decode",
-      "input_bytes": "424f4a01fcd161ff62ffd163fe",
-      "expected_value": ["a", "b", "c"]
+      "input_bytes": "fcd161ff62ffd163fe",
+      "expected_value": [
+        "a",
+        "b",
+        "c"
+      ]
     },
     {
       "//": "Nested arrays with long strings: FC FC FF 61 FF FE FC FF 62 FF FE FE",
       "name": "valid_nested_arrays_with_long_strings",
       "type": "decode",
-      "input_bytes": "424f4a01fcfcff61fffefcff62fffefe",
-      "expected_value": [["a"], ["b"]]
+      "input_bytes": "fcfcff61fffefcff62fffefe",
+      "expected_value": [
+        [
+          "a"
+        ],
+        [
+          "b"
+        ]
+      ]
     },
     {
       "//": "Deeply nested container with long string leaf: FC FC FC FF 78 FF FE FE FE",
       "name": "valid_deeply_nested_long_string",
       "type": "decode",
-      "input_bytes": "424f4a01fcfcfcff78fffefefe",
-      "expected_value": [[["x"]]]
+      "input_bytes": "fcfcfcff78fffefefe",
+      "expected_value": [
+        [
+          [
+            "x"
+          ]
+        ]
+      ]
     },
     {
       "//": "Object containing array containing long string with FE-adjacent bytes (0xFB is valid)",
-      "//note": "0xFB is not a structural byte — it's a reserved type code but valid as string data if valid UTF-8. However 0xFB is also not valid UTF-8, so we use 0x7B ('{') which is the last valid ASCII byte",
+      "//note": "0xFB is not a structural byte \u2014 it's a reserved type code but valid as string data if valid UTF-8. However 0xFB is also not valid UTF-8, so we use 0x7B ('{') which is the last valid ASCII byte",
       "name": "valid_string_with_high_ascii_in_nested",
       "type": "decode",
-      "input_bytes": "424f4a01fdd161fcff7b7dfffefe",
-      "expected_value": {"a": ["{}"]}
+      "input_bytes": "fdd161fcff7b7dfffefe",
+      "expected_value": {
+        "a": [
+          "{}"
+        ]
+      }
     }
   ]
 }
