@@ -113,11 +113,7 @@ A **secure** decoder:
 
 * **MUST** validate UTF-8 encoding (reject [invalid UTF-8](#invalid-utf-8))
 * **MUST** normalize strings to [NFC](https://unicode.org/reports/tr15/#Norm_Forms) before performing [duplicate key](#duplicate-object-keys) detection
-* **MUST** return NFC-normalized strings to the application
-
-A **secure** encoder:
-
-* **SHOULD** produce NFC-normalized strings
+* **SHOULD** return NFC-normalized strings to the application (this is strongly recommended but not required; the critical requirement is that duplicate key detection uses NFC-normalized strings)
 
 
 ### Compliance Documentation
@@ -213,7 +209,7 @@ Every value is composed of an 8-bit type code, and in some cases also a payload:
 | fe        |                              |           | Container end marker                       |
 | ff        | Arbitrary length string      | String    | [Long String](#long-string)                |
 
-**Note**: Decoders **MUST** reject documents containing reserved type codes.
+**Note**: Type codes marked RESERVED are not used in BONJSON and will never be assigned meaning in this specification. Decoders **MUST** reject documents containing reserved type codes.
 
 
 
@@ -223,6 +219,8 @@ Strings
 Strings are UTF-8 encoded sequences of Unicode codepoints, and can be encoded in two ways.
 
 **Note**: Encoders **SHOULD** produce [NFC-normalized](https://unicode.org/reports/tr15/#Norm_Forms) strings. See [Compliance Levels](#compliance-levels) and [Unicode Normalization](#unicode-normalization) for details.
+
+**Note**: Unlike text-based JSON, BONJSON allows control characters (such as TAB, CR, LF) directly in strings without escaping. This is safe because the binary format has no whitespace-sensitivity issues that would cause text editors or transport layers to corrupt the data.
 
 
 ### Short String
@@ -323,6 +321,8 @@ Encoders **SHOULD** use the smallest encoding that can represent the value:
 
 For example: 127 fits in 1 byte as either signed or unsigned, so use signed (`e4 7f`). 128 requires 2 bytes signed but only 1 byte unsigned, so use unsigned (`e0 80`).
 
+**Note**: Using a larger-than-necessary encoding (e.g., encoding `1` as a 64-bit integer) produces a valid document that decoders **MUST** accept. However, it wastes bytes and is **NOT RECOMMENDED**.
+
 **Examples**:
 
     e0 b4                      //  180
@@ -363,9 +363,11 @@ The structure of a big number is as follows:
 
 The final value is derived as: `significand` × 10^`exponent`
 
-**Zigzag encoding** maps signed integers to unsigned values: 0→0, -1→1, 1→2, -2→3, 2→4, etc. The formula is: `unsigned = (signed << 1) ^ (signed >> 63)`. Decoding: `signed = (unsigned >> 1) ^ -(unsigned & 1)`.
+**Zigzag encoding** maps signed integers to unsigned values: 0→0, -1→1, 1→2, -2→3, 2→4, etc. The encoding formula is: `unsigned = (signed << 1) ^ (signed >> (bit_width - 1))`, where `>>` is an arithmetic (sign-extending) right shift. Decoding: `signed = (unsigned >> 1) ^ -(unsigned & 1)`. These formulas are conceptual — implementations **MUST** support arbitrary-precision integers, not just 64-bit values.
 
-**LEB128 encoding** stores unsigned integers in 7-bit groups, least significant first. Each byte's high bit indicates whether more bytes follow (1 = more, 0 = last byte).
+**Note**: Zigzag encoding has no representation for negative zero. Both `+0` and `-0` map to unsigned `0`. To encode negative zero (`-0.0`), use an [IEEE 754 float encoding](#32-bit-float).
+
+**LEB128 encoding** stores unsigned integers in 7-bit groups, least significant first. Each byte's high bit indicates whether more bytes follow (1 = more, 0 = last byte). The total length of a LEB128 sequence is bounded by the decoder's [numeric range resource limit](#resource-limits); decoders **MUST** reject LEB128 sequences that would decode to values outside of their supported range.
 
 **Examples**:
 
@@ -375,7 +377,7 @@ The final value is derived as: `significand` × 10^`exponent`
     ca 01 1e                   // 1.5 (exponent=zigzag(-1)=1, significand=zigzag(15)=30=0x1e)
                                //   → 15 × 10⁻¹ = 1.5
 
-**Note**: Negative zero (`-0.0`) **CANNOT** be represented as a big number because zigzag encoding maps both `+0` and `-0` significands to `0`. Use IEEE 754 float encoding for negative zero.
+**Encoder normalization**: If the significand is zero, encoders **SHOULD** normalize the exponent to zero (i.e., encode as `ca 00 00` rather than using a non-zero exponent).
 
 
 
@@ -478,7 +480,7 @@ Decoders **MUST** enforce limits on resource consumption to prevent denial-of-se
 | Resource               | Recommended Default  | Notes                                                                                                    |
 | ---------------------- | -------------------- | -------------------------------------------------------------------------------------------------------- |
 | Maximum document size  | 2,000,000,000 bytes  | Total size of the encoded document                                                                       |
-| Maximum nesting depth  | 500                  | Arrays and objects nested within each other. Any value at the root level has depth 1; each value inside a container is one level deeper than the container itself. Examples: `[1]` has depth 2 (array at depth 1, element at depth 2); `[[]]` has depth 2; `[[1]]` has depth 3 (outer array at 1, inner array at 2, element at 3). |
+| Maximum nesting depth  | 500                  | Before any value is written, the depth is 0. The top-level value has depth 1. Each value inside a container is one level deeper than the container itself. Examples: `1` has depth 1; `[]` has depth 1; `[1]` has depth 2 (array at 1, element at 2); `[[]]` has depth 2 (outer array at 1, inner array at 2); `[[1]]` has depth 3 (outer at 1, inner at 2, element at 3). |
 | Maximum container size | 1,000,000 elements   | Total elements in a single array or key-value pairs in a single object                                   |
 | Maximum string length  | 10,000,000 bytes     | Total encoded byte length of a single string                                                             |
 | Numeric range          | 64-bit float/integer | Minimum supported range; not a configurable limit. See [Value Ranges](#value-ranges)                     |
@@ -514,7 +516,7 @@ For compatibility with broken data sources, decoders **MAY** offer the following
 
 ### NUL Codepoint Restriction
 
-Because the `NUL` (U+0000) codepoint can so easily be exploited, it **MUST** be rejected by default.
+Because the `NUL` (U+0000) codepoint can so easily be exploited, it **MUST** be rejected by default in all strings, regardless of whether the string is used as an object key, an object value, or an array element.
 
 Decoders **MAY** offer a configuration option to allow `NUL`, but the default behavior **MUST** be to reject.
 
@@ -539,7 +541,7 @@ The handling of Unicode normalization depends on the [compliance level](#complia
 
 NaN and infinity are unrepresentable in JSON, but are technically possible to encode in BONJSON because it stores binary floating point values directly.
 
-Codecs **MUST** by default reject NaN and infinity values (whether in [float](#32-bit-float) bit patterns), and **MAY** offer the following configuration options:
+Codecs **MUST** by default reject NaN and infinity values (whether in [32-bit](#32-bit-float) or [64-bit](#64-bit-float) float bit patterns), and **MAY** offer the following configuration options:
 
 * Reject the document (this **MUST** be the default behavior)
 * Stringify the value (replace the numeric value with a string: `"NaN"`, `"Infinity"`, or `"-Infinity"`)
