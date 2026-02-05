@@ -386,6 +386,8 @@ The `options` field is an optional JSON object that configures encoder/decoder b
 | `max_container_size`   | integer | Maximum elements in a container (non-negative)         |
 | `max_string_length`    | integer | Maximum string length in bytes (non-negative)          |
 | `max_document_size`    | integer | Maximum document size in bytes (non-negative)          |
+| `unicode_normalization`| string  | How to normalize Unicode strings: `"none"` (default) or `"nfc"` (normalize to NFC composed form). When `"nfc"`, decoded strings are transformed to Unicode Normalization Form C before being returned, and object keys are compared after NFC normalization (which can cause otherwise-distinct keys to become duplicates). |
+| `out_of_range`         | string  | How to handle BigNumber values that exceed the implementation's numeric range (e.g., float64): `"error"` (default) or `"stringify"` (convert to a decimal string representation `[±]<significand>e<exponent>`). |
 
 **Depth counting**: Any value at the root level (including primitives and empty containers) has depth 1. Each value inside a container is one level deeper than the container itself. Examples:
 - `42` → depth 1 (primitive at root)
@@ -453,6 +455,7 @@ The following capability identifiers are defined:
 | `negative_zero`                  | Support for IEEE 754 negative zero (-0.0) preservation. Some platforms or type systems cannot distinguish -0.0 from +0.0.                                                            |
 | `raw_string_bytes`               | Support for representing strings as raw byte sequences (for testing `invalid_utf8: "pass_through"`). Implementations using native string types that require valid UTF-8 cannot support this. |
 | `signaling_nan`                  | Support for preserving the signaling bit of NaN values. Most platforms convert signaling NaN to quiet NaN on any operation; tests using `sNaN` should require this capability.       |
+| `out_of_range_stringify`         | Support for the `out_of_range: "stringify"` option, which converts out-of-range BigNumber values to string representations. Not all implementations support this mode.               |
 
 Test runners **SHOULD**:
 1. Define which capabilities their implementation supports
