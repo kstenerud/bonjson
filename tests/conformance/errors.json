@@ -66,7 +66,7 @@
       "expected_error": "truncated"
     },
     {
-      "//": "Truncated BigNumber (zigzag LEB128 format)",
+      "//": "Truncated BigNumber (zigzag LEB128 metadata + LE magnitude format)",
       "name": "truncated_bignumber_no_exponent",
       "type": "decode_error",
       "input_bytes": "ca",
@@ -80,11 +80,25 @@
       "expected_error": "truncated"
     },
     {
-      "//": "Exponent complete (0), significand byte has continuation bit but no following byte",
-      "name": "truncated_bignumber_significand_incomplete",
+      "//": "Exponent complete (0), signed_length byte has continuation bit but no following byte",
+      "name": "truncated_bignumber_signed_length_incomplete",
       "type": "decode_error",
       "input_bytes": "ca 00 80",
       "expected_error": "truncated"
+    },
+    {
+      "//": "signed_length says 2 magnitude bytes but only 1 follows",
+      "name": "truncated_bignumber_magnitude",
+      "type": "decode_error",
+      "input_bytes": "ca 00 04 ff",
+      "expected_error": "truncated"
+    },
+    {
+      "//": "Magnitude has trailing zero byte (non-normalized): signed_length=+2, magnitude=01 00",
+      "name": "non_normalized_bignumber_magnitude",
+      "type": "decode_error",
+      "input_bytes": "ca 00 04 01 00",
+      "expected_error": "invalid_data"
     },
     {
       "//": "Truncated short strings",

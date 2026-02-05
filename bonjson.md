@@ -198,7 +198,7 @@ Every value is composed of an 8-bit type code, and in some cases also a payload:
 | --------- | ---------------------------- | --------- | ------------------------------------------ |
 | 00 - c8   |                              | Number    | [Integers -100 through 100](#small-integer)|
 | c9        |                              |           | RESERVED                                   |
-| ca        | Zigzag LEB128 number         | Number    | [Big Number](#big-number)                  |
+| ca        | Zigzag LEB128 + LE magnitude | Number    | [Big Number](#big-number)                  |
 | cb        | 32-bit ieee754 binary float  | Number    | [32-bit float](#32-bit-float)              |
 | cc        | 64-bit ieee754 binary float  | Number    | [64-bit float](#64-bit-float)              |
 | cd        |                              | Null      | [Null](#null)                              |
@@ -357,18 +357,21 @@ For example: 127 fits in 1 byte as either signed or unsigned, so use signed (`e4
 
 ### Big Number
 
-Big Number ([type code](#type-codes) `0xca`) encodes arbitrary-precision base-10 numbers using [zigzag](https://en.wikipedia.org/wiki/Variable-length_quantity#Zigzag_encoding) [LEB128](https://en.wikipedia.org/wiki/LEB128) encoding.
+Big Number ([type code](#type-codes) `0xca`) encodes arbitrary-precision base-10 numbers using [zigzag](https://en.wikipedia.org/wiki/Variable-length_quantity#Zigzag_encoding) [LEB128](https://en.wikipedia.org/wiki/LEB128) metadata and little-endian magnitude bytes.
 
 The structure of a big number is as follows:
 
-    0xCA [exponent] [signed significand]
+    0xCA [exponent] [signed length] [magnitude bytes]
 
  * The `exponent` is encoded as a zigzag LEB128 value representing a base-10 exponent.
- * The `signed significand` is encoded as a zigzag LEB128 value. The sign of the significand is embedded in the zigzag encoding.
+ * The `signed length` is encoded as a zigzag LEB128 value. Its absolute value is the byte count of the magnitude field. Its sign indicates the sign of the significand: positive means the significand is positive, negative means the significand is negative, and zero means the significand is zero (with no magnitude bytes following).
+ * The `magnitude bytes` are an unsigned integer in little-endian byte order, exactly `abs(signed_length)` bytes long. When `signed_length` is zero, this field is absent.
 
-The final value is derived as: `significand` × 10^`exponent`
+The final value is derived as: `sign(signed_length)` × `magnitude` × 10^`exponent`
 
-**Zigzag encoding** maps signed integers to unsigned values: 0→0, -1→1, 1→2, -2→3, 2→4, etc. The encoding formula is: `unsigned = (signed << 1) ^ (signed >> (bit_width - 1))`, where `>>` is an arithmetic (sign-extending) right shift. Decoding: `signed = (unsigned >> 1) ^ -(unsigned & 1)`. These formulas are conceptual — implementations **MUST** support arbitrary-precision integers, not just 64-bit values (unless larger values are not supported by the implementation or configuration - see [Resource Limits](#resource-limits)).
+**Magnitude normalization**: The magnitude **MUST** be normalized: the last byte (most significant) **MUST** be non-zero. A zero-valued significand is represented by `signed_length = 0`, not by magnitude bytes of `0x00`. Decoders **MUST** reject big numbers with non-normalized magnitude (trailing zero bytes).
+
+**Zigzag encoding** maps signed integers to unsigned values: 0→0, -1→1, 1→2, -2→3, 2→4, etc. The encoding formula is: `unsigned = (signed << 1) ^ (signed >> (bit_width - 1))`, where `>>` is an arithmetic (sign-extending) right shift. Decoding: `signed = (unsigned >> 1) ^ -(unsigned & 1)`.
 
 **Note**: Zigzag encoding has no representation for negative zero. Both `+0` and `-0` map to unsigned `0`. To encode negative zero (`-0.0`), use an [IEEE 754 float encoding](#32-bit-float).
 
@@ -376,15 +379,15 @@ The final value is derived as: `significand` × 10^`exponent`
 
 **Examples**:
 
-    ca 00 00                   // 0 (exponent=zigzag(0x00)=0, significand=zigzag(0x00)=0)
-    ca 00 04                   // 2 (exponent=zigzag(0x00)=0, significand=zigzag(0x04)=2)
-    ca 00 01                   // -1 (exponent=zigzag(0x00)=0, significand=zigzag(0x01)=-1)
-    ca 01 1e                   // 1.5 (exponent=zigzag(0x01)=-1, significand=zigzag(0x1e)=15)
-                               //   → 15 × 10⁻¹ = 1.5
-    ca 04 14                   // 1000 (exponent=zigzag(0x04)=2, significand=zigzag(0x14)=10)
-                               //   → 10 × 10² = 1000
+    ca 00 00                   // 0 (exponent=0, signed_length=0 → significand is zero)
+    ca 00 02 02                // 2 (exponent=0, signed_length=+1, magnitude=0x02)
+    ca 00 01 01                // -1 (exponent=0, signed_length=-1, magnitude=0x01)
+    ca 01 02 0f                // 1.5 (exponent=zigzag(0x01)=-1, signed_length=+1,
+                               //   magnitude=0x0F=15) → 15 × 10⁻¹ = 1.5
+    ca 04 02 0a                // 1000 (exponent=zigzag(0x04)=2, signed_length=+1,
+                               //   magnitude=0x0A=10) → 10 × 10² = 1000
 
-**Encoder normalization**: Encoders **SHOULD** produce the most compact representation by normalizing trailing zeros out of the significand and into the exponent. For example, the value 1000 is more compactly encoded as `significand=1, exponent=3` than `significand=1000, exponent=0`. If the significand is zero, encoders **SHOULD** also normalize the exponent to zero (i.e., encode as `ca 00 00` rather than using a non-zero exponent). See also [Interoperability Considerations](#interoperability-considerations).
+**Encoder normalization**: Encoders **SHOULD** produce the most compact representation by normalizing trailing zeros out of the significand and into the exponent. For example, the value 1000 is more compactly encoded as `significand=1, exponent=3` than `significand=10, exponent=2`. If the significand is zero, encoders **SHOULD** also normalize the exponent to zero (i.e., encode as `ca 00 00` rather than using a non-zero exponent). See also [Interoperability Considerations](#interoperability-considerations).
 
 
 
@@ -712,7 +715,11 @@ int_signed        = u8(0xe4) & ordered(sint( 8, ~))
                   ;
 float_32          = u8(0xcb) & ordered(f32(~));
 float_64          = u8(0xcc) & ordered(f64(~));
-big_number        = u8(0xca) & zigzag_leb128(~) & zigzag_leb128(~);
+# Big number: exponent (zigzag LEB128), signed_length (zigzag LEB128),
+# then abs(signed_length) unsigned LE magnitude bytes.
+# The sign of signed_length indicates the sign of the significand.
+big_number        = u8(0xca) & zigzag_leb128(~) & zigzag_leb128(var(slen, ~))
+                  & sized(abs(slen) * 8, uint(abs(slen) * 8, ~));
 
 boolean           = true | false;
 false             = u8(0xce);

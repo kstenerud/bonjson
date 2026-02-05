@@ -30,7 +30,11 @@ int_signed        = u8(0xe4) & ordered(sint( 8, ~))
                   ;
 float_32          = u8(0xcb) & ordered(f32(~));
 float_64          = u8(0xcc) & ordered(f64(~));
-big_number        = u8(0xca) & zigzag_leb128(~) & zigzag_leb128(~);
+# Big number: exponent (zigzag LEB128), signed_length (zigzag LEB128),
+# then abs(signed_length) unsigned LE magnitude bytes.
+# The sign of signed_length indicates the sign of the significand.
+big_number        = u8(0xca) & zigzag_leb128(~) & zigzag_leb128(var(slen, ~))
+                  & sized(abs(slen) * 8, uint(abs(slen) * 8, ~));
 
 boolean           = true | false;
 false             = u8(0xce);
@@ -46,7 +50,7 @@ string_long       = u8(0xff) & char_string* & u8(0xff);
 # Zigzag maps signed to unsigned: 0→0, -1→1, 1→2, -2→3, ...
 # LEB128 stores 7 data bits per byte, MSbit=1 means more bytes follow.
 zigzag_leb128(v)  = leb128(zigzag(v));
-zigzag(v)         = uint(~, (v << 1) ^ (v >> 63));  # signed to unsigned
+zigzag(v)         = uint(~, (v << 1) ^ (v >> (bit_width(v) - 1)));  # signed to unsigned
 leb128(v)         = [
                         v <= 0x7f: uint(7, v) & u1(0);
                         v >  0x7f: uint(7, v) & u1(1) & leb128(v >> 7);

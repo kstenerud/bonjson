@@ -2,11 +2,11 @@
   "type": "bonjson-test",
   "version": "1.0.0",
   "//": "BigNumber encoding tests for values that cannot be represented as IEEE 754 floats",
-  "//note": "BigNumber uses zigzag LEB128 for both exponent and significand. Wire format: 0xCA + zigzag_leb128(exponent) + zigzag_leb128(signed_significand). Negative zero is not representable as bignum (use IEEE754 float).",
+  "//note": "BigNumber uses zigzag LEB128 metadata and little-endian magnitude bytes. Wire format: 0xCA + zigzag_leb128(exponent) + zigzag_leb128(signed_length) + magnitude_bytes. signed_length encodes both the sign and byte count of the magnitude. Negative zero is not representable as bignum (use IEEE754 float).",
   "tests": [
     {
       "//": "=== BigNumber zero encoding ===",
-      "//note": "Zero: exponent=0 (0x00), significand=0 (0x00) → 2 payload bytes",
+      "//note": "Zero: exponent=0 (0x00), signed_length=0 (0x00), no magnitude bytes",
       "name": "decode_bignumber_zero",
       "type": "decode",
       "input_bytes": "ca 00 00",
@@ -215,13 +215,13 @@
     },
     {
       "//": "=== BigNumber wire format tests ===",
-      "//note": "Zigzag LEB128 encoding: type_code(0xCA) + zigzag_leb128(exponent) + zigzag_leb128(signed_significand)"
+      "//note": "Wire format: type_code(0xCA) + zigzag_leb128(exponent) + zigzag_leb128(signed_length) + magnitude_bytes"
     },
     {
-      "//": "Zero exponent, significand=1: zigzag(0)=0x00, zigzag(1)=0x02",
+      "//": "Zero exponent, significand=1: exponent=0, signed_length=+1→zigzag(1)=0x02, magnitude=0x01",
       "name": "decode_bignumber_zero_exponent",
       "type": "decode",
-      "input_bytes": "ca 00 02",
+      "input_bytes": "ca 00 02 01",
       "expected_value": 1
     },
     {
@@ -290,28 +290,42 @@
     },
     {
       "//": "=== Significand size tests ===",
-      "//note": "Zigzag LEB128 significand encoding"
+      "//note": "Signed length + LE magnitude encoding"
     },
     {
-      "//": "Significand=255: zigzag(255)=510, LEB128=0xFE 0x03",
+      "//": "Value 255: signed_length=+1→zigzag(1)=0x02, magnitude=0xFF",
       "name": "decode_bignumber_sig_1_byte",
       "type": "decode",
-      "input_bytes": "ca 00 fe 03",
+      "input_bytes": "ca 00 02 ff",
       "expected_value": 255
     },
     {
-      "//": "Significand=65535: zigzag(65535)=131070, LEB128=0xFE 0xFF 0x07",
+      "//": "Value 65535: signed_length=+2→zigzag(2)=0x04, magnitude=0xFFFF LE",
       "name": "decode_bignumber_sig_2_bytes",
       "type": "decode",
-      "input_bytes": "ca 00 fe ff 07",
+      "input_bytes": "ca 00 04 ff ff",
       "expected_value": 65535
     },
     {
-      "//": "Significand=65537: zigzag(65537)=131074, LEB128=0x82 0x80 0x08",
+      "//": "Value 65537: signed_length=+3→zigzag(3)=0x06, magnitude=0x010001 LE = 01 00 01",
       "name": "decode_bignumber_sig_3_bytes",
       "type": "decode",
-      "input_bytes": "ca 00 82 80 08",
+      "input_bytes": "ca 00 06 01 00 01",
       "expected_value": 65537
+    },
+    {
+      "//": "Value -255: signed_length=-1→zigzag(-1)=0x01, magnitude=0xFF",
+      "name": "decode_bignumber_negative_1_byte",
+      "type": "decode",
+      "input_bytes": "ca 00 01 ff",
+      "expected_value": -255
+    },
+    {
+      "//": "Value -65535: signed_length=-2→zigzag(-2)=0x03, magnitude=0xFFFF LE",
+      "name": "decode_bignumber_negative_2_bytes",
+      "type": "decode",
+      "input_bytes": "ca 00 03 ff ff",
+      "expected_value": -65535
     },
     {
       "//": "=== Large significand tests (require arbitrary precision) ===",

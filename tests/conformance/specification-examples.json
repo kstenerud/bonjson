@@ -158,21 +158,21 @@
       "expected_bytes": "cc 58 39 b4 c8 76 be f3 3f"
     },
     {
-      "//": "BigNumber decoding: 1.5 = 15 * 10^-1. Zigzag LEB128: exp=zigzag(-1)=0x01, sig=zigzag(15)=0x1E",
+      "//": "BigNumber decoding: 1.5 = 15 * 10^-1. exp=zigzag(-1)=0x01, signed_length=+1→zigzag(1)=0x02, magnitude=15=0x0F",
       "name": "spec_bignumber_1_5",
       "type": "decode",
-      "input_bytes": "ca 01 1e",
+      "input_bytes": "ca 01 02 0f",
       "expected_value": {
         "$number": "1.5"
       }
     },
     {
-      "//": "Negative zero bignum: not representable in zigzag LEB128 (use IEEE754 float -0.0 instead)",
+      "//": "Negative zero bignum: not representable (signed_length=0 is always positive zero; use IEEE754 float -0.0 instead)",
       "name": "spec_bignumber_neg_zero",
       "type": "decode",
       "input_bytes": "ca 00 00",
       "expected_value": 0,
-      "//note": "Zigzag LEB128 zero is always positive; negative zero uses float64 path"
+      "//note": "signed_length=0 always means positive zero; negative zero uses float encoding"
     },
     {
       "//": "Array example from spec (3 elements → count=0x0c)",

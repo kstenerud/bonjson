@@ -1106,10 +1106,10 @@ Appendix B: Complete Example
       "expected_bytes": "e3 ff ff ff ff ff ff ff ff"
     },
     {
-      "//": "BigNumber decodes to 1.5 (0xca = BigNumber, zigzag LEB128)",
+      "//": "BigNumber decodes to 1.5 (0xca = BigNumber, zigzag LEB128 + LE magnitude)",
       "name": "bignumber_1_5",
       "type": "decode",
-      "input_bytes": "ca 01 1e",
+      "input_bytes": "ca 01 02 0f",
       "expected_value": {"$number": "1.5"}
     },
     {
