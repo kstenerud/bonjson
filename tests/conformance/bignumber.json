@@ -363,6 +363,84 @@
       "requires": [
         "arbitrary_precision_bignumber"
       ]
+    },
+    {
+      "//": "=== Non-zero exponent decode tests ===",
+      "//note": "Verify exact zigzag LEB128 encoding of exponent field with known byte sequences"
+    },
+    {
+      "//": "Value 2: exponent=0→zigzag(0)=0x00, signed_length=+1→zigzag(1)=0x02, magnitude=0x02",
+      "name": "decode_bignumber_value_2",
+      "type": "decode",
+      "input_bytes": "ca 00 02 02",
+      "expected_value": 2
+    },
+    {
+      "//": "Value -1: exponent=0→zigzag(0)=0x00, signed_length=-1→zigzag(-1)=0x01, magnitude=0x01",
+      "name": "decode_bignumber_negative_1",
+      "type": "decode",
+      "input_bytes": "ca 00 01 01",
+      "expected_value": -1
+    },
+    {
+      "//": "Value 1.5 (15×10⁻¹): exponent=-1→zigzag(-1)=0x01, signed_length=+1→zigzag(1)=0x02, magnitude=0x0F",
+      "name": "decode_bignumber_decimal_1_5",
+      "type": "decode",
+      "input_bytes": "ca 01 02 0f",
+      "expected_value": 1.5
+    },
+    {
+      "//": "Value 1000 (10×10²): exponent=2→zigzag(2)=0x04, signed_length=+1→zigzag(1)=0x02, magnitude=0x0A",
+      "name": "decode_bignumber_value_1000",
+      "type": "decode",
+      "input_bytes": "ca 04 02 0a",
+      "expected_value": 1000
+    },
+    {
+      "//": "Value -1000 (-10×10²): exponent=2→zigzag(2)=0x04, signed_length=-1→zigzag(-1)=0x01, magnitude=0x0A",
+      "name": "decode_bignumber_neg_1000",
+      "type": "decode",
+      "input_bytes": "ca 04 01 0a",
+      "expected_value": -1000
+    },
+    {
+      "//": "Value 100000 (1×10⁵): exponent=5→zigzag(5)=0x0A, signed_length=+1→zigzag(1)=0x02, magnitude=0x01",
+      "name": "decode_bignumber_value_100000",
+      "type": "decode",
+      "input_bytes": "ca 0a 02 01",
+      "expected_value": 100000
+    },
+    {
+      "//": "=== Zigzag LEB128 exponent encoding boundary tests ===",
+      "//note": "1-byte zigzag LEB128 holds zigzag values 0-127, so max 1-byte positive exponent is 63 (zigzag=126) and max 1-byte negative exponent is -64 (zigzag=127)"
+    },
+    {
+      "//": "Exponent 63: zigzag(63)=126=0x7E, max 1-byte positive exponent. sig=1, value=10^63",
+      "name": "decode_bignumber_exp_63_max_1byte_positive",
+      "type": "decode",
+      "input_bytes": "ca 7e 02 01",
+      "expected_value": {"$number": "1000000000000000000000000000000000000000000000000000000000000000"},
+      "requires": ["arbitrary_precision_bignumber"]
+    },
+    {
+      "//": "Exponent -64: zigzag(-64)=127=0x7F, last 1-byte negative exponent",
+      "name": "roundtrip_bignumber_exp_neg64_max_1byte_negative",
+      "type": "roundtrip",
+      "input": {"$number": "1e-64"}
+    },
+    {
+      "//": "Exponent 64: zigzag(64)=128, LEB128=0x80 0x01. First 2-byte positive exponent. sig=1, value=10^64",
+      "name": "decode_bignumber_exp_64_first_2byte_positive",
+      "type": "decode",
+      "input_bytes": "ca 80 01 02 01",
+      "expected_value": {"$number": "10000000000000000000000000000000000000000000000000000000000000000"},
+      "requires": ["arbitrary_precision_bignumber"]
+    },
+    {
+      "//": "Exponent -65: zigzag(-65)=129, LEB128=0x81 0x01. First 2-byte negative exponent",
+      "name": "roundtrip_bignumber_exp_neg65_first_2byte_negative",
+      "type": "roundtrip",
+      "input": {"$number": "1e-65"}
     }
   ]
 }

@@ -530,6 +530,106 @@
       ]
     },
     {
+      "//": "=== Float32 NaN/Infinity handling modes ===",
+      "//note": "Float32 versions of the above tests - implementations must handle both float sizes"
+    },
+    {
+      "//": "Float32 NaN rejected by default",
+      "name": "nan_float32_rejected_default",
+      "type": "decode_error",
+      "input_bytes": "cb 00 00 c0 7f",
+      "expected_error": "nan_not_allowed"
+    },
+    {
+      "//": "Float32 positive Infinity rejected by default",
+      "name": "infinity_float32_rejected_default",
+      "type": "decode_error",
+      "input_bytes": "cb 00 00 80 7f",
+      "expected_error": "infinity_not_allowed"
+    },
+    {
+      "//": "Float32 negative Infinity rejected by default",
+      "name": "neg_infinity_float32_rejected_default",
+      "type": "decode_error",
+      "input_bytes": "cb 00 00 80 ff",
+      "expected_error": "infinity_not_allowed"
+    },
+    {
+      "//": "Float32 NaN allowed with option",
+      "name": "nan_float32_allowed",
+      "type": "decode",
+      "input_bytes": "cb 00 00 c0 7f",
+      "expected_value": {
+        "$number": "NaN"
+      },
+      "options": {
+        "nan_infinity_behavior": "allow"
+      }
+    },
+    {
+      "//": "Float32 positive Infinity allowed with option",
+      "name": "infinity_float32_allowed",
+      "type": "decode",
+      "input_bytes": "cb 00 00 80 7f",
+      "expected_value": {
+        "$number": "Infinity"
+      },
+      "options": {
+        "nan_infinity_behavior": "allow"
+      }
+    },
+    {
+      "//": "Float32 negative Infinity allowed with option",
+      "name": "neg_infinity_float32_allowed",
+      "type": "decode",
+      "input_bytes": "cb 00 00 80 ff",
+      "expected_value": {
+        "$number": "-Infinity"
+      },
+      "options": {
+        "nan_infinity_behavior": "allow"
+      }
+    },
+    {
+      "//": "Float32 NaN converted to string with stringify option",
+      "name": "nan_float32_stringify",
+      "type": "decode",
+      "input_bytes": "cb 00 00 c0 7f",
+      "expected_value": "NaN",
+      "options": {
+        "nan_infinity_behavior": "stringify"
+      },
+      "requires": [
+        "nan_infinity_stringify"
+      ]
+    },
+    {
+      "//": "Float32 positive Infinity converted to string with stringify option",
+      "name": "infinity_float32_stringify",
+      "type": "decode",
+      "input_bytes": "cb 00 00 80 7f",
+      "expected_value": "Infinity",
+      "options": {
+        "nan_infinity_behavior": "stringify"
+      },
+      "requires": [
+        "nan_infinity_stringify"
+      ]
+    },
+    {
+      "//": "Float32 negative Infinity converted to string with stringify option",
+      "name": "neg_infinity_float32_stringify",
+      "type": "decode",
+      "input_bytes": "cb 00 00 80 ff",
+      "expected_value": "-Infinity",
+      "options": {
+        "nan_infinity_behavior": "stringify"
+      },
+      "requires": [
+        "nan_infinity_stringify"
+      ]
+    },
+    {
       "//": "=== Duplicate key handling modes ===",
       "//note": "keep_first silently ignores subsequent duplicates",
       "name": "dup_key_keep_first",
