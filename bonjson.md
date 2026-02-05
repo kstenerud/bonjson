@@ -470,7 +470,7 @@ JavaScript in particular can natively handle:
  * 64 bit floating point values
  * 53 bit integer values (plus the sign)
 
-**Warning**: [Big numbers](#big-number) can encode very large values. Converting such values to decimal strings or performing arbitrary-precision arithmetic could consume excessive memory or CPU. Decoders **MUST** impose limits on numeric range as specified in [Resource Limits](#resource-limits).
+**Warning**: [Big numbers](#big-number) can encode very large values. Converting such values to decimal strings or performing arbitrary-precision arithmetic could consume excessive memory or CPU. Decoders **MUST** impose limits on big number magnitude and exponent as specified in [Resource Limits](#resource-limits), even on platforms that support arbitrary-precision numeric types.
 
 
 
@@ -494,7 +494,9 @@ Decoders **MUST** enforce limits on resource consumption to prevent denial-of-se
 | Maximum nesting depth  | 500                  | Before any value is written, the depth is 0. The top-level value has depth 1. Each value inside a container is one level deeper than the container itself. Examples: `1` has depth 1; `[]` has depth 1; `[1]` has depth 2 (array at 1, element at 2); `[[]]` has depth 2 (outer array at 1, inner array at 2); `[[1]]` has depth 3 (outer at 1, inner at 2, element at 3). |
 | Maximum container size | 1,000,000 elements   | Total elements in a single array or key-value pairs in a single object                                   |
 | Maximum string length  | 10,000,000 bytes     | Total encoded byte length of a single string                                                             |
-| Numeric range          | Platform default     | Maximum absolute value for integers and floats. **SHOULD** default to the platform's native limits (e.g., 64-bit float/integer). See [Value Ranges](#value-ranges) |
+| Numeric range          | Platform default     | Maximum absolute value for native integers and floats. **SHOULD** default to the platform's native limits (e.g., 64-bit float/integer). See [Value Ranges](#value-ranges) |
+| Big number magnitude   | 256 bytes            | Maximum byte length of the [big number](#big-number) magnitude. 256 bytes provides approximately 617 decimal digits of precision, sufficient for virtually all legitimate use cases |
+| Big number exponent    | ±100,000             | Maximum absolute value of the [big number](#big-number) exponent. Limits the cost of decimal conversion and arithmetic operations |
 
 Implementations **SHOULD** support at minimum 64-bit IEEE 754 floats and 64-bit signed and unsigned integers. JavaScript environments are limited to 53-bit integer precision; implementations targeting JavaScript **SHOULD** document this limitation.
 
