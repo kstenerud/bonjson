@@ -618,6 +618,147 @@
       "options": {
         "invalid_utf8": "delete"
       }
+    },
+    {
+      "//": "=== Unicode normalization handling ==="
+    },
+    {
+      "//": "Decomposed é (U+0065 U+0301, UTF-8: 65 cc 81) preserved without normalization",
+      "name": "unicode_normalization_none_preserves_decomposed",
+      "type": "decode",
+      "input_bytes": "d3 65 cc 81",
+      "expected_value": "e\u0301"
+    },
+    {
+      "//": "Decomposed é normalized to composed é (U+00E9) with NFC",
+      "name": "unicode_normalization_nfc_composes",
+      "type": "decode",
+      "input_bytes": "d3 65 cc 81",
+      "expected_value": "\u00e9",
+      "options": {
+        "unicode_normalization": "nfc"
+      }
+    },
+    {
+      "//": "Already-composed é (U+00E9) unchanged by NFC",
+      "name": "unicode_normalization_nfc_preserves_composed",
+      "type": "decode",
+      "input_bytes": "d2 c3 a9",
+      "expected_value": "\u00e9",
+      "options": {
+        "unicode_normalization": "nfc"
+      }
+    },
+    {
+      "//": "Decomposed ñ (U+006E U+0303, UTF-8: 6e cc 83) normalized to U+00F1",
+      "name": "unicode_normalization_nfc_n_tilde",
+      "type": "decode",
+      "input_bytes": "d3 6e cc 83",
+      "expected_value": "\u00f1",
+      "options": {
+        "unicode_normalization": "nfc"
+      }
+    },
+    {
+      "//": "Angstrom sign (U+212B, UTF-8: e2 84 ab) normalized to Å (U+00C5) under NFC",
+      "name": "unicode_normalization_nfc_angstrom",
+      "type": "decode",
+      "input_bytes": "d3 e2 84 ab",
+      "expected_value": "\u00c5",
+      "options": {
+        "unicode_normalization": "nfc"
+      }
+    },
+    {
+      "//": "Decomposed string roundtrips without normalization (default)",
+      "name": "roundtrip_decomposed_no_normalization",
+      "type": "roundtrip",
+      "input": "e\u0301"
+    },
+    {
+      "//": "Object with composed and decomposed keys: different keys without NFC",
+      "//note": "Key 1: é composed (d2 c3 a9), value 1; Key 2: e+combining acute (d3 65 cc 81), value 2",
+      "name": "unicode_normalization_none_different_keys",
+      "type": "decode",
+      "input_bytes": "fd d2 c3 a9 65 d3 65 cc 81 66 fe",
+      "expected_value": {"\u00e9": 1, "e\u0301": 2}
+    },
+    {
+      "//": "Same object detected as duplicate keys under NFC normalization",
+      "name": "unicode_normalization_nfc_duplicate_key",
+      "type": "decode_error",
+      "input_bytes": "fd d2 c3 a9 65 d3 65 cc 81 66 fe",
+      "expected_error": "duplicate_key",
+      "options": {
+        "unicode_normalization": "nfc"
+      }
+    },
+    {
+      "//": "=== Out-of-range BigNumber handling ==="
+    },
+    {
+      "//": "1e400 exceeds float64 max (~1.8e308), rejected by default",
+      "//note": "BigNumber: exponent=400 (zigzag a0 06), signed_length=+1 (zigzag 02), magnitude=01",
+      "name": "out_of_range_bignumber_positive",
+      "type": "decode_error",
+      "input_bytes": "ca a0 06 02 01",
+      "expected_error": "value_out_of_range"
+    },
+    {
+      "//": "-1e400 exceeds float64 range, rejected by default",
+      "//note": "BigNumber: exponent=400, signed_length=-1 (zigzag 01), magnitude=01",
+      "name": "out_of_range_bignumber_negative",
+      "type": "decode_error",
+      "input_bytes": "ca a0 06 01 01",
+      "expected_error": "value_out_of_range"
+    },
+    {
+      "//": "1e309 just above float64 max, rejected by default",
+      "//note": "BigNumber: exponent=309 (zigzag ea 04), signed_length=+1 (zigzag 02), magnitude=01",
+      "name": "out_of_range_bignumber_just_above_max",
+      "type": "decode_error",
+      "input_bytes": "ca ea 04 02 01",
+      "expected_error": "value_out_of_range"
+    },
+    {
+      "//": "1e400 converted to string with stringify option",
+      "name": "out_of_range_bignumber_stringify_positive",
+      "type": "decode",
+      "input_bytes": "ca a0 06 02 01",
+      "expected_value": "1e400",
+      "options": {
+        "out_of_range": "stringify"
+      },
+      "requires": [
+        "out_of_range_stringify"
+      ]
+    },
+    {
+      "//": "-1e400 converted to string with stringify option",
+      "name": "out_of_range_bignumber_stringify_negative",
+      "type": "decode",
+      "input_bytes": "ca a0 06 01 01",
+      "expected_value": "-1e400",
+      "options": {
+        "out_of_range": "stringify"
+      },
+      "requires": [
+        "out_of_range_stringify"
+      ]
+    },
+    {
+      "//": "15e399 (multi-digit significand) converted to string",
+      "//note": "BigNumber: exponent=399 (zigzag 9e 06), signed_length=+1 (zigzag 02), magnitude=0f (15)",
+      "name": "out_of_range_bignumber_stringify_multi_digit",
+      "type": "decode",
+      "input_bytes": "ca 9e 06 02 0f",
+      "expected_value": "15e399",
+      "options": {
+        "out_of_range": "stringify"
+      },
+      "requires": [
+        "out_of_range_stringify"
+      ]
     }
   ]
 }
