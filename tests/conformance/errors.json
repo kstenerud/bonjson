@@ -491,6 +491,125 @@
       "type": "decode_error",
       "input_bytes": "fa",
       "expected_error": "invalid_type_code"
+    },
+    {
+      "//": "Float64 signaling NaN rejected by default",
+      "name": "float64_snan_rejected",
+      "type": "decode_error",
+      "input_bytes": "cc 01 00 00 00 00 00 f0 7f",
+      "expected_error": "invalid_data"
+    },
+    {
+      "//": "Float32 signaling NaN rejected by default",
+      "name": "float32_snan_rejected",
+      "type": "decode_error",
+      "input_bytes": "cb 01 00 80 7f",
+      "expected_error": "invalid_data"
+    },
+    {
+      "//": "Encoding NUL character in string rejected by default",
+      "name": "encode_nul_in_string",
+      "type": "encode_error",
+      "input": "a\u0000b",
+      "expected_error": "nul_character"
+    },
+    {
+      "//": "NUL character in object key rejected",
+      "name": "nul_in_object_key",
+      "type": "decode_error",
+      "input_bytes": "fd d2 61 00 65 fe",
+      "expected_error": "nul_character"
+    },
+    {
+      "name": "invalid_type_code_ea",
+      "type": "decode_error",
+      "input_bytes": "ea",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_eb",
+      "type": "decode_error",
+      "input_bytes": "eb",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_ec",
+      "type": "decode_error",
+      "input_bytes": "ec",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_ed",
+      "type": "decode_error",
+      "input_bytes": "ed",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_ee",
+      "type": "decode_error",
+      "input_bytes": "ee",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_ef",
+      "type": "decode_error",
+      "input_bytes": "ef",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_f1",
+      "type": "decode_error",
+      "input_bytes": "f1",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_f2",
+      "type": "decode_error",
+      "input_bytes": "f2",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_f3",
+      "type": "decode_error",
+      "input_bytes": "f3",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_f4",
+      "type": "decode_error",
+      "input_bytes": "f4",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_f6",
+      "type": "decode_error",
+      "input_bytes": "f6",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_f7",
+      "type": "decode_error",
+      "input_bytes": "f7",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_f8",
+      "type": "decode_error",
+      "input_bytes": "f8",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_f9",
+      "type": "decode_error",
+      "input_bytes": "f9",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "//": "Object end marker encountered in value position",
+      "name": "object_end_marker_as_value",
+      "type": "decode_error",
+      "input_bytes": "fd d1 61 fe fe",
+      "expected_error": "invalid_type_code"
     }
   ]
 }

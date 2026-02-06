@@ -4,7 +4,7 @@
   "//": "String encoding tests covering short strings (0xD0-0xDF) and long strings (0xFF+data+0xFF)",
   "tests": [
     {
-      "//": "Short string encoding: 0-15 byte strings use type codes 0xe0-0xef",
+      "//": "Short string encoding: 0-15 byte strings use type codes 0xd0-0xdf",
       "name": "short_string_empty",
       "type": "encode",
       "input": "",
@@ -326,6 +326,31 @@
       "type": "decode",
       "input_bytes": "ff 61 ff",
       "expected_value": "a"
+    },
+    {
+      "//": "Tab character in string round-trips correctly",
+      "name": "roundtrip_string_tab",
+      "type": "roundtrip",
+      "input": "a\tb"
+    },
+    {
+      "//": "Line feed in string round-trips correctly",
+      "name": "roundtrip_string_lf",
+      "type": "roundtrip",
+      "input": "a\nb"
+    },
+    {
+      "//": "Carriage return in string round-trips correctly",
+      "name": "roundtrip_string_cr",
+      "type": "roundtrip",
+      "input": "a\rb"
+    },
+    {
+      "//": "Short string encode with tab character",
+      "name": "encode_short_string_with_tab",
+      "type": "encode",
+      "input": "a\tb",
+      "expected_bytes": "d3 61 09 62"
     }
   ]
 }

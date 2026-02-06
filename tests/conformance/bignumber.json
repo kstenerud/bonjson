@@ -414,6 +414,30 @@
       "name": "roundtrip_bignumber_exp_neg65_first_2byte_negative",
       "type": "roundtrip",
       "input": {"$number": "1e-65"}
+    },
+    {
+      "//": "Encode 10^20 as BigNumber (outside int64 range)",
+      "//note": "sig=1, exp=20 (zigzag=40=0x28), signed_len=+1 (zigzag=2=0x02), magnitude=0x01",
+      "name": "encode_bignumber_10e20",
+      "type": "encode",
+      "input": {"$number": "100000000000000000000"},
+      "expected_bytes": "ca 28 02 01"
+    },
+    {
+      "//": "Encode -10^20 as BigNumber",
+      "//note": "sig=-1, exp=20, signed_len=-1 (zigzag=1=0x01), magnitude=0x01",
+      "name": "encode_bignumber_neg_10e20",
+      "type": "encode",
+      "input": {"$number": "-100000000000000000000"},
+      "expected_bytes": "ca 28 01 01"
+    },
+    {
+      "//": "Encode 2^64 as BigNumber (not divisible by 10)",
+      "//note": "sig=2^64, exp=0. Magnitude = 0x10000000000000000 = 9 bytes LE. signed_len=+9 (zigzag=18=0x12), exp=0 (zigzag=0=0x00)",
+      "name": "encode_bignumber_2_pow_64",
+      "type": "encode",
+      "input": {"$number": "18446744073709551616"},
+      "expected_bytes": "ca 00 12 00 00 00 00 00 00 00 00 01"
     }
   ]
 }

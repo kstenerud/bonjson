@@ -284,18 +284,15 @@
       }
     },
     {
-      "//": "At the limit is OK (depth 5 means 5 nested containers allowed)",
-      "//note": "5 nested arrays, innermost contains integer 0",
+      "//": "At the limit is OK (5 nested empty arrays, deepest at depth 5)",
       "name": "max_depth_at_limit",
       "type": "decode",
-      "input_bytes": "fc fc fc fc fc 64 fe fe fe fe fe",
+      "input_bytes": "fc fc fc fc fc fe fe fe fe fe",
       "expected_value": [
         [
           [
             [
-              [
-                0
-              ]
+              []
             ]
           ]
         ]
@@ -407,7 +404,7 @@
       "name": "nul_in_string_rejected",
       "type": "decode_error",
       "input_bytes": "d2 61 00",
-      "expected_error": "nul_in_string"
+      "expected_error": "nul_character"
     },
     {
       "//": "NUL allowed with option",
@@ -438,21 +435,21 @@
       "name": "nan_rejected_default",
       "type": "decode_error",
       "input_bytes": "cc 00 00 00 00 00 00 f8 7f",
-      "expected_error": "nan_not_allowed"
+      "expected_error": "invalid_data"
     },
     {
       "//": "Float64 positive Infinity rejected by default",
       "name": "infinity_rejected_default",
       "type": "decode_error",
       "input_bytes": "cc 00 00 00 00 00 00 f0 7f",
-      "expected_error": "infinity_not_allowed"
+      "expected_error": "invalid_data"
     },
     {
       "//": "Float64 negative Infinity rejected by default",
       "name": "neg_infinity_rejected_default",
       "type": "decode_error",
       "input_bytes": "cc 00 00 00 00 00 00 f0 ff",
-      "expected_error": "infinity_not_allowed"
+      "expected_error": "invalid_data"
     },
     {
       "//": "NaN allowed with option",
@@ -538,21 +535,21 @@
       "name": "nan_float32_rejected_default",
       "type": "decode_error",
       "input_bytes": "cb 00 00 c0 7f",
-      "expected_error": "nan_not_allowed"
+      "expected_error": "invalid_data"
     },
     {
       "//": "Float32 positive Infinity rejected by default",
       "name": "infinity_float32_rejected_default",
       "type": "decode_error",
       "input_bytes": "cb 00 00 80 7f",
-      "expected_error": "infinity_not_allowed"
+      "expected_error": "invalid_data"
     },
     {
       "//": "Float32 negative Infinity rejected by default",
       "name": "neg_infinity_float32_rejected_default",
       "type": "decode_error",
       "input_bytes": "cb 00 00 80 ff",
-      "expected_error": "infinity_not_allowed"
+      "expected_error": "invalid_data"
     },
     {
       "//": "Float32 NaN allowed with option",
@@ -906,6 +903,110 @@
       "requires": [
         "out_of_range_stringify"
       ]
+    },
+    {
+      "//": "Float64 signaling NaN allowed with option",
+      "name": "snan_float64_allowed",
+      "type": "decode",
+      "input_bytes": "cc 01 00 00 00 00 00 f0 7f",
+      "expected_value": {"$number": "sNaN"},
+      "options": {"nan_infinity_behavior": "allow"},
+      "requires": ["signaling_nan"]
+    },
+    {
+      "//": "Float32 signaling NaN allowed with option",
+      "name": "snan_float32_allowed",
+      "type": "decode",
+      "input_bytes": "cb 01 00 80 7f",
+      "expected_value": {"$number": "sNaN"},
+      "options": {"nan_infinity_behavior": "allow"},
+      "requires": ["signaling_nan"]
+    },
+    {
+      "//": "Invalid UTF-8 passed through as raw bytes (short string)",
+      "name": "invalid_utf8_pass_through_short_string",
+      "type": "decode",
+      "input_bytes": "d3 61 80 62",
+      "expected_value": {"$bytes": "61 80 62"},
+      "options": {"invalid_utf8": "pass_through"},
+      "requires": ["raw_string_bytes"]
+    },
+    {
+      "//": "Invalid UTF-8 passed through as raw bytes (long string)",
+      "name": "invalid_utf8_pass_through_long_string",
+      "type": "decode",
+      "input_bytes": "ff 61 80 62 ff",
+      "expected_value": {"$bytes": "61 80 62"},
+      "options": {"invalid_utf8": "pass_through"},
+      "requires": ["raw_string_bytes"]
+    },
+    {
+      "//": "Duplicate empty string keys",
+      "name": "duplicate_key_empty_string",
+      "type": "decode_error",
+      "input_bytes": "fd d0 65 d0 66 fe",
+      "expected_error": "duplicate_key"
+    },
+    {
+      "//": "Duplicate long string keys (16-byte keys using ff-terminated encoding)",
+      "name": "duplicate_key_long_string",
+      "type": "decode_error",
+      "input_bytes": "fd ff 61 62 63 64 65 66 67 68 69 6a 6b 6c 6d 6e 6f 70 ff 65 ff 61 62 63 64 65 66 67 68 69 6a 6b 6c 6d 6e 6f 70 ff 66 fe",
+      "expected_error": "duplicate_key"
+    },
+    {
+      "//": "Duplicate keys using different string encodings (short vs long)",
+      "name": "duplicate_key_mixed_encoding",
+      "type": "decode_error",
+      "input_bytes": "fd d1 61 65 ff 61 ff 66 fe",
+      "expected_error": "duplicate_key"
+    },
+    {
+      "//": "Primitive at depth 1 with max_depth 1",
+      "name": "max_depth_1_primitive",
+      "type": "decode",
+      "input_bytes": "64",
+      "expected_value": 0,
+      "options": {"max_depth": 1}
+    },
+    {
+      "//": "Empty container at depth 1 with max_depth 1",
+      "name": "max_depth_1_empty_container",
+      "type": "decode",
+      "input_bytes": "fc fe",
+      "expected_value": [],
+      "options": {"max_depth": 1}
+    },
+    {
+      "//": "Container with element exceeds max_depth 1 (element would be at depth 2)",
+      "name": "max_depth_1_container_with_element",
+      "type": "decode_error",
+      "input_bytes": "fc 64 fe",
+      "expected_error": "max_depth_exceeded",
+      "options": {"max_depth": 1}
+    },
+    {
+      "//": "Flat array with max_depth 2",
+      "name": "max_depth_2_flat_array",
+      "type": "decode",
+      "input_bytes": "fc 64 66 fe",
+      "expected_value": [0, 2],
+      "options": {"max_depth": 2}
+    },
+    {
+      "//": "Nested array exceeds max_depth 2 (inner array element at depth 3)",
+      "name": "max_depth_2_nested_exceeded",
+      "type": "decode_error",
+      "input_bytes": "fc fc 64 fe fe",
+      "expected_error": "max_depth_exceeded",
+      "options": {"max_depth": 2}
+    },
+    {
+      "//": "4-byte overlong UTF-8 encoding of U+002F (should be 1 byte)",
+      "name": "invalid_utf8_4byte_overlong",
+      "type": "decode_error",
+      "input_bytes": "d4 f0 80 80 af",
+      "expected_error": "invalid_utf8"
     }
   ]
 }
