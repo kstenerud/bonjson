@@ -481,7 +481,7 @@ All data formats contain technically feasible coding sequences that could result
 
 BONJSON handles this by choosing opinionated, secure default behaviors while allowing informed users to deliberately disable such security protections when necessary.
 
-**Note**: By "rejecting", it is meant that the entire document is rejected as a consequence of rejecting the unacceptable data (as opposed to just ignoring or replacing the unacceptable data).
+**Note**: Many parts of this specification mention "rejecting" values or encodings. What is meant is that the _entire document_ is rejected as a consequence of rejecting the unacceptable data (as opposed to ignoring or replacing the unacceptable data).
 
 
 ### Resource Limits
@@ -498,7 +498,7 @@ Decoders **MUST** enforce limits on resource consumption to prevent denial-of-se
 | Big number magnitude   | 256 bytes            | Maximum byte length of the [big number](#big-number) magnitude. 256 bytes provides approximately 617 decimal digits of precision, sufficient for virtually all legitimate use cases |
 | Big number exponent    | ±100,000             | Maximum absolute value of the [big number](#big-number) exponent. Limits the cost of decimal conversion and arithmetic operations |
 
-Implementations **SHOULD** support at minimum 64-bit IEEE 754 floats and 64-bit signed and unsigned integers. JavaScript environments are limited to 53-bit integer precision; implementations targeting JavaScript **SHOULD** document this limitation.
+Implementations **SHOULD** support at minimum 64-bit IEEE 754 floats and 64-bit signed and unsigned integers. JavaScript environments are limited to 53-bit integer precision without special support; implementations targeting JavaScript **SHOULD** document this limitation.
 
 Implementations **MUST** document their default limits and any configuration options they provide.
 
