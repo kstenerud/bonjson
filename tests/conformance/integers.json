@@ -463,6 +463,31 @@
       "input": 9007199254740991
     },
     {
+      "//": "=== Values beyond float64 safe integer range (require int64) ===",
+      "//note": "2^53+1 cannot be represented exactly as float64; requires int64 encoding"
+    },
+    {
+      "name": "roundtrip_int64_beyond_float64_precision",
+      "type": "roundtrip",
+      "input": {
+        "$number": "9007199254740993"
+      },
+      "requires": [
+        "int64"
+      ]
+    },
+    {
+      "//": "Negative value beyond float64 precision",
+      "name": "roundtrip_int64_negative_beyond_float64",
+      "type": "roundtrip",
+      "input": {
+        "$number": "-9007199254740993"
+      },
+      "requires": [
+        "int64"
+      ]
+    },
+    {
       "//": "=== Negative integer boundary encode tests ===",
       "//note": "Testing minimum values for each signed integer size",
       "name": "sint24_neg8388608",

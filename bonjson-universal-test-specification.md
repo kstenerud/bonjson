@@ -386,8 +386,10 @@ The `options` field is an optional JSON object that configures encoder/decoder b
 | `max_container_size`   | integer | Maximum elements in a container (non-negative)         |
 | `max_string_length`    | integer | Maximum string length in bytes (non-negative)          |
 | `max_document_size`    | integer | Maximum document size in bytes (non-negative)          |
+| `max_bignumber_exponent` | integer | Maximum absolute value of BigNumber exponent (non-negative). See [Resource Limits](bonjson.md#resource-limits) in the BONJSON specification. |
+| `max_bignumber_magnitude`| integer | Maximum byte length of BigNumber magnitude (non-negative). See [Resource Limits](bonjson.md#resource-limits) in the BONJSON specification. |
 | `unicode_normalization`| string  | How to normalize Unicode strings: `"none"` (default) or `"nfc"` (normalize to NFC composed form). When `"nfc"`, decoded strings are transformed to Unicode Normalization Form C before being returned, and object keys are compared after NFC normalization (which can cause otherwise-distinct keys to become duplicates). |
-| `out_of_range`         | string  | How to handle BigNumber values that exceed the implementation's numeric range (e.g., float64): `"error"` (default) or `"stringify"` (convert to a decimal string representation `[±]<significand>e<exponent>`). |
+| `out_of_range`         | string  | How to handle BigNumber values that exceed configured limits (`max_bignumber_exponent`, `max_bignumber_magnitude`) or the implementation's native numeric range: `"error"` (default) or `"stringify"` (convert to a decimal string representation `[±]<significand>e<exponent>`). |
 
 **Depth counting**: Any value at the root level (including primitives and empty containers) has depth 1. Each value inside a container is one level deeper than the container itself. Examples:
 - `42` → depth 1 (primitive at root)
@@ -406,7 +408,7 @@ With `max_depth: 1`, primitives and empty containers are allowed at root, but co
 
 Option values **MUST** have the correct JSON type (boolean for boolean options, integer for integer options, string for string options). Null is not a valid option value. An option with the wrong type (e.g., `"allow_nul": "true"` or `"allow_nul": null`) is a **STRUCTURAL ERROR**. Integer options **MUST** be non-negative; negative values are a **STRUCTURAL ERROR**. String options **MUST** use one of the defined values; unrecognized values are a **STRUCTURAL ERROR**.
 
-For integer limit options (`max_depth`, `max_container_size`, `max_string_length`, `max_document_size`), a value of 0 means "no limit." **Warning**: Disabling limits can make implementations vulnerable to denial-of-service attacks and is **NOT RECOMMENDED** for production use.
+For integer limit options (`max_depth`, `max_container_size`, `max_string_length`, `max_document_size`, `max_bignumber_exponent`, `max_bignumber_magnitude`), a value of 0 means "no limit." **Warning**: Disabling limits can make implementations vulnerable to denial-of-service attacks and is **NOT RECOMMENDED** for production use.
 
 Default values for these options are defined in the BONJSON specification. Tests typically use small values (e.g., `max_depth: 5`) to verify that limit-checking machinery works correctly in an implementation.
 
@@ -606,6 +608,8 @@ The `expected_error` field uses standardized error type identifiers:
 | `max_string_length_exceeded`    | String exceeds length limit                |
 | `max_container_size_exceeded`   | Container has too many elements            |
 | `max_document_size_exceeded`    | Document exceeds size limit                |
+| `max_bignumber_exponent_exceeded` | BigNumber exponent exceeds configured limit |
+| `max_bignumber_magnitude_exceeded`| BigNumber magnitude exceeds configured byte limit |
 
 Implementations **MUST** map errors from their library to these standardized identifiers for test matching. If an implementation cannot distinguish between error types, it **MAY** treat any error as a successful match for error tests (verifying only that an error occurred, not its specific type).
 
@@ -613,7 +617,7 @@ When multiple error conditions could apply to malformed input (e.g., truncated d
 1. Structural errors (`truncated`, `invalid_type_code`, `unclosed_container`)
 2. Type/format errors (`invalid_object_key`, `invalid_utf8`, `invalid_data`)
 3. Content errors (`duplicate_key`, `nul_character`)
-4. Limit errors (`max_depth_exceeded`, `max_string_length_exceeded`, `max_container_size_exceeded`, `max_document_size_exceeded`)
+4. Limit errors (`max_depth_exceeded`, `max_string_length_exceeded`, `max_container_size_exceeded`, `max_document_size_exceeded`, `max_bignumber_exponent_exceeded`, `max_bignumber_magnitude_exceeded`)
 5. Post-decode errors (`trailing_bytes`, `value_out_of_range`)
 
 This ordering helps different implementations converge on the same error type for ambiguous cases, improving test interoperability.

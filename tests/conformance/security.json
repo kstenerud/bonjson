@@ -794,39 +794,83 @@
       }
     },
     {
-      "//": "=== Out-of-range BigNumber handling ==="
+      "//": "=== Big number resource limit tests ==="
     },
     {
-      "//": "1e400 exceeds float64 max (~1.8e308), rejected by default",
-      "//note": "BigNumber: exponent=400 (zigzag a0 06), signed_length=+1 (zigzag 02), magnitude=01",
-      "name": "out_of_range_bignumber_positive",
+      "//": "Big number exponent exceeds limit (positive exponent)",
+      "//note": "BigNumber 1e6: exponent=6 (zigzag 0x0C), signed_length=+1 (zigzag 0x02), magnitude=0x01. Limit is 5.",
+      "name": "max_bignumber_exponent_exceeded_positive",
       "type": "decode_error",
-      "input_bytes": "ca a0 06 02 01",
-      "expected_error": "value_out_of_range"
+      "input_bytes": "ca 0c 02 01",
+      "expected_error": "max_bignumber_exponent_exceeded",
+      "options": {
+        "max_bignumber_exponent": 5
+      }
     },
     {
-      "//": "-1e400 exceeds float64 range, rejected by default",
-      "//note": "BigNumber: exponent=400, signed_length=-1 (zigzag 01), magnitude=01",
-      "name": "out_of_range_bignumber_negative",
+      "//": "Big number exponent exceeds limit (negative exponent)",
+      "//note": "BigNumber 1e-6: exponent=-6 (zigzag 0x0B), signed_length=+1 (zigzag 0x02), magnitude=0x01. Limit is 5.",
+      "name": "max_bignumber_exponent_exceeded_negative",
       "type": "decode_error",
-      "input_bytes": "ca a0 06 01 01",
-      "expected_error": "value_out_of_range"
+      "input_bytes": "ca 0b 02 01",
+      "expected_error": "max_bignumber_exponent_exceeded",
+      "options": {
+        "max_bignumber_exponent": 5
+      }
     },
     {
-      "//": "1e309 just above float64 max, rejected by default",
-      "//note": "BigNumber: exponent=309 (zigzag ea 04), signed_length=+1 (zigzag 02), magnitude=01",
-      "name": "out_of_range_bignumber_just_above_max",
+      "//": "Big number exponent at limit is OK (positive)",
+      "//note": "BigNumber 1e5 = 100000: exponent=5 (zigzag 0x0A), signed_length=+1 (zigzag 0x02), magnitude=0x01",
+      "name": "bignumber_exponent_at_limit_positive",
+      "type": "decode",
+      "input_bytes": "ca 0a 02 01",
+      "expected_value": 100000,
+      "options": {
+        "max_bignumber_exponent": 5
+      }
+    },
+    {
+      "//": "Big number exponent at limit is OK (negative)",
+      "//note": "BigNumber 5e-1 = 0.5: exponent=-1 (zigzag 0x01), signed_length=+1 (zigzag 0x02), magnitude=0x05",
+      "name": "bignumber_exponent_at_limit_negative",
+      "type": "decode",
+      "input_bytes": "ca 01 02 05",
+      "expected_value": 0.5,
+      "options": {
+        "max_bignumber_exponent": 1
+      }
+    },
+    {
+      "//": "Big number magnitude exceeds limit (4 bytes, limit 3)",
+      "//note": "BigNumber 67305985: exponent=0 (0x00), signed_length=+4 (zigzag 0x08), magnitude=01 02 03 04 (LE)",
+      "name": "max_bignumber_magnitude_exceeded",
       "type": "decode_error",
-      "input_bytes": "ca ea 04 02 01",
-      "expected_error": "value_out_of_range"
+      "input_bytes": "ca 00 08 01 02 03 04",
+      "expected_error": "max_bignumber_magnitude_exceeded",
+      "options": {
+        "max_bignumber_magnitude": 3
+      }
     },
     {
-      "//": "1e400 converted to string with stringify option",
+      "//": "Big number magnitude at limit is OK (3 bytes, limit 3)",
+      "//note": "BigNumber 197121: exponent=0 (0x00), signed_length=+3 (zigzag 0x06), magnitude=01 02 03 (LE)",
+      "name": "bignumber_magnitude_at_limit",
+      "type": "decode",
+      "input_bytes": "ca 00 06 01 02 03",
+      "expected_value": 197121,
+      "options": {
+        "max_bignumber_magnitude": 3
+      }
+    },
+    {
+      "//": "Out-of-range big number converted to string with stringify option",
+      "//note": "BigNumber 1e6 with exponent limit 5, stringified",
       "name": "out_of_range_bignumber_stringify_positive",
       "type": "decode",
-      "input_bytes": "ca a0 06 02 01",
-      "expected_value": "1e400",
+      "input_bytes": "ca 0c 02 01",
+      "expected_value": "1e6",
       "options": {
+        "max_bignumber_exponent": 5,
         "out_of_range": "stringify"
       },
       "requires": [
@@ -834,12 +878,14 @@
       ]
     },
     {
-      "//": "-1e400 converted to string with stringify option",
+      "//": "Negative out-of-range big number converted to string",
+      "//note": "BigNumber -1e6: exponent=6 (zigzag 0x0C), signed_length=-1 (zigzag 0x01), magnitude=0x01",
       "name": "out_of_range_bignumber_stringify_negative",
       "type": "decode",
-      "input_bytes": "ca a0 06 01 01",
-      "expected_value": "-1e400",
+      "input_bytes": "ca 0c 01 01",
+      "expected_value": "-1e6",
       "options": {
+        "max_bignumber_exponent": 5,
         "out_of_range": "stringify"
       },
       "requires": [
@@ -847,13 +893,14 @@
       ]
     },
     {
-      "//": "15e399 (multi-digit significand) converted to string",
-      "//note": "BigNumber: exponent=399 (zigzag 9e 06), signed_length=+1 (zigzag 02), magnitude=0f (15)",
+      "//": "Multi-digit significand out-of-range big number converted to string",
+      "//note": "BigNumber 15e5: exponent=5 (zigzag 0x0A), signed_length=+1 (zigzag 0x02), magnitude=0x0F (15). Limit is 4.",
       "name": "out_of_range_bignumber_stringify_multi_digit",
       "type": "decode",
-      "input_bytes": "ca 9e 06 02 0f",
-      "expected_value": "15e399",
+      "input_bytes": "ca 0a 02 0f",
+      "expected_value": "15e5",
       "options": {
+        "max_bignumber_exponent": 4,
         "out_of_range": "stringify"
       },
       "requires": [
