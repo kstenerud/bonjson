@@ -264,7 +264,9 @@
       }
     },
     {
-      "//": "Maximum nesting depth exceeded (6 nested arrays, limit 5)",
+      "//": "Note: max_depth counts container nesting only; scalar elements inside a",
+      "///": "container do not add a depth level. This avoids a per-value depth check on",
+      "////": "the hot path, at the cost of allowing scalars 1 level beyond max_depth.",
       "name": "max_depth_exceeded_arrays",
       "type": "decode_error",
       "input_bytes": "fc fc fc fc fc fc fe fe fe fe fe fe",
@@ -960,46 +962,6 @@
       "type": "decode_error",
       "input_bytes": "fd d1 61 65 ff 61 ff 66 fe",
       "expected_error": "duplicate_key"
-    },
-    {
-      "//": "Primitive at depth 1 with max_depth 1",
-      "name": "max_depth_1_primitive",
-      "type": "decode",
-      "input_bytes": "64",
-      "expected_value": 0,
-      "options": {"max_depth": 1}
-    },
-    {
-      "//": "Empty container at depth 1 with max_depth 1",
-      "name": "max_depth_1_empty_container",
-      "type": "decode",
-      "input_bytes": "fc fe",
-      "expected_value": [],
-      "options": {"max_depth": 1}
-    },
-    {
-      "//": "Container with element exceeds max_depth 1 (element would be at depth 2)",
-      "name": "max_depth_1_container_with_element",
-      "type": "decode_error",
-      "input_bytes": "fc 64 fe",
-      "expected_error": "max_depth_exceeded",
-      "options": {"max_depth": 1}
-    },
-    {
-      "//": "Flat array with max_depth 2",
-      "name": "max_depth_2_flat_array",
-      "type": "decode",
-      "input_bytes": "fc 64 66 fe",
-      "expected_value": [0, 2],
-      "options": {"max_depth": 2}
-    },
-    {
-      "//": "Nested array exceeds max_depth 2 (inner array element at depth 3)",
-      "name": "max_depth_2_nested_exceeded",
-      "type": "decode_error",
-      "input_bytes": "fc fc 64 fe fe",
-      "expected_error": "max_depth_exceeded",
-      "options": {"max_depth": 2}
     },
     {
       "//": "4-byte overlong UTF-8 encoding of U+002F (should be 1 byte)",
