@@ -429,6 +429,16 @@
       }
     },
     {
+      "//": "Encoding NUL allowed with option",
+      "name": "encode_nul_in_string_allowed",
+      "type": "encode",
+      "input": "a\u0000b",
+      "expected_bytes": "d3 61 00 62",
+      "options": {
+        "allow_nul": true
+      }
+    },
+    {
       "//": "=== NaN/Infinity handling ===",
       "//note": "NaN and Infinity are encoded as IEEE 754 float64 values"
     },
