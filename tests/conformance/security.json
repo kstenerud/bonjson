@@ -917,6 +917,21 @@
       ]
     },
     {
+      "//": "Magnitude-exceeded big number converted to string with stringify option",
+      "//note": "BigNumber 67305985e2: exponent=2 (zigzag 0x04), signed_length=+4 (zigzag 0x08), magnitude=01 02 03 04 (LE). Limit is 3 bytes.",
+      "name": "out_of_range_bignumber_stringify_magnitude",
+      "type": "decode",
+      "input_bytes": "ca 04 08 01 02 03 04",
+      "expected_value": "67305985e2",
+      "options": {
+        "max_bignumber_magnitude": 3,
+        "out_of_range": "stringify"
+      },
+      "requires": [
+        "out_of_range_stringify"
+      ]
+    },
+    {
       "//": "Float64 signaling NaN allowed with option",
       "name": "snan_float64_allowed",
       "type": "decode",
