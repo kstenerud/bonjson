@@ -511,7 +511,8 @@
       "name": "encode_nul_in_string",
       "type": "encode_error",
       "input": "a\u0000b",
-      "expected_error": "nul_character"
+      "expected_error": "nul_character",
+      "requires": ["encode_nul_rejection"]
     },
     {
       "//": "NUL character in object key rejected",
