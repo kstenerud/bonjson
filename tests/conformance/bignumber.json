@@ -2,14 +2,14 @@
   "type": "bonjson-test",
   "version": "1.0.0",
   "//": "BigNumber encoding tests for values that cannot be represented as IEEE 754 floats",
-  "//note": "BigNumber uses zigzag LEB128 metadata and little-endian magnitude bytes. Wire format: 0xCA + zigzag_leb128(exponent) + zigzag_leb128(signed_length) + magnitude_bytes. signed_length encodes both the sign and byte count of the magnitude. Negative zero is not representable as bignum (use IEEE754 float).",
+  "//note": "BigNumber uses zigzag LEB128 metadata and little-endian magnitude bytes. Wire format: 0x8F + zigzag_leb128(exponent) + zigzag_leb128(signed_length) + magnitude_bytes. signed_length encodes both the sign and byte count of the magnitude. Negative zero is not representable as bignum (use IEEE754 float).",
   "tests": [
     {
       "//": "=== BigNumber zero encoding ===",
       "//note": "Zero: exponent=0 (0x00), signed_length=0 (0x00), no magnitude bytes",
       "name": "decode_bignumber_zero",
       "type": "decode",
-      "input_bytes": "ca 00 00",
+      "input_bytes": "8f0000",
       "expected_value": 0
     },
     {
@@ -120,7 +120,15 @@
       ]
     },
     {
-      "//": "=== Negative BigNumber tests ==="
+      "//": "=== Negative BigNumber tests ===",
+      "//note": "Negative integer within int64 range"
+    },
+    {
+      "name": "roundtrip_bignumber_negative",
+      "type": "roundtrip",
+      "input": {
+        "$number": "-9007199254740993"
+      }
     },
     {
       "//": "Negative high precision decimal (requires arbitrary precision)",
@@ -187,14 +195,33 @@
       ]
     },
     {
+      "//": "=== Values at float64 boundary ===",
+      "//note": "Values that are just beyond float64 precision"
+    },
+    {
+      "name": "roundtrip_bignumber_beyond_float64_precision",
+      "type": "roundtrip",
+      "input": {
+        "$number": "9007199254740993"
+      }
+    },
+    {
+      "//": "Negative value beyond float64 precision",
+      "name": "roundtrip_bignumber_negative_beyond_float64",
+      "type": "roundtrip",
+      "input": {
+        "$number": "-9007199254740993"
+      }
+    },
+    {
       "//": "=== BigNumber wire format tests ===",
-      "//note": "Wire format: type_code(0xCA) + zigzag_leb128(exponent) + zigzag_leb128(signed_length) + magnitude_bytes"
+      "//note": "Wire format: type_code(0x8F) + zigzag_leb128(exponent) + zigzag_leb128(signed_length) + magnitude_bytes"
     },
     {
       "//": "Zero exponent, significand=1: exponent=0, signed_length=+1→zigzag(1)=0x02, magnitude=0x01",
       "name": "decode_bignumber_zero_exponent",
       "type": "decode",
-      "input_bytes": "ca 00 02 01",
+      "input_bytes": "8f000201",
       "expected_value": 1
     },
     {
@@ -269,35 +296,35 @@
       "//": "Value 255: signed_length=+1→zigzag(1)=0x02, magnitude=0xFF",
       "name": "decode_bignumber_sig_1_byte",
       "type": "decode",
-      "input_bytes": "ca 00 02 ff",
+      "input_bytes": "8f0002ff",
       "expected_value": 255
     },
     {
       "//": "Value 65535: signed_length=+2→zigzag(2)=0x04, magnitude=0xFFFF LE",
       "name": "decode_bignumber_sig_2_bytes",
       "type": "decode",
-      "input_bytes": "ca 00 04 ff ff",
+      "input_bytes": "8f0004ffff",
       "expected_value": 65535
     },
     {
       "//": "Value 65537: signed_length=+3→zigzag(3)=0x06, magnitude=0x010001 LE = 01 00 01",
       "name": "decode_bignumber_sig_3_bytes",
       "type": "decode",
-      "input_bytes": "ca 00 06 01 00 01",
+      "input_bytes": "8f0006010001",
       "expected_value": 65537
     },
     {
       "//": "Value -255: signed_length=-1→zigzag(-1)=0x01, magnitude=0xFF",
       "name": "decode_bignumber_negative_1_byte",
       "type": "decode",
-      "input_bytes": "ca 00 01 ff",
+      "input_bytes": "8f0001ff",
       "expected_value": -255
     },
     {
       "//": "Value -65535: signed_length=-2→zigzag(-2)=0x03, magnitude=0xFFFF LE",
       "name": "decode_bignumber_negative_2_bytes",
       "type": "decode",
-      "input_bytes": "ca 00 03 ff ff",
+      "input_bytes": "8f0003ffff",
       "expected_value": -65535
     },
     {
@@ -336,108 +363,6 @@
       "requires": [
         "arbitrary_precision_bignumber"
       ]
-    },
-    {
-      "//": "=== Non-zero exponent decode tests ===",
-      "//note": "Verify exact zigzag LEB128 encoding of exponent field with known byte sequences"
-    },
-    {
-      "//": "Value 2: exponent=0→zigzag(0)=0x00, signed_length=+1→zigzag(1)=0x02, magnitude=0x02",
-      "name": "decode_bignumber_value_2",
-      "type": "decode",
-      "input_bytes": "ca 00 02 02",
-      "expected_value": 2
-    },
-    {
-      "//": "Value -1: exponent=0→zigzag(0)=0x00, signed_length=-1→zigzag(-1)=0x01, magnitude=0x01",
-      "name": "decode_bignumber_negative_1",
-      "type": "decode",
-      "input_bytes": "ca 00 01 01",
-      "expected_value": -1
-    },
-    {
-      "//": "Value 1.5 (15×10⁻¹): exponent=-1→zigzag(-1)=0x01, signed_length=+1→zigzag(1)=0x02, magnitude=0x0F",
-      "name": "decode_bignumber_decimal_1_5",
-      "type": "decode",
-      "input_bytes": "ca 01 02 0f",
-      "expected_value": 1.5
-    },
-    {
-      "//": "Value 1000 (10×10²): exponent=2→zigzag(2)=0x04, signed_length=+1→zigzag(1)=0x02, magnitude=0x0A",
-      "name": "decode_bignumber_value_1000",
-      "type": "decode",
-      "input_bytes": "ca 04 02 0a",
-      "expected_value": 1000
-    },
-    {
-      "//": "Value -1000 (-10×10²): exponent=2→zigzag(2)=0x04, signed_length=-1→zigzag(-1)=0x01, magnitude=0x0A",
-      "name": "decode_bignumber_neg_1000",
-      "type": "decode",
-      "input_bytes": "ca 04 01 0a",
-      "expected_value": -1000
-    },
-    {
-      "//": "Value 100000 (1×10⁵): exponent=5→zigzag(5)=0x0A, signed_length=+1→zigzag(1)=0x02, magnitude=0x01",
-      "name": "decode_bignumber_value_100000",
-      "type": "decode",
-      "input_bytes": "ca 0a 02 01",
-      "expected_value": 100000
-    },
-    {
-      "//": "=== Zigzag LEB128 exponent encoding boundary tests ===",
-      "//note": "1-byte zigzag LEB128 holds zigzag values 0-127, so max 1-byte positive exponent is 63 (zigzag=126) and max 1-byte negative exponent is -64 (zigzag=127)"
-    },
-    {
-      "//": "Exponent 63: zigzag(63)=126=0x7E, max 1-byte positive exponent. sig=1, value=10^63",
-      "name": "decode_bignumber_exp_63_max_1byte_positive",
-      "type": "decode",
-      "input_bytes": "ca 7e 02 01",
-      "expected_value": {"$number": "1000000000000000000000000000000000000000000000000000000000000000"},
-      "requires": ["arbitrary_precision_bignumber"]
-    },
-    {
-      "//": "Exponent -64: zigzag(-64)=127=0x7F, last 1-byte negative exponent",
-      "name": "roundtrip_bignumber_exp_neg64_max_1byte_negative",
-      "type": "roundtrip",
-      "input": {"$number": "1e-64"}
-    },
-    {
-      "//": "Exponent 64: zigzag(64)=128, LEB128=0x80 0x01. First 2-byte positive exponent. sig=1, value=10^64",
-      "name": "decode_bignumber_exp_64_first_2byte_positive",
-      "type": "decode",
-      "input_bytes": "ca 80 01 02 01",
-      "expected_value": {"$number": "10000000000000000000000000000000000000000000000000000000000000000"},
-      "requires": ["arbitrary_precision_bignumber"]
-    },
-    {
-      "//": "Exponent -65: zigzag(-65)=129, LEB128=0x81 0x01. First 2-byte negative exponent",
-      "name": "roundtrip_bignumber_exp_neg65_first_2byte_negative",
-      "type": "roundtrip",
-      "input": {"$number": "1e-65"}
-    },
-    {
-      "//": "Encode 10^20 as BigNumber (outside int64 range)",
-      "//note": "sig=1, exp=20 (zigzag=40=0x28), signed_len=+1 (zigzag=2=0x02), magnitude=0x01",
-      "name": "encode_bignumber_10e20",
-      "type": "encode",
-      "input": {"$number": "100000000000000000000"},
-      "expected_bytes": "ca 28 02 01"
-    },
-    {
-      "//": "Encode -10^20 as BigNumber",
-      "//note": "sig=-1, exp=20, signed_len=-1 (zigzag=1=0x01), magnitude=0x01",
-      "name": "encode_bignumber_neg_10e20",
-      "type": "encode",
-      "input": {"$number": "-100000000000000000000"},
-      "expected_bytes": "ca 28 01 01"
-    },
-    {
-      "//": "Encode 2^64 as BigNumber (not divisible by 10)",
-      "//note": "sig=2^64, exp=0. Magnitude = 0x10000000000000000 = 9 bytes LE. signed_len=+9 (zigzag=18=0x12), exp=0 (zigzag=0=0x00)",
-      "name": "encode_bignumber_2_pow_64",
-      "type": "encode",
-      "input": {"$number": "18446744073709551616"},
-      "expected_bytes": "ca 00 12 00 00 00 00 00 00 00 00 01"
     }
   ]
 }

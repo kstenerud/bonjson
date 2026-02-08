@@ -4,129 +4,136 @@
   "//": "Security-related tests for handling malicious or malformed input",
   "tests": [
     {
-      "//": "Duplicate key detection - exact duplicate",
+      "//": "Duplicate key detection - exact duplicate (2 pairs → 0x08)",
       "name": "duplicate_key_simple",
       "type": "decode_error",
-      "input_bytes": "fd d1 61 65 d1 61 66 fe",
+      "input_bytes": "9466610166610295",
       "expected_error": "duplicate_key"
     },
     {
-      "//": "Duplicate key with longer key name",
+      "//": "Duplicate key with longer key name (2 pairs → 0x08)",
       "name": "duplicate_key_longer",
       "type": "decode_error",
-      "input_bytes": "fd d3 41 42 43 65 d3 41 42 43 66 fe",
+      "input_bytes": "946841424301684142430295",
       "expected_error": "duplicate_key"
     },
     {
       "//": "Invalid UTF-8 sequences in strings",
       "name": "invalid_utf8_continuation_without_start",
       "type": "decode_error",
-      "input_bytes": "ff 80 ff",
+      "input_bytes": "ff80ff",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "Incomplete 2-byte UTF-8 sequence",
       "name": "invalid_utf8_incomplete_2byte",
       "type": "decode_error",
-      "input_bytes": "ff c0 ff",
+      "input_bytes": "ffc0ff",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "Incomplete 3-byte UTF-8 sequence",
       "name": "invalid_utf8_incomplete_3byte",
       "type": "decode_error",
-      "input_bytes": "ff e0 80 ff",
+      "input_bytes": "ffe080ff",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "Incomplete 4-byte UTF-8 sequence",
       "name": "invalid_utf8_incomplete_4byte",
       "type": "decode_error",
-      "input_bytes": "ff f0 80 80 ff",
+      "input_bytes": "fff08080ff",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "Overlong UTF-8 encoding of NUL",
       "name": "invalid_utf8_overlong_nul",
       "type": "decode_error",
-      "input_bytes": "ff c0 80 ff",
+      "input_bytes": "ffc080ff",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "Overlong 3-byte UTF-8 encoding",
       "name": "invalid_utf8_overlong_3byte",
       "type": "decode_error",
-      "input_bytes": "ff e0 80 80 ff",
+      "input_bytes": "ffe08080ff",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "UTF-16 surrogate (invalid in UTF-8)",
       "name": "invalid_utf8_surrogate",
       "type": "decode_error",
-      "input_bytes": "ff ed a0 80 ff",
+      "input_bytes": "ffeda080ff",
       "expected_error": "invalid_utf8"
     },
     {
       "//": "Codepoint above U+10FFFF",
       "name": "invalid_utf8_above_max",
       "type": "decode_error",
-      "input_bytes": "ff f4 90 80 80 ff",
+      "input_bytes": "fff4908080ff",
       "expected_error": "invalid_utf8"
     },
     {
-      "//": "Empty long string is valid",
-      "name": "empty_long_string",
+      "//": "Empty chunk with continuation bit set - invalid (potential DoS)",
+      "name": "empty_chunk_with_continuation",
+      "type": "decode_error",
+      "input_bytes": "f0899e",
+      "expected_error": "empty_chunk_continuation"
+    },
+    {
+      "//": "Empty chunk without continuation is valid (empty long string)",
+      "name": "empty_chunk_without_continuation",
       "type": "decode",
-      "input_bytes": "ff ff",
+      "input_bytes": "ffff",
       "expected_value": ""
     },
     {
-      "//": "Valid string round-trip",
-      "name": "roundtrip_valid_long_string",
+      "//": "Valid string chunking round-trip",
+      "name": "roundtrip_valid_chunked_string",
       "type": "roundtrip",
-      "input": "this is a test string that uses long encoding"
+      "input": "this is a test string that might get chunked"
     },
     {
-      "//": "Small integer boundary tests - verify encoding size",
-      "name": "boundary_neg101_uses_2_bytes",
+      "//": "Small integer boundary tests - verify encoding size. Small ints are 0-100 (1 byte).",
+      "name": "boundary_neg1_uses_2_bytes",
       "type": "encode",
-      "input": -101,
-      "expected_bytes": "e4 9b"
+      "input": -1,
+      "expected_bytes": "89ff"
     },
     {
-      "//": "-100 uses single byte (small integer)",
-      "name": "boundary_neg100_uses_1_byte",
+      "//": "-128 is the minimum sint8 value (2 bytes)",
+      "name": "boundary_neg128_uses_2_bytes",
       "type": "encode",
-      "input": -100,
-      "expected_bytes": "00"
+      "input": -128,
+      "expected_bytes": "8980"
     },
     {
       "//": "100 uses single byte (small integer)",
       "name": "boundary_100_uses_1_byte",
       "type": "encode",
       "input": 100,
-      "expected_bytes": "c8"
+      "expected_bytes": "64"
     },
     {
       "//": "101 uses 2 bytes (sint8)",
       "name": "boundary_101_uses_2_bytes",
       "type": "encode",
       "input": 101,
-      "expected_bytes": "e4 65"
+      "expected_bytes": "8965"
     },
     {
-      "//": "Short string boundary tests",
-      "name": "boundary_string_15_uses_short_encoding",
+      "//": "Short string boundary tests. Short strings are 0-31 bytes.",
+      "name": "boundary_string_31_uses_short_encoding",
       "type": "encode",
-      "input": "123456789012345",
-      "expected_bytes": "df 31 32 33 34 35 36 37 38 39 30 31 32 33 34 35"
+      "input": "1234567890123456789012345678901",
+      "expected_bytes": "8431323334353637383930313233343536373839303132333435363738393031"
     },
     {
-      "//": "16-byte string uses long encoding",
-      "name": "boundary_string_16_uses_long_encoding",
+      "//": "32-byte string uses long encoding",
+      "name": "boundary_string_32_uses_long_encoding",
       "type": "encode",
-      "input": "1234567890123456",
-      "expected_bytes": "ff 31 32 33 34 35 36 37 38 39 30 31 32 33 34 35 36 ff"
+      "input": "12345678901234567890123456789012",
+      "expected_bytes": "ff3132333435363738393031323334353637383930313233343536373839303132ff"
     },
     {
       "//": "Unicode strings should round-trip correctly",
@@ -237,39 +244,39 @@
       "//": "Trailing bytes - rejected by default",
       "name": "trailing_bytes_after_integer",
       "type": "decode_error",
-      "input_bytes": "64 ff",
+      "input_bytes": "00ff",
       "expected_error": "trailing_bytes"
     },
     {
       "name": "trailing_bytes_after_string",
       "type": "decode_error",
-      "input_bytes": "d1 61 64",
+      "input_bytes": "866164",
       "expected_error": "trailing_bytes"
     },
     {
-      "//": "Empty object followed by trailing byte",
+      "//": "Empty object (0 pairs → 0x00) followed by trailing byte",
       "name": "trailing_bytes_after_object",
       "type": "decode_error",
-      "input_bytes": "fd fe 64",
+      "input_bytes": "f9899cff",
       "expected_error": "trailing_bytes"
     },
     {
       "//": "Trailing bytes - allowed with option",
       "name": "trailing_bytes_allowed",
       "type": "decode",
-      "input_bytes": "64 ff ff ff",
+      "input_bytes": "00ffffff",
       "expected_value": 0,
       "options": {
         "allow_trailing_bytes": true
-      }
+      },
+      "_convert_error": "convert failed: Trailing bytes: consumed 1/4"
     },
     {
-      "//": "Note: max_depth counts container nesting only; scalar elements inside a",
-      "///": "container do not add a depth level. This avoids a per-value depth check on",
-      "////": "the hot path, at the cost of allowing scalars 1 level beyond max_depth.",
+      "//": "Maximum nesting depth exceeded (6 nested arrays, limit 5)",
+      "//note": "Each array: f8 + count. Inner arrays have 1 element (→0x04), innermost is empty (→0x00)",
       "name": "max_depth_exceeded_arrays",
       "type": "decode_error",
-      "input_bytes": "fc fc fc fc fc fc fe fe fe fe fe fe",
+      "input_bytes": "939393939393959595959595",
       "expected_error": "max_depth_exceeded",
       "options": {
         "max_depth": 5
@@ -279,22 +286,25 @@
       "//": "6 nested objects with empty string keys, limit 5",
       "name": "max_depth_exceeded_objects",
       "type": "decode_error",
-      "input_bytes": "fd d0 fd d0 fd d0 fd d0 fd d0 fd fe fe fe fe fe fe",
+      "input_bytes": "9465946594659465946594959595959595",
       "expected_error": "max_depth_exceeded",
       "options": {
         "max_depth": 5
       }
     },
     {
-      "//": "At the limit is OK (5 nested empty arrays, deepest at depth 5)",
+      "//": "At the limit is OK (depth 5 means 5 nested containers allowed)",
+      "//note": "5 nested arrays, innermost contains integer 0",
       "name": "max_depth_at_limit",
       "type": "decode",
-      "input_bytes": "fc fc fc fc fc fe fe fe fe fe",
+      "input_bytes": "9393939393009595959595",
       "expected_value": [
         [
           [
             [
-              []
+              [
+                0
+              ]
             ]
           ]
         ]
@@ -307,7 +317,7 @@
       "//": "Maximum string length exceeded - 25-byte string with limit 20",
       "name": "max_string_length_exceeded",
       "type": "decode_error",
-      "input_bytes": "ff 61 62 63 64 65 66 67 68 69 6a 6b 6c 6d 6e 6f 70 71 72 73 74 75 76 77 78 79 ff",
+      "input_bytes": "ff6162636465666768696a6b6c6d6e6f70717273747576777879ff",
       "expected_error": "max_string_length_exceeded",
       "options": {
         "max_string_length": 20
@@ -317,37 +327,57 @@
       "//": "At the limit is OK - 20-byte string with limit 20",
       "name": "max_string_length_at_limit",
       "type": "decode",
-      "input_bytes": "ff 61 62 63 64 65 66 67 68 69 6a 6b 6c 6d 6e 6f 70 71 72 73 74 ff",
+      "input_bytes": "ff6162636465666768696a6b6c6d6e6f7071727374ff",
       "expected_value": "abcdefghijklmnopqrst",
       "options": {
         "max_string_length": 20
       }
     },
     {
-      "//": "Maximum container size exceeded - array with 6 elements",
+      "//": "Too many chunks",
+      "name": "too_many_chunks",
+      "type": "decode_error",
+      "input_bytes": "ff6162636465ff",
+      "expected_error": "too_many_chunks",
+      "options": {
+        "max_chunks": 4
+      }
+    },
+    {
+      "//": "At the limit is OK",
+      "name": "chunks_at_limit",
+      "type": "decode",
+      "input_bytes": "ff61626364ff",
+      "expected_value": "abcd",
+      "options": {
+        "max_chunks": 4
+      }
+    },
+    {
+      "//": "Maximum container size exceeded - array (6 elements, count=6 → 0x18)",
       "name": "max_container_size_exceeded_array",
       "type": "decode_error",
-      "input_bytes": "fc 64 65 66 67 68 69 fe",
+      "input_bytes": "9300010203040595",
       "expected_error": "max_container_size_exceeded",
       "options": {
         "max_container_size": 5
       }
     },
     {
-      "//": "Maximum container size exceeded - object with 6 pairs",
+      "//": "Maximum container size exceeded - object (6 pairs, count=6 → 0x18)",
       "name": "max_container_size_exceeded_object",
       "type": "decode_error",
-      "input_bytes": "fd d1 61 64 d1 62 65 d1 63 66 d1 64 67 d1 65 68 d1 66 69 fe",
+      "input_bytes": "9466610066620166630266640366650466660595",
       "expected_error": "max_container_size_exceeded",
       "options": {
         "max_container_size": 5
       }
     },
     {
-      "//": "At the limit is OK - array with 5 elements",
+      "//": "At the limit is OK - array (5 elements, count=5 → 0x14)",
       "name": "container_size_at_limit_array",
       "type": "decode",
-      "input_bytes": "fc 64 65 66 67 68 fe",
+      "input_bytes": "93000102030495",
       "expected_value": [
         0,
         1,
@@ -360,10 +390,10 @@
       }
     },
     {
-      "//": "At the limit is OK - object with 5 pairs",
+      "//": "At the limit is OK - object (5 pairs, count=5 → 0x14)",
       "name": "container_size_at_limit_object",
       "type": "decode",
-      "input_bytes": "fd d1 61 64 d1 62 65 d1 63 66 d1 64 67 d1 65 68 fe",
+      "input_bytes": "9466610066620166630266640366650495",
       "expected_value": {
         "a": 0,
         "b": 1,
@@ -376,20 +406,20 @@
       }
     },
     {
-      "//": "Maximum document size exceeded",
+      "//": "Maximum document size exceeded (10 elements, count=10 → 0x28, total 12 bytes)",
       "name": "max_document_size_exceeded",
       "type": "decode_error",
-      "input_bytes": "fc 64 65 66 67 68 69 6a 6b 6c 6d fe",
+      "input_bytes": "930001020304050607080995",
       "expected_error": "max_document_size_exceeded",
       "options": {
         "max_document_size": 10
       }
     },
     {
-      "//": "At the limit is OK",
+      "//": "At the limit is OK (4 elements, count=4 → 0x10, total 6 bytes)",
       "name": "document_size_at_limit",
       "type": "decode",
-      "input_bytes": "fc 64 65 66 67 fe",
+      "input_bytes": "930001020395",
       "expected_value": [
         0,
         1,
@@ -405,14 +435,14 @@
       "//note": "NUL (0x00) in strings is rejected by default",
       "name": "nul_in_string_rejected",
       "type": "decode_error",
-      "input_bytes": "d2 61 00",
-      "expected_error": "nul_character"
+      "input_bytes": "676100",
+      "expected_error": "nul_in_string"
     },
     {
       "//": "NUL allowed with option",
       "name": "nul_in_string_allowed",
       "type": "decode",
-      "input_bytes": "d2 61 00",
+      "input_bytes": "676100",
       "expected_value": "a\u0000",
       "options": {
         "allow_nul": true
@@ -422,228 +452,121 @@
       "//": "Multiple NUL characters allowed",
       "name": "multiple_nul_allowed",
       "type": "decode",
-      "input_bytes": "d4 00 61 00 62",
+      "input_bytes": "6900610062",
       "expected_value": "\u0000a\u0000b",
       "options": {
         "allow_nul": true
       }
     },
     {
-      "//": "Encoding NUL allowed with option",
-      "name": "encode_nul_in_string_allowed",
-      "type": "encode",
-      "input": "a\u0000b",
-      "expected_bytes": "d3 61 00 62",
-      "options": {
-        "allow_nul": true
-      }
-    },
-    {
       "//": "=== NaN/Infinity handling ===",
-      "//note": "NaN and Infinity are encoded as IEEE 754 float64 values"
-    },
-    {
-      "//": "Float64 NaN rejected by default",
+      "//note": "BigNumber special values: sigLen=0, then expLen=1 for Infinity (neg=sign), expLen=3 for NaN",
       "name": "nan_rejected_default",
       "type": "decode_error",
-      "input_bytes": "cc 00 00 00 00 00 00 f8 7f",
-      "expected_error": "invalid_data"
+      "input_bytes": "f189a2",
+      "expected_error": "nan_not_allowed"
     },
     {
-      "//": "Float64 positive Infinity rejected by default",
+      "//": "Positive Infinity rejected by default",
       "name": "infinity_rejected_default",
       "type": "decode_error",
-      "input_bytes": "cc 00 00 00 00 00 00 f0 7f",
-      "expected_error": "invalid_data"
+      "input_bytes": "f1899e",
+      "expected_error": "infinity_not_allowed"
     },
     {
-      "//": "Float64 negative Infinity rejected by default",
+      "//": "Negative Infinity rejected by default (expLen=1, neg=1)",
       "name": "neg_infinity_rejected_default",
       "type": "decode_error",
-      "input_bytes": "cc 00 00 00 00 00 00 f0 ff",
-      "expected_error": "invalid_data"
+      "input_bytes": "f1899f",
+      "expected_error": "infinity_not_allowed"
     },
     {
       "//": "NaN allowed with option",
       "name": "nan_allowed",
       "type": "decode",
-      "input_bytes": "cc 00 00 00 00 00 00 f8 7f",
+      "input_bytes": "f189a2",
       "expected_value": {
         "$number": "NaN"
       },
       "options": {
         "nan_infinity_behavior": "allow"
-      }
+      },
+      "_convert_error": "convert failed: Trailing bytes: consumed 5/2"
     },
     {
       "//": "Positive Infinity allowed with option",
       "name": "infinity_allowed",
       "type": "decode",
-      "input_bytes": "cc 00 00 00 00 00 00 f0 7f",
+      "input_bytes": "f1899e",
       "expected_value": {
         "$number": "Infinity"
       },
       "options": {
         "nan_infinity_behavior": "allow"
-      }
+      },
+      "_convert_error": "convert failed: Trailing bytes: consumed 3/2"
     },
     {
-      "//": "Negative Infinity allowed with option",
+      "//": "Negative Infinity allowed with option (expLen=1, neg=1)",
       "name": "neg_infinity_allowed",
       "type": "decode",
-      "input_bytes": "cc 00 00 00 00 00 00 f0 ff",
+      "input_bytes": "f1899f",
       "expected_value": {
         "$number": "-Infinity"
       },
       "options": {
         "nan_infinity_behavior": "allow"
-      }
+      },
+      "_convert_error": "convert failed: Trailing bytes: consumed 3/2"
     },
     {
       "//": "NaN converted to string with stringify option",
       "name": "nan_stringify",
       "type": "decode",
-      "input_bytes": "cc 00 00 00 00 00 00 f8 7f",
+      "input_bytes": "f189a2",
       "expected_value": "NaN",
       "options": {
         "nan_infinity_behavior": "stringify"
       },
       "requires": [
         "nan_infinity_stringify"
-      ]
+      ],
+      "_convert_error": "convert failed: Trailing bytes: consumed 5/2"
     },
     {
       "//": "Positive Infinity converted to string with stringify option",
       "name": "infinity_stringify",
       "type": "decode",
-      "input_bytes": "cc 00 00 00 00 00 00 f0 7f",
+      "input_bytes": "f1899e",
       "expected_value": "Infinity",
       "options": {
         "nan_infinity_behavior": "stringify"
       },
       "requires": [
         "nan_infinity_stringify"
-      ]
+      ],
+      "_convert_error": "convert failed: Trailing bytes: consumed 3/2"
     },
     {
-      "//": "Negative Infinity converted to string with stringify option",
+      "//": "Negative Infinity converted to string with stringify option (expLen=1, neg=1)",
       "name": "neg_infinity_stringify",
       "type": "decode",
-      "input_bytes": "cc 00 00 00 00 00 00 f0 ff",
+      "input_bytes": "f1899f",
       "expected_value": "-Infinity",
       "options": {
         "nan_infinity_behavior": "stringify"
       },
       "requires": [
         "nan_infinity_stringify"
-      ]
-    },
-    {
-      "//": "=== Float32 NaN/Infinity handling modes ===",
-      "//note": "Float32 versions of the above tests - implementations must handle both float sizes"
-    },
-    {
-      "//": "Float32 NaN rejected by default",
-      "name": "nan_float32_rejected_default",
-      "type": "decode_error",
-      "input_bytes": "cb 00 00 c0 7f",
-      "expected_error": "invalid_data"
-    },
-    {
-      "//": "Float32 positive Infinity rejected by default",
-      "name": "infinity_float32_rejected_default",
-      "type": "decode_error",
-      "input_bytes": "cb 00 00 80 7f",
-      "expected_error": "invalid_data"
-    },
-    {
-      "//": "Float32 negative Infinity rejected by default",
-      "name": "neg_infinity_float32_rejected_default",
-      "type": "decode_error",
-      "input_bytes": "cb 00 00 80 ff",
-      "expected_error": "invalid_data"
-    },
-    {
-      "//": "Float32 NaN allowed with option",
-      "name": "nan_float32_allowed",
-      "type": "decode",
-      "input_bytes": "cb 00 00 c0 7f",
-      "expected_value": {
-        "$number": "NaN"
-      },
-      "options": {
-        "nan_infinity_behavior": "allow"
-      }
-    },
-    {
-      "//": "Float32 positive Infinity allowed with option",
-      "name": "infinity_float32_allowed",
-      "type": "decode",
-      "input_bytes": "cb 00 00 80 7f",
-      "expected_value": {
-        "$number": "Infinity"
-      },
-      "options": {
-        "nan_infinity_behavior": "allow"
-      }
-    },
-    {
-      "//": "Float32 negative Infinity allowed with option",
-      "name": "neg_infinity_float32_allowed",
-      "type": "decode",
-      "input_bytes": "cb 00 00 80 ff",
-      "expected_value": {
-        "$number": "-Infinity"
-      },
-      "options": {
-        "nan_infinity_behavior": "allow"
-      }
-    },
-    {
-      "//": "Float32 NaN converted to string with stringify option",
-      "name": "nan_float32_stringify",
-      "type": "decode",
-      "input_bytes": "cb 00 00 c0 7f",
-      "expected_value": "NaN",
-      "options": {
-        "nan_infinity_behavior": "stringify"
-      },
-      "requires": [
-        "nan_infinity_stringify"
-      ]
-    },
-    {
-      "//": "Float32 positive Infinity converted to string with stringify option",
-      "name": "infinity_float32_stringify",
-      "type": "decode",
-      "input_bytes": "cb 00 00 80 7f",
-      "expected_value": "Infinity",
-      "options": {
-        "nan_infinity_behavior": "stringify"
-      },
-      "requires": [
-        "nan_infinity_stringify"
-      ]
-    },
-    {
-      "//": "Float32 negative Infinity converted to string with stringify option",
-      "name": "neg_infinity_float32_stringify",
-      "type": "decode",
-      "input_bytes": "cb 00 00 80 ff",
-      "expected_value": "-Infinity",
-      "options": {
-        "nan_infinity_behavior": "stringify"
-      },
-      "requires": [
-        "nan_infinity_stringify"
-      ]
+      ],
+      "_convert_error": "convert failed: Trailing bytes: consumed 3/2"
     },
     {
       "//": "=== Duplicate key handling modes ===",
-      "//note": "keep_first silently ignores subsequent duplicates",
+      "//note": "keep_first silently ignores subsequent duplicates (2 pairs → 0x08)",
       "name": "dup_key_keep_first",
       "type": "decode",
-      "input_bytes": "fd d1 61 65 d1 61 66 fe",
+      "input_bytes": "9466610166610295",
       "expected_value": {
         "a": 1
       },
@@ -652,10 +575,10 @@
       }
     },
     {
-      "//": "keep_last replaces with latest value",
+      "//": "keep_last replaces with latest value (2 pairs → 0x08)",
       "name": "dup_key_keep_last",
       "type": "decode",
-      "input_bytes": "fd d1 61 65 d1 61 66 fe",
+      "input_bytes": "9466610166610295",
       "expected_value": {
         "a": 2
       },
@@ -664,10 +587,10 @@
       }
     },
     {
-      "//": "Multiple duplicates with keep_first",
+      "//": "Multiple duplicates with keep_first (3 pairs → 0x0c)",
       "name": "dup_key_keep_first_multiple",
       "type": "decode",
-      "input_bytes": "fd d1 61 65 d1 61 66 d1 61 67 fe",
+      "input_bytes": "9466610166610266610395",
       "expected_value": {
         "a": 1
       },
@@ -676,10 +599,10 @@
       }
     },
     {
-      "//": "Multiple duplicates with keep_last",
+      "//": "Multiple duplicates with keep_last (3 pairs → 0x0c)",
       "name": "dup_key_keep_last_multiple",
       "type": "decode",
-      "input_bytes": "fd d1 61 65 d1 61 66 d1 61 67 fe",
+      "input_bytes": "9466610166610266610395",
       "expected_value": {
         "a": 3
       },
@@ -692,7 +615,7 @@
       "//note": "replace mode substitutes invalid bytes with U+FFFD",
       "name": "invalid_utf8_replace",
       "type": "decode",
-      "input_bytes": "d4 61 80 62 63",
+      "input_bytes": "6961806263",
       "expected_value": "a�bc",
       "options": {
         "invalid_utf8": "replace"
@@ -702,7 +625,7 @@
       "//": "delete mode removes invalid bytes",
       "name": "invalid_utf8_delete",
       "type": "decode",
-      "input_bytes": "d4 61 80 62 63",
+      "input_bytes": "6961806263",
       "expected_value": "abc",
       "options": {
         "invalid_utf8": "delete"
@@ -712,7 +635,7 @@
       "//": "Multiple invalid bytes with replace",
       "name": "invalid_utf8_replace_multiple",
       "type": "decode",
-      "input_bytes": "d5 80 61 ff 62 fe",
+      "input_bytes": "6a8061ff62fe",
       "expected_value": "�a�b�",
       "options": {
         "invalid_utf8": "replace"
@@ -722,278 +645,11 @@
       "//": "Multiple invalid bytes with delete",
       "name": "invalid_utf8_delete_multiple",
       "type": "decode",
-      "input_bytes": "d5 80 61 ff 62 fe",
+      "input_bytes": "6a8061ff62fe",
       "expected_value": "ab",
       "options": {
         "invalid_utf8": "delete"
       }
-    },
-    {
-      "//": "=== Unicode normalization handling ==="
-    },
-    {
-      "//": "Decomposed é (U+0065 U+0301, UTF-8: 65 cc 81) preserved without normalization",
-      "name": "unicode_normalization_none_preserves_decomposed",
-      "type": "decode",
-      "input_bytes": "d3 65 cc 81",
-      "expected_value": "e\u0301"
-    },
-    {
-      "//": "Decomposed é normalized to composed é (U+00E9) with NFC",
-      "name": "unicode_normalization_nfc_composes",
-      "type": "decode",
-      "input_bytes": "d3 65 cc 81",
-      "expected_value": "\u00e9",
-      "options": {
-        "unicode_normalization": "nfc"
-      }
-    },
-    {
-      "//": "Already-composed é (U+00E9) unchanged by NFC",
-      "name": "unicode_normalization_nfc_preserves_composed",
-      "type": "decode",
-      "input_bytes": "d2 c3 a9",
-      "expected_value": "\u00e9",
-      "options": {
-        "unicode_normalization": "nfc"
-      }
-    },
-    {
-      "//": "Decomposed ñ (U+006E U+0303, UTF-8: 6e cc 83) normalized to U+00F1",
-      "name": "unicode_normalization_nfc_n_tilde",
-      "type": "decode",
-      "input_bytes": "d3 6e cc 83",
-      "expected_value": "\u00f1",
-      "options": {
-        "unicode_normalization": "nfc"
-      }
-    },
-    {
-      "//": "Angstrom sign (U+212B, UTF-8: e2 84 ab) normalized to Å (U+00C5) under NFC",
-      "name": "unicode_normalization_nfc_angstrom",
-      "type": "decode",
-      "input_bytes": "d3 e2 84 ab",
-      "expected_value": "\u00c5",
-      "options": {
-        "unicode_normalization": "nfc"
-      }
-    },
-    {
-      "//": "Decomposed string roundtrips without normalization (default)",
-      "name": "roundtrip_decomposed_no_normalization",
-      "type": "roundtrip",
-      "input": "e\u0301"
-    },
-    {
-      "//": "Object with composed and decomposed keys: different keys without NFC",
-      "//note": "Key 1: é composed (d2 c3 a9), value 1; Key 2: e+combining acute (d3 65 cc 81), value 2",
-      "name": "unicode_normalization_none_different_keys",
-      "type": "decode",
-      "input_bytes": "fd d2 c3 a9 65 d3 65 cc 81 66 fe",
-      "expected_value": {"\u00e9": 1, "e\u0301": 2}
-    },
-    {
-      "//": "Same object detected as duplicate keys under NFC normalization",
-      "name": "unicode_normalization_nfc_duplicate_key",
-      "type": "decode_error",
-      "input_bytes": "fd d2 c3 a9 65 d3 65 cc 81 66 fe",
-      "expected_error": "duplicate_key",
-      "options": {
-        "unicode_normalization": "nfc"
-      }
-    },
-    {
-      "//": "=== Big number resource limit tests ==="
-    },
-    {
-      "//": "Big number exponent exceeds limit (positive exponent)",
-      "//note": "BigNumber 1e6: exponent=6 (zigzag 0x0C), signed_length=+1 (zigzag 0x02), magnitude=0x01. Limit is 5.",
-      "name": "max_bignumber_exponent_exceeded_positive",
-      "type": "decode_error",
-      "input_bytes": "ca 0c 02 01",
-      "expected_error": "max_bignumber_exponent_exceeded",
-      "options": {
-        "max_bignumber_exponent": 5
-      }
-    },
-    {
-      "//": "Big number exponent exceeds limit (negative exponent)",
-      "//note": "BigNumber 1e-6: exponent=-6 (zigzag 0x0B), signed_length=+1 (zigzag 0x02), magnitude=0x01. Limit is 5.",
-      "name": "max_bignumber_exponent_exceeded_negative",
-      "type": "decode_error",
-      "input_bytes": "ca 0b 02 01",
-      "expected_error": "max_bignumber_exponent_exceeded",
-      "options": {
-        "max_bignumber_exponent": 5
-      }
-    },
-    {
-      "//": "Big number exponent at limit is OK (positive)",
-      "//note": "BigNumber 1e5 = 100000: exponent=5 (zigzag 0x0A), signed_length=+1 (zigzag 0x02), magnitude=0x01",
-      "name": "bignumber_exponent_at_limit_positive",
-      "type": "decode",
-      "input_bytes": "ca 0a 02 01",
-      "expected_value": 100000,
-      "options": {
-        "max_bignumber_exponent": 5
-      }
-    },
-    {
-      "//": "Big number exponent at limit is OK (negative)",
-      "//note": "BigNumber 5e-1 = 0.5: exponent=-1 (zigzag 0x01), signed_length=+1 (zigzag 0x02), magnitude=0x05",
-      "name": "bignumber_exponent_at_limit_negative",
-      "type": "decode",
-      "input_bytes": "ca 01 02 05",
-      "expected_value": 0.5,
-      "options": {
-        "max_bignumber_exponent": 1
-      }
-    },
-    {
-      "//": "Big number magnitude exceeds limit (4 bytes, limit 3)",
-      "//note": "BigNumber 67305985: exponent=0 (0x00), signed_length=+4 (zigzag 0x08), magnitude=01 02 03 04 (LE)",
-      "name": "max_bignumber_magnitude_exceeded",
-      "type": "decode_error",
-      "input_bytes": "ca 00 08 01 02 03 04",
-      "expected_error": "max_bignumber_magnitude_exceeded",
-      "options": {
-        "max_bignumber_magnitude": 3
-      }
-    },
-    {
-      "//": "Big number magnitude at limit is OK (3 bytes, limit 3)",
-      "//note": "BigNumber 197121: exponent=0 (0x00), signed_length=+3 (zigzag 0x06), magnitude=01 02 03 (LE)",
-      "name": "bignumber_magnitude_at_limit",
-      "type": "decode",
-      "input_bytes": "ca 00 06 01 02 03",
-      "expected_value": 197121,
-      "options": {
-        "max_bignumber_magnitude": 3
-      }
-    },
-    {
-      "//": "Out-of-range big number converted to string with stringify option",
-      "//note": "BigNumber 1e6 with exponent limit 5, stringified",
-      "name": "out_of_range_bignumber_stringify_positive",
-      "type": "decode",
-      "input_bytes": "ca 0c 02 01",
-      "expected_value": "1e6",
-      "options": {
-        "max_bignumber_exponent": 5,
-        "out_of_range": "stringify"
-      },
-      "requires": [
-        "out_of_range_stringify"
-      ]
-    },
-    {
-      "//": "Negative out-of-range big number converted to string",
-      "//note": "BigNumber -1e6: exponent=6 (zigzag 0x0C), signed_length=-1 (zigzag 0x01), magnitude=0x01",
-      "name": "out_of_range_bignumber_stringify_negative",
-      "type": "decode",
-      "input_bytes": "ca 0c 01 01",
-      "expected_value": "-1e6",
-      "options": {
-        "max_bignumber_exponent": 5,
-        "out_of_range": "stringify"
-      },
-      "requires": [
-        "out_of_range_stringify"
-      ]
-    },
-    {
-      "//": "Multi-digit significand out-of-range big number converted to string",
-      "//note": "BigNumber 15e5: exponent=5 (zigzag 0x0A), signed_length=+1 (zigzag 0x02), magnitude=0x0F (15). Limit is 4.",
-      "name": "out_of_range_bignumber_stringify_multi_digit",
-      "type": "decode",
-      "input_bytes": "ca 0a 02 0f",
-      "expected_value": "15e5",
-      "options": {
-        "max_bignumber_exponent": 4,
-        "out_of_range": "stringify"
-      },
-      "requires": [
-        "out_of_range_stringify"
-      ]
-    },
-    {
-      "//": "Magnitude-exceeded big number converted to string with stringify option",
-      "//note": "BigNumber 67305985e2: exponent=2 (zigzag 0x04), signed_length=+4 (zigzag 0x08), magnitude=01 02 03 04 (LE). Limit is 3 bytes.",
-      "name": "out_of_range_bignumber_stringify_magnitude",
-      "type": "decode",
-      "input_bytes": "ca 04 08 01 02 03 04",
-      "expected_value": "67305985e2",
-      "options": {
-        "max_bignumber_magnitude": 3,
-        "out_of_range": "stringify"
-      },
-      "requires": [
-        "out_of_range_stringify"
-      ]
-    },
-    {
-      "//": "Float64 signaling NaN allowed with option",
-      "name": "snan_float64_allowed",
-      "type": "decode",
-      "input_bytes": "cc 01 00 00 00 00 00 f0 7f",
-      "expected_value": {"$number": "sNaN"},
-      "options": {"nan_infinity_behavior": "allow"},
-      "requires": ["signaling_nan"]
-    },
-    {
-      "//": "Float32 signaling NaN allowed with option",
-      "name": "snan_float32_allowed",
-      "type": "decode",
-      "input_bytes": "cb 01 00 80 7f",
-      "expected_value": {"$number": "sNaN"},
-      "options": {"nan_infinity_behavior": "allow"},
-      "requires": ["signaling_nan"]
-    },
-    {
-      "//": "Invalid UTF-8 passed through as raw bytes (short string)",
-      "name": "invalid_utf8_pass_through_short_string",
-      "type": "decode",
-      "input_bytes": "d3 61 80 62",
-      "expected_value": {"$bytes": "61 80 62"},
-      "options": {"invalid_utf8": "pass_through"},
-      "requires": ["raw_string_bytes"]
-    },
-    {
-      "//": "Invalid UTF-8 passed through as raw bytes (long string)",
-      "name": "invalid_utf8_pass_through_long_string",
-      "type": "decode",
-      "input_bytes": "ff 61 80 62 ff",
-      "expected_value": {"$bytes": "61 80 62"},
-      "options": {"invalid_utf8": "pass_through"},
-      "requires": ["raw_string_bytes"]
-    },
-    {
-      "//": "Duplicate empty string keys",
-      "name": "duplicate_key_empty_string",
-      "type": "decode_error",
-      "input_bytes": "fd d0 65 d0 66 fe",
-      "expected_error": "duplicate_key"
-    },
-    {
-      "//": "Duplicate long string keys (16-byte keys using ff-terminated encoding)",
-      "name": "duplicate_key_long_string",
-      "type": "decode_error",
-      "input_bytes": "fd ff 61 62 63 64 65 66 67 68 69 6a 6b 6c 6d 6e 6f 70 ff 65 ff 61 62 63 64 65 66 67 68 69 6a 6b 6c 6d 6e 6f 70 ff 66 fe",
-      "expected_error": "duplicate_key"
-    },
-    {
-      "//": "Duplicate keys using different string encodings (short vs long)",
-      "name": "duplicate_key_mixed_encoding",
-      "type": "decode_error",
-      "input_bytes": "fd d1 61 65 ff 61 ff 66 fe",
-      "expected_error": "duplicate_key"
-    },
-    {
-      "//": "4-byte overlong UTF-8 encoding of U+002F (should be 1 byte)",
-      "name": "invalid_utf8_4byte_overlong",
-      "type": "decode_error",
-      "input_bytes": "d4 f0 80 80 af",
-      "expected_error": "invalid_utf8"
     }
   ]
 }

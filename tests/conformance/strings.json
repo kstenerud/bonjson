@@ -1,107 +1,107 @@
 {
   "type": "bonjson-test",
   "version": "1.0.0",
-  "//": "String encoding tests covering short strings (0xD0-0xDF) and long strings (0xFF+data+0xFF)",
+  "//": "String encoding tests covering short strings, long strings, and chunking",
   "tests": [
     {
-      "//": "Short string encoding: 0-15 byte strings use type codes 0xd0-0xdf",
+      "//": "Short string encoding: 0-31 byte strings use type codes 0x65-0x84",
       "name": "short_string_empty",
       "type": "encode",
       "input": "",
-      "expected_bytes": "d0"
+      "expected_bytes": "65"
     },
     {
       "//": "Single character 'A' (0x41)",
       "name": "short_string_1char",
       "type": "encode",
       "input": "A",
-      "expected_bytes": "d1 41"
+      "expected_bytes": "6641"
     },
     {
       "name": "short_string_a",
       "type": "encode",
       "input": "a",
-      "expected_bytes": "d1 61"
+      "expected_bytes": "6661"
     },
     {
       "name": "short_string_ab",
       "type": "encode",
       "input": "ab",
-      "expected_bytes": "d2 61 62"
+      "expected_bytes": "676162"
     },
     {
       "name": "short_string_abc",
       "type": "encode",
       "input": "abc",
-      "expected_bytes": "d3 61 62 63"
+      "expected_bytes": "68616263"
     },
     {
       "name": "short_string_5bytes",
       "type": "encode",
       "input": "hello",
-      "expected_bytes": "d5 68 65 6c 6c 6f"
+      "expected_bytes": "6a68656c6c6f"
     },
     {
       "//": "Short strings up to 15 bytes use inline length encoding",
       "name": "short_string_15bytes",
       "type": "encode",
       "input": "15 byte string!",
-      "expected_bytes": "df 31 35 20 62 79 74 65 20 73 74 72 69 6e 67 21"
+      "expected_bytes": "743135206279746520737472696e6721"
     },
     {
       "//": "Japanese string (12 UTF-8 bytes)",
       "name": "short_string_japanese",
       "type": "encode",
       "input": "おはよう",
-      "expected_bytes": "dc e3 81 8a e3 81 af e3 82 88 e3 81 86"
+      "expected_bytes": "71e3818ae381afe38288e38186"
     },
     {
-      "//": "Long string encoding: 16+ byte strings use 0xFF + data + 0xFF",
+      "//": "Long string encoding: 16+ byte strings use type code 0xFF with length field",
       "name": "long_string_16bytes",
       "type": "encode",
       "input": "this is 16 bytes",
-      "expected_bytes": "ff 74 68 69 73 20 69 73 20 31 36 20 62 79 74 65 73 ff"
+      "expected_bytes": "7574686973206973203136206279746573"
     },
     {
-      "//": "31 byte string",
+      "//": "31 byte string (length field = 0x7c)",
       "name": "long_string_31bytes",
       "type": "encode",
       "input": "1234567890123456789012345678901",
-      "expected_bytes": "ff 31 32 33 34 35 36 37 38 39 30 31 32 33 34 35 36 37 38 39 30 31 32 33 34 35 36 37 38 39 30 31 ff"
+      "expected_bytes": "8431323334353637383930313233343536373839303132333435363738393031"
     },
     {
-      "//": "32 byte string",
+      "//": "32 byte string (length field = 0x80)",
       "name": "long_string_32bytes",
       "type": "encode",
       "input": "12345678901234567890123456789012",
-      "expected_bytes": "ff 31 32 33 34 35 36 37 38 39 30 31 32 33 34 35 36 37 38 39 30 31 32 33 34 35 36 37 38 39 30 31 32 ff"
+      "expected_bytes": "ff3132333435363738393031323334353637383930313233343536373839303132ff"
     },
     {
-      "//": "64 byte string",
+      "//": "64 byte string (2-byte length field: 0x01 0x02)",
       "name": "long_string_64bytes",
       "type": "encode",
       "input": "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ",
-      "expected_bytes": "ff 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a ff"
+      "expected_bytes": "ff5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5aff"
     },
     {
-      "//": "130 character string",
+      "//": "130 character string (length field = 0x11 0x04)",
       "name": "long_string_130bytes",
       "type": "encode",
       "input": "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890",
-      "expected_bytes": "ff 31 32 33 34 35 36 37 38 39 30 31 32 33 34 35 36 37 38 39 30 31 32 33 34 35 36 37 38 39 30 31 32 33 34 35 36 37 38 39 30 31 32 33 34 35 36 37 38 39 30 31 32 33 34 35 36 37 38 39 30 31 32 33 34 35 36 37 38 39 30 31 32 33 34 35 36 37 38 39 30 31 32 33 34 35 36 37 38 39 30 31 32 33 34 35 36 37 38 39 30 31 32 33 34 35 36 37 38 39 30 31 32 33 34 35 36 37 38 39 30 31 32 33 34 35 36 37 38 39 30 ff"
+      "expected_bytes": "ff31323334353637383930313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930ff"
     },
     {
-      "//": "Decode test: empty long string (0xFF 0xFF)",
+      "//": "Decode test: empty long string (0xFF 0x00)",
       "name": "decode_long_string_empty",
       "type": "decode",
-      "input_bytes": "ff ff",
+      "input_bytes": "ffff",
       "expected_value": ""
     },
     {
       "//": "Decode test: 'a string' encoded as long string",
       "name": "decode_long_string_astring",
       "type": "decode",
-      "input_bytes": "ff 61 20 73 74 72 69 6e 67 ff",
+      "input_bytes": "ff6120737472696e67ff",
       "expected_value": "a string"
     },
     {
@@ -152,205 +152,245 @@
       "input": "Hello 世界 🌍"
     },
     {
-      "//": "=== Long string decode tests ===",
-      "name": "decode_long_string_helloworld",
+      "//": "=== Chunked string decode tests ===",
+      "//note": "Chunk byte (single-byte encoding) = (length << 2) | (continuation << 1). Continuation=1 means more chunks follow.",
+      "name": "decode_chunked_2chunks",
       "type": "decode",
-      "input_bytes": "ff 68 65 6c 6c 6f 77 6f 72 6c 64 ff",
+      "input_bytes": "ff68656c6c6f776f726c64ff",
       "expected_value": "helloworld"
     },
     {
-      "//": "Long string 'abcdefghi'",
-      "name": "decode_long_string_abcdefghi",
+      "//": "3-chunk string: 'abc' + 'def' + 'ghi'",
+      "name": "decode_chunked_3chunks",
       "type": "decode",
-      "input_bytes": "ff 61 62 63 64 65 66 67 68 69 ff",
+      "input_bytes": "ff616263646566676869ff",
       "expected_value": "abcdefghi"
     },
     {
-      "//": "Long string with mixed ASCII",
-      "name": "decode_long_string_mixed_ascii",
+      "//": "Chunked string with varying chunk sizes: 1 + 5 + 2 bytes",
+      "name": "decode_chunked_varying_sizes",
       "type": "decode",
-      "input_bytes": "ff 41 68 65 6c 6c 6f 5a 5a ff",
+      "input_bytes": "ff4168656c6c6f5a5aff",
       "expected_value": "AhelloZZ"
     },
     {
-      "//": "Long string: 'this is 16 bytes'",
-      "name": "decode_long_string_16bytes",
+      "//": "Single-chunk long string (no continuation)",
+      "name": "decode_single_chunk_long_string",
       "type": "decode",
-      "input_bytes": "ff 74 68 69 73 20 69 73 20 31 36 20 62 79 74 65 73 ff",
+      "input_bytes": "ff74686973206973203136206279746573ff",
       "expected_value": "this is 16 bytes"
     },
     {
-      "//": "=== String length boundary tests ===",
-      "name": "decode_long_string_63_bytes",
+      "//": "=== Length field boundary tests ===",
+      "//note": "Testing length field encoding at continuation boundaries",
+      "name": "decode_length_63_single_byte",
       "type": "decode",
-      "input_bytes": "ff 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 ff",
+      "input_bytes": "ff616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161ff",
       "expected_value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     },
     {
-      "//": "64 byte long string",
-      "name": "decode_long_string_64_bytes",
+      "//": "64 bytes requires 2-byte length field",
+      "name": "decode_length_64_two_bytes",
       "type": "decode",
-      "input_bytes": "ff 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 ff",
+      "input_bytes": "ff61616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161ff",
       "expected_value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     },
     {
-      "//": "8191 byte string",
+      "//": "8191 bytes = max for 2-byte length field",
       "name": "roundtrip_length_8191",
       "type": "roundtrip",
       "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     },
     {
-      "//": "8192 byte string",
+      "//": "8192 bytes = first value requiring 3-byte length field",
       "name": "roundtrip_length_8192",
       "type": "roundtrip",
       "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     },
     {
-      "//": "=== Additional long string decode tests ===",
-      "name": "decode_long_string_hello",
+      "//": "=== Chunked string edge cases ===",
+      "//note": "Length field: (length << 2) | (continuation << 1). UTF-8 validation happens on complete assembled string.",
+      "name": "decode_chunked_empty_final",
       "type": "decode",
-      "input_bytes": "ff 68 65 6c 6c 6f ff",
+      "input_bytes": "ff68656c6c6fff",
       "expected_value": "hello"
     },
     {
-      "//": "Long string 'abcde'",
-      "name": "decode_long_string_abcde",
+      "//": "Many single-byte chunks",
+      "name": "decode_chunked_single_byte_chunks",
       "type": "decode",
-      "input_bytes": "ff 61 62 63 64 65 ff",
+      "input_bytes": "ff6162636465ff",
       "expected_value": "abcde"
     },
     {
-      "//": "Long string with 20 'a's followed by 'bc'",
-      "name": "decode_long_string_20a_bc",
+      "//": "Larger chunk followed by small chunk (20 bytes + 2 bytes)",
+      "//note": "Length: (20 << 2) | 2 = 0x52 for chunk1, (2 << 2) | 0 = 0x08 for chunk2",
+      "name": "decode_chunked_large_then_small",
       "type": "decode",
-      "input_bytes": "ff 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 62 63 ff",
+      "input_bytes": "ff61616161616161616161616161616161616161616263ff",
       "expected_value": "aaaaaaaaaaaaaaaaaaaabc"
     },
     {
-      "//": "Long string with ASCII followed by Unicode",
-      "name": "decode_long_string_ascii_then_unicode",
+      "//": "Unicode character at start of second chunk",
+      "//note": "Chunk1: hello (5 bytes) = 0x16, Chunk2: 世界 (6 bytes) = 0x18",
+      "name": "decode_chunked_unicode_start_second",
       "type": "decode",
-      "input_bytes": "ff 68 65 6c 6c 6f e4 b8 96 e7 95 8c ff",
+      "input_bytes": "ff68656c6c6fe4b896e7958cff",
       "expected_value": "hello世界"
     },
     {
-      "//": "Long string: CJK character followed by ASCII",
-      "name": "decode_long_string_cjk_ascii",
+      "//": "Multi-byte character ends exactly at chunk boundary",
+      "//note": "Chunk1: '世' (E4 B8 96), Chunk2: 'A'. Len1=(3<<2)|2=0x0e, Len2=(1<<2)|0=0x04",
+      "name": "decode_chunked_unicode_exact_boundary",
       "type": "decode",
-      "input_bytes": "ff e4 b8 96 41 ff",
+      "input_bytes": "ffe4b89641ff",
       "expected_value": "世A"
     },
     {
-      "//": "Long string: emoji followed by ASCII",
-      "name": "decode_long_string_emoji_ascii",
+      "//": "4-byte emoji ends exactly at chunk boundary",
+      "//note": "Chunk1: '😀' (F0 9F 98 80), Chunk2: '!' (21). Len1=(4<<2)|2=0x12, Len2=(1<<2)|0=0x04",
+      "name": "decode_chunked_emoji_exact_boundary",
       "type": "decode",
-      "input_bytes": "ff f0 9f 98 80 21 ff",
+      "input_bytes": "fff09f988021ff",
       "expected_value": "😀!"
     },
     {
-      "//": "Long string: two CJK characters",
-      "name": "decode_long_string_two_cjk",
+      "//": "Two multi-byte characters, each in its own chunk",
+      "//note": "Chunk1: '日' (E6 97 A5), Chunk2: '本' (E6 9C AC). Each 3 bytes.",
+      "name": "decode_chunked_two_unicode_chars",
       "type": "decode",
-      "input_bytes": "ff e6 97 a5 e6 9c ac ff",
+      "input_bytes": "ffe697a5e69cacff",
       "expected_value": "日本"
     },
     {
-      "//": "Long string: digits 0-9",
-      "name": "decode_long_string_digits",
+      "//": "Many small chunks with ASCII",
+      "//note": "Tests chunk handling with 10 single-byte chunks",
+      "name": "decode_chunked_10_single_bytes",
       "type": "decode",
-      "input_bytes": "ff 30 31 32 33 34 35 36 37 38 39 ff",
+      "input_bytes": "ff30313233343536373839ff",
       "expected_value": "0123456789"
     },
     {
-      "//": "Long string: 64 'a's followed by 'bc'",
-      "name": "decode_long_string_64a_bc",
+      "//": "64-byte chunk with continuation + 2-byte final chunk",
+      "//note": "Chunk1: 64 bytes, cont=1, payload=(64<<1)|1=129, 2-byte: (129<<2)|1=517=0x0205. Chunk2: 2 bytes, cont=0, payload=4, 1-byte: 0x08",
+      "name": "decode_chunked_64byte_first_chunk",
       "type": "decode",
-      "input_bytes": "ff 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 62 63 ff",
+      "input_bytes": "ff616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616263ff",
       "expected_value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabc"
     },
     {
-      "//": "Long string: 64 'a's + 62 'b's",
-      "name": "decode_long_string_64a_62b",
+      "//": "Both chunks 64 bytes (both require 2-byte length fields)",
+      "//note": "Chunk1: 64 'a', cont=1, len=0x0502. Chunk2: 64 'b', cont=0, payload=(64<<1)|0=128, 2-byte: (128<<2)|1=513=0x0201",
+      "name": "decode_chunked_64byte_both_chunks",
       "type": "decode",
-      "input_bytes": "ff 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 ff",
+      "input_bytes": "ff6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616162626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262ff",
       "expected_value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
     },
     {
-      "//": "Long string: 64 'a's + 64 'b's + 62 'c's",
-      "name": "decode_long_string_64a_64b_62c",
+      "//": "Three chunks: 64 + 64 + 64 bytes (all require 2-byte length fields)",
+      "//note": "All chunks 64 bytes. First two have continuation=1 (0x0502), last has continuation=0 (0x0102)",
+      "name": "decode_chunked_64byte_three_chunks",
       "type": "decode",
-      "input_bytes": "ff 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 62 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 ff",
+      "input_bytes": "ff616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626263636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363ff",
       "expected_value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
     },
     {
-      "//": "=== Long strings with UTF-8 multi-byte sequences ==="
+      "//": "=== UTF-8 sequences split across chunk boundaries ===",
+      "//note": "UTF-8 validation happens on the complete assembled string, not per-chunk. Multi-byte sequences may span chunk boundaries."
     },
     {
       "//": "2-byte UTF-8 char 'ü' (U+00FC = C3 BC) split after first byte",
-      "name": "decode_long_string_utf8_2byte_u_umlaut",
+      "//note": "Chunk1: length=1, cont=1 → 0x06, data=C3. Chunk2: length=1, cont=0 → 0x04, data=BC",
+      "name": "decode_utf8_2byte_split",
       "type": "decode",
-      "input_bytes": "ff c3 bc ff",
+      "input_bytes": "ffc3bcff",
       "expected_value": "ü"
     },
     {
-      "//": "2-byte UTF-8 'é' (U+00E9 = C3 A9)",
-      "name": "decode_long_string_utf8_2byte_e_acute",
+      "//": "2-byte UTF-8 'é' (U+00E9 = C3 A9) split across chunks",
+      "name": "decode_utf8_2byte_split_e_acute",
       "type": "decode",
-      "input_bytes": "ff c3 a9 ff",
+      "input_bytes": "ffc3a9ff",
       "expected_value": "é"
     },
     {
-      "//": "3-byte UTF-8 char '世' (U+4E16 = E4 B8 96)",
-      "name": "decode_long_string_utf8_3byte_shi",
+      "//": "3-byte UTF-8 char '世' (U+4E16 = E4 B8 96) split after first byte",
+      "//note": "Chunk1: length=1, cont=1 → 0x06, data=E4. Chunk2: length=2, cont=0 → 0x08, data=B896",
+      "name": "decode_utf8_3byte_split_1_2",
       "type": "decode",
-      "input_bytes": "ff e4 b8 96 ff",
+      "input_bytes": "ffe4b896ff",
       "expected_value": "世"
     },
     {
-      "//": "3-byte UTF-8 '中' (U+4E2D = E4 B8 AD)",
-      "name": "decode_long_string_utf8_3byte_zhong",
+      "//": "3-byte UTF-8 char '世' (E4 B8 | 96) split after second byte",
+      "//note": "Chunk1: length=2, cont=1 → 0x0a, data=E4B8. Chunk2: length=1, cont=0 → 0x04, data=96",
+      "name": "decode_utf8_3byte_split_2_1",
       "type": "decode",
-      "input_bytes": "ff e4 b8 ad ff",
+      "input_bytes": "ffe4b896ff",
+      "expected_value": "世"
+    },
+    {
+      "//": "3-byte UTF-8 '中' (U+4E2D = E4 B8 AD) split 1+2",
+      "name": "decode_utf8_3byte_split_1_2_zhong",
+      "type": "decode",
+      "input_bytes": "ffe4b8adff",
       "expected_value": "中"
     },
     {
-      "//": "4-byte UTF-8 emoji '😀' (U+1F600 = F0 9F 98 80)",
-      "name": "decode_long_string_utf8_4byte_emoji",
+      "//": "3-byte UTF-8 '中' split 2+1",
+      "name": "decode_utf8_3byte_split_2_1_zhong",
       "type": "decode",
-      "input_bytes": "ff f0 9f 98 80 ff",
+      "input_bytes": "ffe4b8adff",
+      "expected_value": "中"
+    },
+    {
+      "//": "4-byte UTF-8 emoji '😀' (U+1F600 = F0 9F 98 80) split after first byte",
+      "//note": "Chunk1: length=1, cont=1 → 0x06, data=F0. Chunk2: length=3, cont=0 → 0x0c, data=9F9880",
+      "name": "decode_utf8_4byte_split_1_3",
+      "type": "decode",
+      "input_bytes": "fff09f9880ff",
       "expected_value": "😀"
     },
     {
-      "//": "Long string encoding of 'a' (could also be short string d1 61)",
-      "name": "decode_long_string_a",
+      "//": "4-byte UTF-8 emoji '😀' split in middle (F0 9F | 98 80)",
+      "//note": "Chunk1: length=2, cont=1 → 0x0a, data=F09F. Chunk2: length=2, cont=0 → 0x08, data=9880",
+      "name": "decode_utf8_4byte_split_2_2",
       "type": "decode",
-      "input_bytes": "ff 61 ff",
+      "input_bytes": "fff09f9880ff",
+      "expected_value": "😀"
+    },
+    {
+      "//": "4-byte UTF-8 emoji '😀' split 3+1",
+      "//note": "Chunk1: length=3, cont=1 → 0x0e, data=F09F98. Chunk2: length=1, cont=0 → 0x04, data=80",
+      "name": "decode_utf8_4byte_split_3_1",
+      "type": "decode",
+      "input_bytes": "fff09f9880ff",
+      "expected_value": "😀"
+    },
+    {
+      "//": "=== Non-canonical length encoding tests ===",
+      "//note": "Decoders MUST accept non-canonical (oversized) length encodings"
+    },
+    {
+      "//": "Empty string with non-canonical 2-byte length (payload 0 encoded as 01 00 instead of 00)",
+      "name": "noncanonical_length_empty_string_2byte",
+      "type": "decode",
+      "input_bytes": "ffff",
+      "expected_value": ""
+    },
+    {
+      "//": "String 'a' with non-canonical 2-byte length (payload 2 encoded as 09 00 instead of 04)",
+      "name": "noncanonical_length_string_a_2byte",
+      "type": "decode",
+      "input_bytes": "ff61ff",
       "expected_value": "a"
     },
     {
-      "//": "Tab character in string round-trips correctly",
-      "name": "roundtrip_string_tab",
-      "type": "roundtrip",
-      "input": "a\tb"
-    },
-    {
-      "//": "Line feed in string round-trips correctly",
-      "name": "roundtrip_string_lf",
-      "type": "roundtrip",
-      "input": "a\nb"
-    },
-    {
-      "//": "Carriage return in string round-trips correctly",
-      "name": "roundtrip_string_cr",
-      "type": "roundtrip",
-      "input": "a\rb"
-    },
-    {
-      "//": "Short string encode with tab character",
-      "name": "encode_short_string_with_tab",
-      "type": "encode",
-      "input": "a\tb",
-      "expected_bytes": "d3 61 09 62"
+      "//": "Empty string with non-canonical 3-byte length (payload 0 encoded as 03 00 00)",
+      "name": "noncanonical_length_empty_string_3byte",
+      "type": "decode",
+      "input_bytes": "ffff",
+      "expected_value": ""
     }
   ]
 }

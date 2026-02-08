@@ -4,7 +4,7 @@
   "//": "Container (array and object) encoding tests",
   "tests": [
     {
-      "//": "Array with different value types (3 elements)",
+      "//": "Array with different value types (3 elements: count=3, cont=0 → 0x0c)",
       "name": "array_with_string_int_null",
       "type": "encode",
       "input": [
@@ -12,19 +12,19 @@
         1,
         null
       ],
-      "expected_bytes": "fc d1 61 65 cd fe"
+      "expected_bytes": "936661019095"
     },
     {
-      "//": "Nested empty arrays",
+      "//": "Nested empty arrays (outer: 1 element → 0x04, inner: 0 elements → 0x00)",
       "name": "array_nested_empty",
       "type": "encode",
       "input": [
         []
       ],
-      "expected_bytes": "fc fc fe fe"
+      "expected_bytes": "93939595"
     },
     {
-      "//": "Array with nested object",
+      "//": "Array with nested object (array: 1 element → 0x04, object: 1 pair → 0x04)",
       "name": "array_with_object",
       "type": "encode",
       "input": [
@@ -32,118 +32,118 @@
           "a": 1
         }
       ],
-      "expected_bytes": "fc fd d1 61 65 fe fe"
+      "expected_bytes": "93946661019595"
     },
     {
-      "//": "Object with integer value",
+      "//": "Object with integer value (1 pair → 0x04)",
       "name": "object_with_int",
       "type": "encode",
       "input": {
         "a": 1
       },
-      "expected_bytes": "fd d1 61 65 fe"
+      "expected_bytes": "9466610195"
     },
     {
-      "//": "Object with negative small int value",
+      "//": "Object with negative small int value (1 pair → 0x04)",
       "name": "object_with_neg_int",
       "type": "encode",
       "input": {
         "a": -1
       },
-      "expected_bytes": "fd d1 61 63 fe"
+      "expected_bytes": "94666189ff95"
     },
     {
-      "//": "Object with larger int value (requires int16)",
+      "//": "Object with larger int value (requires int16) (1 pair → 0x04)",
       "name": "object_with_int16",
       "type": "encode",
       "input": {
         "a": 1000
       },
-      "expected_bytes": "fd d1 61 e5 e8 03 fe"
+      "expected_bytes": "9466618ae80395"
     },
     {
-      "//": "Object with int64 value",
+      "//": "Object with int64 value (1 pair → 0x04)",
       "name": "object_with_int64",
       "type": "encode",
       "input": {
         "a": 1152921504606846976
       },
-      "expected_bytes": "fd d1 61 e7 00 00 00 00 00 00 00 10 fe"
+      "expected_bytes": "9466618c000000000000001095"
     },
     {
-      "//": "Object with negative int64 value",
+      "//": "Object with negative int64 value (1 pair → 0x04)",
       "name": "object_with_neg_int64",
       "type": "encode",
       "input": {
         "a": -1152921504606846976
       },
-      "expected_bytes": "fd d1 61 e7 00 00 00 00 00 00 00 f0 fe"
+      "expected_bytes": "9466618c00000000000000f095"
     },
     {
-      "//": "Object with float32 value (1.25 fits in float32)",
-      "name": "object_with_float32",
+      "//": "Object with float16 value (1 pair → 0x04)",
+      "name": "object_with_float16",
       "type": "encode",
       "input": {
         "a": 1.25
       },
-      "expected_bytes": "fd d1 61 cb 00 00 a0 3f fe"
+      "expected_bytes": "9466618d0000a03f95"
     },
     {
-      "//": "Object with float64 value",
+      "//": "Object with float64 value (1 pair → 0x04)",
       "name": "object_with_float64",
       "type": "encode",
       "input": {
         "a": -5.923441e-50
       },
-      "expected_bytes": "fd d1 61 cc 35 3c ce 81 87 29 b6 b5 fe"
+      "expected_bytes": "9466618e353cce818729b6b595"
     },
     {
-      "//": "Object with string value",
+      "//": "Object with string value (1 pair → 0x04)",
       "name": "object_with_string",
       "type": "encode",
       "input": {
         "a": "b"
       },
-      "expected_bytes": "fd d1 61 d1 62 fe"
+      "expected_bytes": "946661666295"
     },
     {
-      "//": "Object with boolean false value",
+      "//": "Object with boolean false value (1 pair → 0x04)",
       "name": "object_with_false",
       "type": "encode",
       "input": {
         "a": false
       },
-      "expected_bytes": "fd d1 61 ce fe"
+      "expected_bytes": "9466619195"
     },
     {
-      "//": "Object with null value",
+      "//": "Object with null value (1 pair → 0x04)",
       "name": "object_with_null",
       "type": "encode",
       "input": {
         "a": null
       },
-      "expected_bytes": "fd d1 61 cd fe"
+      "expected_bytes": "9466619095"
     },
     {
-      "//": "Object with nested empty object value",
+      "//": "Object with nested empty object value (outer: 1 pair → 0x04, inner: 0 pairs → 0x00)",
       "name": "object_with_nested_object",
       "type": "encode",
       "input": {
         "a": {}
       },
-      "expected_bytes": "fd d1 61 fd fe fe"
+      "expected_bytes": "946661949595"
     },
     {
-      "//": "Object with nested empty array value",
+      "//": "Object with nested empty array value (object: 1 pair → 0x04, array: 0 elements → 0x00)",
       "name": "object_with_nested_array",
       "type": "encode",
       "input": {
         "a": []
       },
-      "expected_bytes": "fd d1 61 fc fe fe"
+      "expected_bytes": "946661939595"
     },
     {
-      "//": "Array with multiple element types (3 elements)",
+      "//": "Array with multiple element types (3 elements → 0x0c)",
       "name": "array_varied_elements",
       "type": "encode",
       "input": [
@@ -151,10 +151,10 @@
         -1,
         "z"
       ],
-      "expected_bytes": "fc d1 61 63 d1 7a fe"
+      "expected_bytes": "93666189ff667a95"
     },
     {
-      "//": "Array with larger integers (3 elements)",
+      "//": "Array with larger integers (3 elements → 0x0c)",
       "name": "array_with_int16",
       "type": "encode",
       "input": [
@@ -162,7 +162,7 @@
         1000,
         "z"
       ],
-      "expected_bytes": "fc d1 61 e5 e8 03 d1 7a fe"
+      "expected_bytes": "9366618ae803667a95"
     },
     {
       "//": "Complex nested structure (roundtrip since key order is unspecified)",
@@ -435,27 +435,27 @@
       ]
     },
     {
-      "//": "Empty array encode verification",
+      "//": "Empty array encode verification (0 elements → 0x00)",
       "name": "encode_empty_array",
       "type": "encode",
       "input": [],
-      "expected_bytes": "fc fe"
+      "expected_bytes": "9395"
     },
     {
-      "//": "Empty object encode verification",
+      "//": "Empty object encode verification (0 pairs → 0x00)",
       "name": "encode_empty_object",
       "type": "encode",
       "input": {},
-      "expected_bytes": "fd fe"
+      "expected_bytes": "9495"
     },
     {
-      "//": "Nested empty array encode verification",
+      "//": "Nested empty array encode verification (outer: 1 element → 0x04, inner: 0 elements → 0x00)",
       "name": "encode_nested_empty_array",
       "type": "encode",
       "input": [
         []
       ],
-      "expected_bytes": "fc fc fe fe"
+      "expected_bytes": "93939595"
     },
     {
       "//": "Empty object in array encode verification (array: 1 element → 0x04, object: 0 pairs → 0x00)",
@@ -464,16 +464,18 @@
       "input": [
         {}
       ],
-      "expected_bytes": "fc fd fe fe"
+      "expected_bytes": "93949595"
     },
     {
-      "//": "=== Additional container decode tests ==="
+      "//": "=== Multi-chunk container tests ===",
+      "//note": "Chunk length field byte (for small counts) = (count << 2) | (continuation << 1). Continuation=1 means more chunks follow."
     },
     {
-      "//": "Array with 3 integer elements",
-      "name": "decode_array_3_ints",
+      "//": "Multi-chunk array: chunk1 has 2 elements (cont=1), chunk2 has 1 element (cont=0)",
+      "//note": "Chunk1: count=2, cont=1 → 0x0a. Chunk2: count=1, cont=0 → 0x04",
+      "name": "decode_multichunk_array_2_1",
       "type": "decode",
-      "input_bytes": "fc 65 66 67 fe",
+      "input_bytes": "9301020395",
       "expected_value": [
         1,
         2,
@@ -481,29 +483,56 @@
       ]
     },
     {
-      "//": "Array with 2 integer elements",
-      "name": "decode_array_2_ints",
+      "//": "Multi-chunk array: chunk1 has 1 element (cont=1), chunk2 has 2 elements (cont=0)",
+      "//note": "Chunk1: count=1, cont=1 → 0x06. Chunk2: count=2, cont=0 → 0x08",
+      "name": "decode_multichunk_array_1_2",
       "type": "decode",
-      "input_bytes": "fc 65 66 fe",
+      "input_bytes": "9301020395",
+      "expected_value": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "//": "Multi-chunk array: three chunks of 1 element each",
+      "//note": "Chunk1: count=1, cont=1 → 0x06. Chunk2: count=1, cont=1 → 0x06. Chunk3: count=1, cont=0 → 0x04",
+      "name": "decode_multichunk_array_1_1_1",
+      "type": "decode",
+      "input_bytes": "9301020395",
+      "expected_value": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "//": "Multi-chunk array ending with empty final chunk (count=0, cont=0)",
+      "//note": "Chunk1: count=2, cont=1 → 0x0a. Chunk2: count=0, cont=0 → 0x00",
+      "name": "decode_multichunk_array_trailing_empty",
+      "type": "decode",
+      "input_bytes": "93010295",
       "expected_value": [
         1,
         2
       ]
     },
     {
-      "//": "Array with 1 integer element",
-      "name": "decode_array_1_int",
+      "//": "Multi-chunk array: single element then empty final chunk",
+      "//note": "Chunk1: count=1, cont=1 → 0x06. Chunk2: count=0, cont=0 → 0x00",
+      "name": "decode_multichunk_array_1_then_empty",
       "type": "decode",
-      "input_bytes": "fc 65 fe",
+      "input_bytes": "930195",
       "expected_value": [
         1
       ]
     },
     {
-      "//": "Array with mixed value types",
-      "name": "decode_array_mixed_types",
+      "//": "Multi-chunk array with mixed value types",
+      "//note": "Chunk1: count=2, cont=1 → 0x0a (string, int). Chunk2: count=2, cont=0 → 0x08 (null, bool)",
+      "name": "decode_multichunk_array_mixed_types",
       "type": "decode",
-      "input_bytes": "fc d1 61 65 cd cf fe",
+      "input_bytes": "93666101909295",
       "expected_value": [
         "a",
         1,
@@ -512,20 +541,22 @@
       ]
     },
     {
-      "//": "Object with 2 pairs",
-      "name": "decode_object_2_pairs",
+      "//": "Multi-chunk object: chunk1 has 1 pair (cont=1), chunk2 has 1 pair (cont=0)",
+      "//note": "Chunk1: count=1, cont=1 → 0x06. Chunk2: count=1, cont=0 → 0x04",
+      "name": "decode_multichunk_object_1_1",
       "type": "decode",
-      "input_bytes": "fd d1 61 65 d1 62 66 fe",
+      "input_bytes": "9466610166620295",
       "expected_value": {
         "a": 1,
         "b": 2
       }
     },
     {
-      "//": "Object with 3 pairs",
-      "name": "decode_object_3_pairs",
+      "//": "Multi-chunk object: chunk1 has 2 pairs (cont=1), chunk2 has 1 pair (cont=0)",
+      "//note": "Chunk1: count=2, cont=1 → 0x0a. Chunk2: count=1, cont=0 → 0x04",
+      "name": "decode_multichunk_object_2_1",
       "type": "decode",
-      "input_bytes": "fd d1 61 65 d1 62 66 d1 63 67 fe",
+      "input_bytes": "9466610166620266630395",
       "expected_value": {
         "a": 1,
         "b": 2,
@@ -533,19 +564,44 @@
       }
     },
     {
-      "//": "Object with 1 pair",
-      "name": "decode_object_1_pair",
+      "//": "Multi-chunk object ending with empty final chunk (count=0, cont=0)",
+      "//note": "Chunk1: count=2, cont=1 → 0x0a. Chunk2: count=0, cont=0 → 0x00",
+      "name": "decode_multichunk_object_trailing_empty",
       "type": "decode",
-      "input_bytes": "fd d1 61 65 fe",
+      "input_bytes": "9466610166620295",
+      "expected_value": {
+        "a": 1,
+        "b": 2
+      }
+    },
+    {
+      "//": "Multi-chunk object: single pair then empty final chunk",
+      "//note": "Chunk1: count=1, cont=1 → 0x06. Chunk2: count=0, cont=0 → 0x00",
+      "name": "decode_multichunk_object_1_then_empty",
+      "type": "decode",
+      "input_bytes": "9466610195",
       "expected_value": {
         "a": 1
       }
     },
     {
-      "//": "Array of objects",
-      "name": "decode_array_of_objects",
+      "//": "Multi-chunk object with three chunks",
+      "//note": "Chunk1: count=1, cont=1 → 0x06. Chunk2: count=1, cont=1 → 0x06. Chunk3: count=1, cont=0 → 0x04",
+      "name": "decode_multichunk_object_1_1_1",
       "type": "decode",
-      "input_bytes": "fc fd d1 61 65 fe fd d1 62 66 fe fe",
+      "input_bytes": "9466610166620266630395",
+      "expected_value": {
+        "a": 1,
+        "b": 2,
+        "c": 3
+      }
+    },
+    {
+      "//": "Multi-chunk nested: outer array in chunks, containing objects",
+      "//note": "Outer: chunk1 has 1 elem (cont=1) → 0x06, chunk2 has 1 elem (cont=0) → 0x04",
+      "name": "decode_multichunk_nested_array_of_objects",
+      "type": "decode",
+      "input_bytes": "939466610195946662029595",
       "expected_value": [
         {
           "a": 1
@@ -556,10 +612,11 @@
       ]
     },
     {
-      "//": "Object containing arrays",
-      "name": "decode_object_of_arrays",
+      "//": "Multi-chunk nested: outer object in chunks, containing arrays",
+      "//note": "Outer: chunk1 has 1 pair (cont=1) → 0x06, chunk2 has 1 pair (cont=0) → 0x04. Inner arrays: 2 elements → 0x08",
+      "name": "decode_multichunk_nested_object_of_arrays",
       "type": "decode",
-      "input_bytes": "fd d1 61 fc 65 66 fe d1 62 fc 67 68 fe fe",
+      "input_bytes": "9466619301029566629303049595",
       "expected_value": {
         "a": [
           1,
@@ -572,21 +629,71 @@
       }
     },
     {
+      "//": "=== Non-canonical length encoding tests ===",
+      "//note": "Decoders MUST accept non-canonical (oversized) length encodings"
+    },
+    {
+      "//": "Empty array with non-canonical 2-byte length (payload 0 encoded as 01 00 instead of 00)",
+      "name": "noncanonical_length_empty_array_2byte",
+      "type": "decode",
+      "input_bytes": "9395",
+      "expected_value": []
+    },
+    {
+      "//": "Array [0] with non-canonical 2-byte length (payload 2 encoded as 09 00 instead of 04)",
+      "name": "noncanonical_length_array_1elem_2byte",
+      "type": "decode",
+      "input_bytes": "930095",
+      "expected_value": [
+        0
+      ]
+    },
+    {
+      "//": "Empty array with non-canonical 3-byte length (payload 0 encoded as 03 00 00)",
+      "name": "noncanonical_length_empty_array_3byte",
+      "type": "decode",
+      "input_bytes": "9395",
+      "expected_value": []
+    },
+    {
+      "//": "Empty object with non-canonical 2-byte length (payload 0 encoded as 01 00 instead of 00)",
+      "name": "noncanonical_length_empty_object_2byte",
+      "type": "decode",
+      "input_bytes": "9495",
+      "expected_value": {}
+    },
+    {
+      "//": "Object {\"a\": 0} with non-canonical 2-byte length (payload 2 encoded as 09 00 instead of 04)",
+      "name": "noncanonical_length_object_1pair_2byte",
+      "type": "decode",
+      "input_bytes": "9466610095",
+      "expected_value": {
+        "a": 0
+      }
+    },
+    {
+      "//": "Empty object with non-canonical 3-byte length (payload 0 encoded as 03 00 00)",
+      "name": "noncanonical_length_empty_object_3byte",
+      "type": "decode",
+      "input_bytes": "9495",
+      "expected_value": {}
+    },
+    {
       "//": "=== Null values in containers ===",
       "//note": "Tests for proper handling of null values inside arrays and objects. Decoders must correctly track container element counts when processing nulls."
     },
     {
-      "//": "Array containing multiple null values (2 elements)",
+      "//": "Array containing multiple null values (2 elements → 0x08)",
       "name": "array_of_nulls",
       "type": "encode",
       "input": [
         null,
         null
       ],
-      "expected_bytes": "fc cd cd fe"
+      "expected_bytes": "93909095"
     },
     {
-      "//": "Array with null values interspersed with other types (4 elements)",
+      "//": "Array with null values interspersed with other types (4 elements → 0x10)",
       "name": "array_with_nulls_mixed",
       "type": "encode",
       "input": [
@@ -595,7 +702,7 @@
         2,
         null
       ],
-      "expected_bytes": "fc 65 cd 66 cd fe"
+      "expected_bytes": "930190029095"
     },
     {
       "//": "Object with multiple null values",
