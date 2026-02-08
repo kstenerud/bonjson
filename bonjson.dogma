@@ -12,55 +12,55 @@ value             = typed_array | array | object | number | boolean | string | n
 # Types
 
 # Containers use delimiter-terminated encoding.
-# 0xFC/0xFD opens, 0xFE closes.
+# 0x93/0x94 opens, 0x95 closes.
 # Typed array is a compact encoding for homogeneous numeric arrays.
-typed_array       = u8(0xfb) & typed_element_type & leb128(var(count, ~))
+typed_array       = u8(var(code, 0x96~0x9f)) & leb128(var(count, ~))
                   & sized(count * typed_element_size * 8,
                       ordered(uint(count * typed_element_size * 8, ~)));
-typed_element_type = u8(var(etype, 0x00~0x09));
+typed_element_type = var(etype, code - 0x96);
 typed_element_size = [
-                        etype == 0x00: 1;  # uint8
-                        etype == 0x04: 1;  # sint8
-                        etype == 0x01: 2;  # uint16
-                        etype == 0x05: 2;  # sint16
-                        etype == 0x02: 4;  # uint32
-                        etype == 0x06: 4;  # sint32
-                        etype == 0x08: 4;  # float32
-                        etype == 0x03: 8;  # uint64
-                        etype == 0x07: 8;  # sint64
-                        etype == 0x09: 8;  # float64
+                        etype == 0: 1;  # uint8
+                        etype == 4: 1;  # sint8
+                        etype == 1: 2;  # uint16
+                        etype == 5: 2;  # sint16
+                        etype == 2: 4;  # uint32
+                        etype == 6: 4;  # sint32
+                        etype == 8: 4;  # float32
+                        etype == 3: 8;  # uint64
+                        etype == 7: 8;  # sint64
+                        etype == 9: 8;  # float64
                     ];
-array             = u8(0xfc) & value* & u8(0xfe);
-object            = u8(0xfd) & (string & value)* & u8(0xfe);
+array             = u8(0x93) & value* & u8(0x95);
+object            = u8(0x94) & (string & value)* & u8(0x95);
 
 number            = int_small | int_unsigned | int_signed | float_32 | float_64 | big_number;
-int_small         = u8(var(code, 0x00~0xc8));  # value = code - 100
-int_unsigned      = u8(0xe0) & ordered(uint( 8, ~))
-                  | u8(0xe1) & ordered(uint(16, ~))
-                  | u8(0xe2) & ordered(uint(32, ~))
-                  | u8(0xe3) & ordered(uint(64, ~))
+int_small         = u8(var(code, 0x00~0x64));  # value = code
+int_unsigned      = u8(0x85) & ordered(uint( 8, ~))
+                  | u8(0x86) & ordered(uint(16, ~))
+                  | u8(0x87) & ordered(uint(32, ~))
+                  | u8(0x88) & ordered(uint(64, ~))
                   ;
-int_signed        = u8(0xe4) & ordered(sint( 8, ~))
-                  | u8(0xe5) & ordered(sint(16, ~))
-                  | u8(0xe6) & ordered(sint(32, ~))
-                  | u8(0xe7) & ordered(sint(64, ~))
+int_signed        = u8(0x89) & ordered(sint( 8, ~))
+                  | u8(0x8a) & ordered(sint(16, ~))
+                  | u8(0x8b) & ordered(sint(32, ~))
+                  | u8(0x8c) & ordered(sint(64, ~))
                   ;
-float_32          = u8(0xcb) & ordered(f32(~));
-float_64          = u8(0xcc) & ordered(f64(~));
+float_32          = u8(0x8d) & ordered(f32(~));
+float_64          = u8(0x8e) & ordered(f64(~));
 # Big number: exponent (zigzag LEB128), signed_length (zigzag LEB128),
 # then abs(signed_length) unsigned LE magnitude bytes.
 # The sign of signed_length indicates the sign of the significand.
-big_number        = u8(0xca) & zigzag_leb128(~) & zigzag_leb128(var(slen, ~))
+big_number        = u8(0x8f) & zigzag_leb128(~) & zigzag_leb128(var(slen, ~))
                   & sized(abs(slen) * 8, uint(abs(slen) * 8, ~));
 
 boolean           = true | false;
-false             = u8(0xce);
-true              = u8(0xcf);
+false             = u8(0x91);
+true              = u8(0x92);
 
-null              = u8(0xcd);
+null              = u8(0x90);
 
 string            = string_short | string_long;
-string_short      = u8(var(code, 0xd0~0xdf)) & sized((code - 0xd0) * 8, char_string*);
+string_short      = u8(var(code, 0x65~0x84)) & sized((code - 0x65) * 8, char_string*);
 string_long       = u8(0xff) & char_string* & u8(0xff);
 
 # Zigzag LEB128: variable-length signed integer encoding.

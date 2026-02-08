@@ -601,7 +601,7 @@ The `expected_error` field uses standardized error type identifiers:
 | `nul_character`                 | NUL (0x00) byte in string                  |
 | `duplicate_key`                 | Duplicate key in object                    |
 | `invalid_object_key`            | Non-string key in object                   |
-| `unclosed_container`            | Container missing `0xFE` end marker        |
+| `unclosed_container`            | Container missing `0x95` end marker        |
 | `invalid_data`                  | Generic invalid data (e.g., BigNumber NaN) |
 | `value_out_of_range`            | Value exceeds allowed range                |
 | `max_depth_exceeded`            | Container nesting too deep                 |
@@ -1038,24 +1038,24 @@ Implementers integrate these validation checks into their own test suites using 
 Appendix A: Type Code Reference
 -------------------------------
 
-| Range   | Type                                 |
-|---------|--------------------------------------|
-| `00-c8` | Small integers (-100 to 100)         |
-| `c9`    | Reserved                             |
-| `ca`    | BigNumber                            |
-| `cb`    | Float32                              |
-| `cc`    | Float64                              |
-| `cd`    | Null                                 |
-| `ce`    | False                                |
-| `cf`    | True                                 |
-| `d0-df` | Short strings (0-15 bytes)           |
-| `e0-e3` | Unsigned integers (8, 16, 32, 64 bit)|
-| `e4-e7` | Signed integers (8, 16, 32, 64 bit)  |
-| `e8-fb` | Reserved                             |
-| `fc`    | Array                                |
-| `fd`    | Object                               |
-| `fe`    | Container end marker                 |
-| `ff`    | Long string                          |
+| Range   | Type                                       |
+|---------|--------------------------------------------|
+| `00-64` | Small integers (0 to 100)                  |
+| `65-84` | Short strings (0-31 bytes)                 |
+| `85-88` | Unsigned integers (8, 16, 32, 64 bit)      |
+| `89-8c` | Signed integers (8, 16, 32, 64 bit)        |
+| `8d`    | Float32                                    |
+| `8e`    | Float64                                    |
+| `8f`    | BigNumber                                  |
+| `90`    | Null                                       |
+| `91`    | False                                      |
+| `92`    | True                                       |
+| `93`    | Array                                      |
+| `94`    | Object                                     |
+| `95`    | Container end marker                       |
+| `96-9f` | Typed arrays (uint8-float64)               |
+| `a0-fe` | Reserved                                   |
+| `ff`    | Long string                                |
 
 
 Appendix B: Complete Example
@@ -1068,24 +1068,24 @@ Appendix B: Complete Example
   "//": "Example test specification file",
   "tests": [
     {
-      "//": "Null encodes to single byte 0xcd",
+      "//": "Null encodes to single byte 0x90",
       "name": "null_value",
       "type": "encode",
       "input": null,
-      "expected_bytes": "cd"
+      "expected_bytes": "90"
     },
     {
-      "//": "Small integer 42 encodes as type_code = 42 + 100 = 0x8e",
+      "//": "Small integer 42 encodes as type_code = 42 = 0x2a",
       "name": "smallint_42",
       "type": "encode",
       "input": 42,
-      "expected_bytes": "8e"
+      "expected_bytes": "2a"
     },
     {
-      "//": "Truncated sint16 should fail (0xe5 = sint16, missing second byte)",
+      "//": "Truncated sint16 should fail (0x8a = sint16, missing second byte)",
       "name": "truncated_int16",
       "type": "decode_error",
-      "input_bytes": "e5e8",
+      "input_bytes": "8ae8",
       "expected_error": "truncated"
     },
     {
@@ -1106,24 +1106,24 @@ Appendix B: Complete Example
       "expected_error": "invalid_data"
     },
     {
-      "//": "Large unsigned integer (0xe3 = uint64)",
+      "//": "Large unsigned integer (0x88 = uint64)",
       "name": "uint64_large",
       "type": "encode",
       "input": {"$number": "18446744073709551615"},
-      "expected_bytes": "e3 ff ff ff ff ff ff ff ff"
+      "expected_bytes": "88 ff ff ff ff ff ff ff ff"
     },
     {
-      "//": "BigNumber decodes to 1.5 (0xca = BigNumber, zigzag LEB128 + LE magnitude)",
+      "//": "BigNumber decodes to 1.5 (0x8f = BigNumber, zigzag LEB128 + LE magnitude)",
       "name": "bignumber_1_5",
       "type": "decode",
-      "input_bytes": "ca 01 02 0f",
+      "input_bytes": "8f 01 02 0f",
       "expected_value": {"$number": "1.5"}
     },
     {
       "//": "Non-string object key should fail (object start, key is integer 0 instead of string, value is integer 1, end)",
       "name": "invalid_object_key",
       "type": "decode_error",
-      "input_bytes": "fd 64 65 fe",
+      "input_bytes": "94 00 01 95",
       "expected_error": "invalid_object_key"
     }
   ]

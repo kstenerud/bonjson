@@ -161,24 +161,24 @@ BONJSON follows the same structural rules as [JSON](#json-standards), as illustr
 
 **Array**:
 
-    ──[0xFC]──┬─>───────────┬──[0xFE]──>
+    ──[0x93]──┬─>───────────┬──[0x95]──>
               ├─>─[value]─>─┤
               ╰─<─<─<─<─<─<─╯
 
 **Typed Array**:
 
-    ──[0xFB]──[element_type]──[element_count (LEB128)]──[data bytes...]──>
+    ──[0x96-0x9F]──[element_count (LEB128)]──[data bytes...]──>
 
 **Object**:
 
-    ──[0xFD]──┬─>─────────────────────┬──[0xFE]──>
+    ──[0x94]──┬─>─────────────────────┬──[0x95]──>
               ├─>─[string]──[value]─>─┤
               ╰─<─<─<─<─<─<─<─<─<─<─<─╯
 
 **Structural validity rules**:
 
 * A document **MUST** contain exactly one top-level value. An empty document (zero bytes) is invalid.
-* Every delimiter-terminated container ([array](#array) or [object](#object)) **MUST** be properly terminated with an end marker (`0xFE`). A document that ends without the end marker for all open containers is invalid. ([Typed arrays](#typed-array) are length-prefixed and do not use end markers.)
+* Every delimiter-terminated container ([array](#array) or [object](#object)) **MUST** be properly terminated with an end marker (`0x95`). A document that ends without the end marker for all open containers is invalid. ([Typed arrays](#typed-array) are length-prefixed and do not use end markers.)
 
 **Note**: For robustness, decoders **MAY** offer an option to recover partial data from truncated documents (see [Convenience Considerations](#convenience-considerations)).
 
@@ -201,22 +201,21 @@ Every value is composed of an 8-bit type code, and in some cases also a payload:
 
 | Type Code | Payload                      | Type      | Description                                |
 | --------- | ---------------------------- | --------- | ------------------------------------------ |
-| 00 - c8   |                              | Number    | [Integers -100 through 100](#small-integer)|
-| c9        |                              |           | RESERVED                                   |
-| ca        | Zigzag LEB128 + LE magnitude | Number    | [Big Number](#big-number)                  |
-| cb        | 32-bit ieee754 binary float  | Number    | [32-bit float](#32-bit-float)              |
-| cc        | 64-bit ieee754 binary float  | Number    | [64-bit float](#64-bit-float)              |
-| cd        |                              | Null      | [Null](#null)                              |
-| ce        |                              | Boolean   | [False](#boolean)                          |
-| cf        |                              | Boolean   | [True](#boolean)                           |
-| d0 - df   | String of n bytes            | String    | [Short String](#short-string)              |
-| e0 - e3   | Unsigned integer of n bytes  | Number    | [Unsigned Integer](#integer)               |
-| e4 - e7   | Signed integer of n bytes    | Number    | [Signed Integer](#integer)                 |
-| e8 - fa   |                              |           | RESERVED                                   |
-| fb        | Element type + count + data  | Container | [Typed Array](#typed-array)                |
-| fc        |                              | Container | [Array](#array)                            |
-| fd        |                              | Container | [Object](#object)                          |
-| fe        |                              |           | Container end marker                       |
+| 00 - 64   |                              | Number    | [Integers 0 through 100](#small-integer)   |
+| 65 - 84   | String of n bytes            | String    | [Short String](#short-string)              |
+| 85 - 88   | Unsigned integer of n bytes  | Number    | [Unsigned Integer](#integer)               |
+| 89 - 8c   | Signed integer of n bytes    | Number    | [Signed Integer](#integer)                 |
+| 8d        | 32-bit ieee754 binary float  | Number    | [32-bit float](#32-bit-float)              |
+| 8e        | 64-bit ieee754 binary float  | Number    | [64-bit float](#64-bit-float)              |
+| 8f        | Zigzag LEB128 + LE magnitude | Number    | [Big Number](#big-number)                  |
+| 90        |                              | Null      | [Null](#null)                              |
+| 91        |                              | Boolean   | [False](#boolean)                          |
+| 92        |                              | Boolean   | [True](#boolean)                           |
+| 93        |                              | Container | [Array](#array)                            |
+| 94        |                              | Container | [Object](#object)                          |
+| 95        |                              |           | Container end marker                       |
+| 96 - 9f   | Count + element data         | Container | [Typed Array](#typed-array)                |
+| a0 - fe   |                              |           | RESERVED                                   |
 | ff        | Arbitrary length string      | String    | [Long String](#long-string)                |
 
 **Note**: Type codes marked RESERVED are not used in BONJSON. Decoders **MUST** reject documents containing reserved type codes.
@@ -235,21 +234,14 @@ Strings are UTF-8 encoded sequences of Unicode codepoints, and can be encoded in
 
 ### Short String
 
-Short strings have their byte length (up to 15) encoded directly into the lower nybble of the type code.
-
-    Type Code Byte
-    ───────────────
-    1 1 0 1 L L L L
-            ╰─┴─┴─┤
-                  ╰─> Length (0-15 bytes)
-
+Short strings have their byte length (up to 31) encoded into the type code. The length is computed as: `type_code - 0x65`.
 
 **Examples**:
 
-    d0                                               // ""
-    d1 41                                            // "A"
-    dc e3 81 8a e3 81 af e3 82 88 e3 81 86           // "おはよう"
-    df 31 35 20 62 79 74 65 20 73 74 72 69 6e 67 21  // "15 byte string!"
+    65                                               // ""
+    66 41                                            // "A"
+    71 e3 81 8a e3 81 af e3 82 88 e3 81 86           // "おはよう"
+    74 31 35 20 62 79 74 65 20 73 74 72 69 6e 67 21  // "15 byte string!"
 
 
 ### Long String
@@ -289,22 +281,20 @@ All primitive numeric types are encoded exactly as they would appear in memory o
  * `NaN` and `infinity` are by default not valid, but decoders **MAY** choose to accept them anyway. See [Values incompatible with JSON](#values-incompatible-with-json).
  * Numeric type fidelity is not guaranteed. The encoding used (integer, float, big number) carries no semantic meaning — only the mathematical value matters. A decoder **MAY** decode any numeric encoding into whatever native type best represents the value.
  * Decoders **MUST** accept any valid numeric encoding for a value, even if it is not the most compact representation. Only the mathematical value matters, not the encoding used to represent it.
- * A value such as `1.0` **MAY** be encoded as an integer (`0x65`) or as a float (`cb 00 00 80 3f`). Decoders **MUST** treat these as equivalent.
+ * A value such as `1.0` **MAY** be encoded as an integer (`0x01`) or as a float (`8d 00 00 80 3f`). Decoders **MUST** treat these as equivalent.
  * Subnormal (denormalized) float values are valid and **MUST** be accepted by decoders.
- * Negative zero (`-0.0`) **MUST** be encoded using a float encoding that preserves the sign. Encoders **SHOULD** prefer [32-bit float](#32-bit-float) (`cb 00 00 00 80`) as the most compact representation. Encoding `-0.0` as integer `0` would lose the sign and is therefore considered data loss.
+ * Negative zero (`-0.0`) **MUST** be encoded using a float encoding that preserves the sign. Encoders **SHOULD** prefer [32-bit float](#32-bit-float) (`8d 00 00 00 80`) as the most compact representation. Encoding `-0.0` as integer `0` would lose the sign and is therefore considered data loss.
 
 
 ### Small Integer
 
-Small integers (-100 to 100) are encoded into the [type code](#type-codes) itself for maximum compactness in the most commonly used integer range. The value is computed as: `type_code - 100`.
+Small integers (0 to 100) are encoded into the [type code](#type-codes) itself for maximum compactness in the most commonly used integer range. The value equals the type code directly.
 
 **Examples**:
 
-    c8 //  100
-    69 //    5
-    64 //    0
-    28 //  -60
-    00 // -100
+    64 // 100
+    05 //   5
+    00 //   0
 
 
 ### Integer
@@ -313,61 +303,61 @@ Integers are encoded in little-endian byte order following the [type code](#type
 
 | Type Code | Size    | Signedness |
 | --------- | ------- | ---------- |
-| e0        | 1 byte  | Unsigned   |
-| e1        | 2 bytes | Unsigned   |
-| e2        | 4 bytes | Unsigned   |
-| e3        | 8 bytes | Unsigned   |
-| e4        | 1 byte  | Signed     |
-| e5        | 2 bytes | Signed     |
-| e6        | 4 bytes | Signed     |
-| e7        | 8 bytes | Signed     |
+| 85        | 1 byte  | Unsigned   |
+| 86        | 2 bytes | Unsigned   |
+| 87        | 4 bytes | Unsigned   |
+| 88        | 8 bytes | Unsigned   |
+| 89        | 1 byte  | Signed     |
+| 8a        | 2 bytes | Signed     |
+| 8b        | 4 bytes | Signed     |
+| 8c        | 8 bytes | Signed     |
 
 Integer sizes are restricted to CPU-native widths (1, 2, 4, 8 bytes) for efficient decoding without byte-shifting or padding.
 
 Encoders **SHOULD** use the smallest encoding that can represent the value:
 
-1. If the value fits in the small integer range (-100 to 100), use the small integer encoding.
+1. If the value fits in the small integer range (0 to 100), use the small integer encoding.
 2. Otherwise, use whichever of signed or unsigned requires fewer bytes.
 3. If both signed and unsigned require the same number of bytes, prefer signed.
 
-For example: 127 fits in 1 byte as either signed or unsigned, so use signed (`e4 7f`). 128 requires 2 bytes signed but only 1 byte unsigned, so use unsigned (`e0 80`).
+For example: 127 fits in 1 byte as either signed or unsigned, so use signed (`89 7f`). 128 requires 2 bytes signed but only 1 byte unsigned, so use unsigned (`85 80`).
 
 **Note**: Using a larger-than-necessary encoding (e.g., encoding `1` as a 64-bit integer) produces a valid document that decoders **MUST** accept. However, it wastes bytes and is not recommended.
 
 **Examples**:
 
-    e0 b4                      //  180
-    e5 18 fc                   // -1000
-    e1 00 80                   //  0x8000
-    e3 da da da de d0 d0 d0 de //  0xded0d0d0dedadada (is all I want to say to you)
-    e7 00 00 00 00 00 00 00 80 // -0x8000000000000000
+    85 b4                      //  180
+    8a 18 fc                   // -1000
+    86 00 80                   //  0x8000
+    88 da da da de d0 d0 d0 de //  0xded0d0d0dedadada (is all I want to say to you)
+    8c 00 00 00 00 00 00 00 80 // -0x8000000000000000
 
 
 ### 32-bit Float
 
-32-bit float is encoded as a little-endian [32-bit ieee754 binary float](https://en.wikipedia.org/wiki/Single-precision_floating-point_format) following the [type code](#type-codes) (`0xcb`).
+32-bit float is encoded as a little-endian [32-bit ieee754 binary float](https://en.wikipedia.org/wiki/Single-precision_floating-point_format) following the [type code](#type-codes) (`0x8d`).
 
 **Example**:
 
-    cb 00 b8 1f 42 // 0x1.3f7p5
+    8d 00 b8 1f 42 // 0x1.3f7p5
 
 
 ### 64-bit Float
 
-64-bit float is encoded as a little-endian [64-bit ieee754 binary float](https://en.wikipedia.org/wiki/Double-precision_floating-point_format) following the [type code](#type-codes) (`0xcc`).
+64-bit float is encoded as a little-endian [64-bit ieee754 binary float](https://en.wikipedia.org/wiki/Double-precision_floating-point_format) following the [type code](#type-codes) (`0x8e`).
 
 **Example**:
 
-    cc 58 39 b4 c8 76 be f3 3f // 1.234
+    8e 58 39 b4 c8 76 be f3 3f // 1.234
 
 
 ### Big Number
 
-Big Number ([type code](#type-codes) `0xca`) encodes arbitrary-precision base-10 numbers using [zigzag](https://en.wikipedia.org/wiki/Variable-length_quantity#Zigzag_encoding) [LEB128](https://en.wikipedia.org/wiki/LEB128) metadata and little-endian magnitude bytes.
+Big Number ([type code](#type-codes) `0x8f`) encodes arbitrary-precision base-10 numbers using [zigzag](https://en.wikipedia.org/wiki/Variable-length_quantity#Zigzag_encoding) [LEB128](https://en.wikipedia.org/wiki/LEB128) metadata and little-endian magnitude bytes.
 
 The structure of a big number is as follows:
 
-    0xCA [exponent] [signed length] [magnitude bytes]
+    0x8F [exponent] [signed length] [magnitude bytes]
 
  * The `exponent` is encoded as a zigzag LEB128 value representing a base-10 exponent.
  * The `signed length` is encoded as a zigzag LEB128 value. Its absolute value is the byte count of the magnitude field. Its sign indicates the sign of the significand: positive means the significand is positive, negative means the significand is negative, and zero means the significand is zero (with no magnitude bytes following).
@@ -385,57 +375,57 @@ The final value is derived as: `sign(signed_length)` × `magnitude` × 10^`expon
 
 **Examples**:
 
-    ca 00 00                   // 0 (exponent=0, signed_length=0 → significand is zero)
-    ca 00 02 02                // 2 (exponent=0, signed_length=+1, magnitude=0x02)
-    ca 00 01 01                // -1 (exponent=0, signed_length=-1, magnitude=0x01)
-    ca 01 02 0f                // 1.5 (exponent=zigzag(0x01)=-1, signed_length=+1,
+    8f 00 00                   // 0 (exponent=0, signed_length=0 → significand is zero)
+    8f 00 02 02                // 2 (exponent=0, signed_length=+1, magnitude=0x02)
+    8f 00 01 01                // -1 (exponent=0, signed_length=-1, magnitude=0x01)
+    8f 01 02 0f                // 1.5 (exponent=zigzag(0x01)=-1, signed_length=+1,
                                //   magnitude=0x0F=15) → 15 × 10⁻¹ = 1.5
-    ca 04 02 0a                // 1000 (exponent=zigzag(0x04)=2, signed_length=+1,
+    8f 04 02 0a                // 1000 (exponent=zigzag(0x04)=2, signed_length=+1,
                                //   magnitude=0x0A=10) → 10 × 10² = 1000
 
-**Encoder normalization**: Encoders **SHOULD** produce the most compact representation by normalizing trailing zeros out of the significand and into the exponent. For example, the value 1000 is more compactly encoded as `significand=1, exponent=3` than `significand=10, exponent=2`. If the significand is zero, encoders **SHOULD** also normalize the exponent to zero (i.e., encode as `ca 00 00` rather than using a non-zero exponent). See also [Interoperability Considerations](#interoperability-considerations).
+**Encoder normalization**: Encoders **SHOULD** produce the most compact representation by normalizing trailing zeros out of the significand and into the exponent. For example, the value 1000 is more compactly encoded as `significand=1, exponent=3` than `significand=10, exponent=2`. If the significand is zero, encoders **SHOULD** also normalize the exponent to zero (i.e., encode as `8f 00 00` rather than using a non-zero exponent). See also [Interoperability Considerations](#interoperability-considerations).
 
 
 
 Containers
 ----------
 
-Arrays and objects use delimiter-terminated encoding: the container [type code](#type-codes) is followed by zero or more children, terminated by an end marker (`0xFE`). [Typed arrays](#typed-array) use a length-prefixed encoding for compact storage of homogeneous numeric data.
+Arrays and objects use delimiter-terminated encoding: the container [type code](#type-codes) is followed by zero or more children, terminated by an end marker (`0x95`). [Typed arrays](#typed-array) use a length-prefixed encoding for compact storage of homogeneous numeric data.
 
 
 ### Array
 
-An array consists of an `array` type code (`0xFC`), followed by zero or more values, and terminated by an end marker (`0xFE`).
+An array consists of an `array` type code (`0x93`), followed by zero or more values, and terminated by an end marker (`0x95`).
 
-    [0xFC] [value ...] [0xFE]
+    [0x93] [value ...] [0x95]
 
 **Examples**:
 
-    fc fe                      // [] (empty array)
-    fc 65 fe                   // [1]
-    fc d1 61 65 cd fe          // ["a", 1, null]
+    93 95                      // [] (empty array)
+    93 01 95                   // [1]
+    93 66 61 01 90 95          // ["a", 1, null]
 
 
 ### Typed Array
 
-A typed array is a compact encoding for homogeneous numeric arrays. It consists of a `typed_array` type code (`0xFB`), followed by an element type byte, an unsigned [LEB128](https://en.wikipedia.org/wiki/LEB128) element count, and then the raw element data.
+A typed array is a compact encoding for homogeneous numeric arrays. The element type is encoded directly into the type code (`0x96`-`0x9F`), followed by an unsigned [LEB128](https://en.wikipedia.org/wiki/LEB128) element count, and then the raw element data.
 
-    [0xFB] [element_type] [element_count (LEB128)] [data bytes...]
+    [type_code] [element_count (LEB128)] [data bytes...]
 
-The element type byte identifies the element type using sequential codes:
+The type code identifies the element type:
 
-| Element Type | Code | Element Size |
-| ------------ | ---- | ------------ |
-| uint8        | 0x00 | 1 byte       |
-| uint16       | 0x01 | 2 bytes      |
-| uint32       | 0x02 | 4 bytes      |
-| uint64       | 0x03 | 8 bytes      |
-| sint8        | 0x04 | 1 byte       |
-| sint16       | 0x05 | 2 bytes      |
-| sint32       | 0x06 | 4 bytes      |
-| sint64       | 0x07 | 8 bytes      |
-| float32      | 0x08 | 4 bytes      |
-| float64      | 0x09 | 8 bytes      |
+| Element Type | Type Code | Element Size |
+| ------------ | --------- | ------------ |
+| uint8        | 96        | 1 byte       |
+| uint16       | 97        | 2 bytes      |
+| uint32       | 98        | 4 bytes      |
+| uint64       | 99        | 8 bytes      |
+| sint8        | 9a        | 1 byte       |
+| sint16       | 9b        | 2 bytes      |
+| sint32       | 9c        | 4 bytes      |
+| sint64       | 9d        | 8 bytes      |
+| float32      | 9e        | 4 bytes      |
+| float64      | 9f        | 8 bytes      |
 
 The data section contains `element_count` elements of the specified type, encoded contiguously in little-endian byte order. The total data size in bytes is `element_count × element_size`.
 
@@ -444,23 +434,22 @@ A typed array is semantically identical to a regular [JSON](#json-standards) arr
 **Rules**:
 
 * An empty typed array (element count = 0) is valid and equivalent to `[]`.
-* The element type byte **MUST** be in the range `0x00` to `0x09`. A document containing any other value in the element type position **MUST** be rejected.
 * Encoders **MAY** use typed arrays when the array is homogeneous; it is always optional. Decoders **MUST** accept typed arrays.
 * The [resource limit](#resource-limits) for maximum container size applies to the element count.
 
 **Examples**:
 
-    fb 00 03 01 02 03                         // typed uint8 array [1, 2, 3]
-    fb 09 02 58 39 b4 c8 76 be f3 3f          // typed float64 array [1.234, 5.678]
+    96 03 01 02 03                            // typed uint8 array [1, 2, 3]
+    9f 02 58 39 b4 c8 76 be f3 3f             // typed float64 array [1.234, 5.678]
        83 c0 ca a1 45 b6 16 40
-    fb 02 00                                  // typed uint32 array [] (empty)
+    98 00                                     // typed uint32 array [] (empty)
 
 
 ### Object
 
-An object consists of an `object` type code (`0xFD`), followed by zero or more key-value pairs, and terminated by an end marker (`0xFE`). Each pair is a [string](#strings) key followed by a value.
+An object consists of an `object` type code (`0x94`), followed by zero or more key-value pairs, and terminated by an end marker (`0x95`). Each pair is a [string](#strings) key followed by a value.
 
-    [0xFD] [string value ...] [0xFE]
+    [0x94] [string value ...] [0x95]
 
 **Notes**:
 
@@ -470,8 +459,8 @@ An object consists of an `object` type code (`0xFD`), followed by zero or more k
 
 **Examples**:
 
-    fd fe                                    // {} (empty object)
-    fd d1 62 64 d4 74 65 73 74 d1 78 fe     // {"b": 0, "test": "x"}
+    94 95                                    // {} (empty object)
+    94 66 62 00 69 74 65 73 74 66 78 95      // {"b": 0, "test": "x"}
 
 
 
@@ -480,15 +469,15 @@ Boolean
 
 Boolean values are encoded into the [type codes](#type-codes) themselves:
 
- * False has type code `0xce`
- * True has type code `0xcf`
+ * False has type code `0x91`
+ * True has type code `0x92`
 
 
 
 Null
 ----
 
-Null has [type code](#type-codes) `0xcd`.
+Null has [type code](#type-codes) `0x90`.
 
 
 
@@ -690,36 +679,36 @@ Full Example
 **BONJSON**:
 
 ```text
-    fd                                                 // { (object start)
-       d6 6e 75 6d 62 65 72                            //     "number":
-       96                                              //     50,
-       d4 6e 75 6c 6c                                  //     "null":
-       cd                                              //     null,
-       d7 62 6f 6f 6c 65 61 6e                         //     "boolean":
-       cf                                              //     true,
-       d5 61 72 72 61 79                               //     "array":
-       fc                                              //     [ (array start)
-          d1 78                                        //         "x",
-          e5 e8 03                                     //         1000,
-          cb 00 00 a0 bf                               //         -1.25
-       fe                                              //     ] (array end),
-       d6 6f 62 6a 65 63 74                            //     "object":
-       fd                                              //     { (object start)
-          df 6e 65 67 61 74 69 76 65 20 6e 75 6d 62    //         "negative number":
+    94                                                 // { (object start)
+       6b 6e 75 6d 62 65 72                            //     "number":
+       32                                              //     50,
+       69 6e 75 6c 6c                                  //     "null":
+       90                                              //     null,
+       6c 62 6f 6f 6c 65 61 6e                         //     "boolean":
+       92                                              //     true,
+       6a 61 72 72 61 79                               //     "array":
+       93                                              //     [ (array start)
+          66 78                                        //         "x",
+          8a e8 03                                     //         1000,
+          8d 00 00 a0 bf                               //         -1.25
+       95                                              //     ] (array end),
+       6b 6f 62 6a 65 63 74                            //     "object":
+       94                                              //     { (object start)
+          74 6e 65 67 61 74 69 76 65 20 6e 75 6d 62    //         "negative number":
              65 72                                     //
-          00                                           //         -100,
-          db 6c 6f 6e 67 20 73 74 72 69 6e 67          //         "long string":
+          89 9c                                        //         -100,
+          70 6c 6f 6e 67 20 73 74 72 69 6e 67          //         "long string":
           ff                                           //         "1234567890123456789012345678901234567890"
              31 32 33 34 35 36 37 38 39 30             //
              31 32 33 34 35 36 37 38 39 30             //
              31 32 33 34 35 36 37 38 39 30             //
              31 32 33 34 35 36 37 38 39 30             //
           ff                                           //
-       fe                                              //     } (object end)
-    fe                                                 // } (object end)
+       95                                              //     } (object end)
+    95                                                 // } (object end)
 ```
 
-    Size:    123 bytes
+    Size:    124 bytes
 
 
 
@@ -745,55 +734,55 @@ value             = typed_array | array | object | number | boolean | string | n
 # Types
 
 # Containers use delimiter-terminated encoding.
-# 0xFC/0xFD opens, 0xFE closes.
+# 0x93/0x94 opens, 0x95 closes.
 # Typed array is a compact encoding for homogeneous numeric arrays.
-typed_array       = u8(0xfb) & typed_element_type & leb128(var(count, ~))
+typed_array       = u8(var(code, 0x96~0x9f)) & leb128(var(count, ~))
                   & sized(count * typed_element_size * 8,
                       ordered(uint(count * typed_element_size * 8, ~)));
-typed_element_type = u8(var(etype, 0x00~0x09));
+typed_element_type = var(etype, code - 0x96);
 typed_element_size = [
-                        etype == 0x00: 1;  # uint8
-                        etype == 0x04: 1;  # sint8
-                        etype == 0x01: 2;  # uint16
-                        etype == 0x05: 2;  # sint16
-                        etype == 0x02: 4;  # uint32
-                        etype == 0x06: 4;  # sint32
-                        etype == 0x08: 4;  # float32
-                        etype == 0x03: 8;  # uint64
-                        etype == 0x07: 8;  # sint64
-                        etype == 0x09: 8;  # float64
+                        etype == 0: 1;  # uint8
+                        etype == 4: 1;  # sint8
+                        etype == 1: 2;  # uint16
+                        etype == 5: 2;  # sint16
+                        etype == 2: 4;  # uint32
+                        etype == 6: 4;  # sint32
+                        etype == 8: 4;  # float32
+                        etype == 3: 8;  # uint64
+                        etype == 7: 8;  # sint64
+                        etype == 9: 8;  # float64
                     ];
-array             = u8(0xfc) & value* & u8(0xfe);
-object            = u8(0xfd) & (string & value)* & u8(0xfe);
+array             = u8(0x93) & value* & u8(0x95);
+object            = u8(0x94) & (string & value)* & u8(0x95);
 
 number            = int_small | int_unsigned | int_signed | float_32 | float_64 | big_number;
-int_small         = u8(var(code, 0x00~0xc8));  # value = code - 100
-int_unsigned      = u8(0xe0) & ordered(uint( 8, ~))
-                  | u8(0xe1) & ordered(uint(16, ~))
-                  | u8(0xe2) & ordered(uint(32, ~))
-                  | u8(0xe3) & ordered(uint(64, ~))
+int_small         = u8(var(code, 0x00~0x64));  # value = code
+int_unsigned      = u8(0x85) & ordered(uint( 8, ~))
+                  | u8(0x86) & ordered(uint(16, ~))
+                  | u8(0x87) & ordered(uint(32, ~))
+                  | u8(0x88) & ordered(uint(64, ~))
                   ;
-int_signed        = u8(0xe4) & ordered(sint( 8, ~))
-                  | u8(0xe5) & ordered(sint(16, ~))
-                  | u8(0xe6) & ordered(sint(32, ~))
-                  | u8(0xe7) & ordered(sint(64, ~))
+int_signed        = u8(0x89) & ordered(sint( 8, ~))
+                  | u8(0x8a) & ordered(sint(16, ~))
+                  | u8(0x8b) & ordered(sint(32, ~))
+                  | u8(0x8c) & ordered(sint(64, ~))
                   ;
-float_32          = u8(0xcb) & ordered(f32(~));
-float_64          = u8(0xcc) & ordered(f64(~));
+float_32          = u8(0x8d) & ordered(f32(~));
+float_64          = u8(0x8e) & ordered(f64(~));
 # Big number: exponent (zigzag LEB128), signed_length (zigzag LEB128),
 # then abs(signed_length) unsigned LE magnitude bytes.
 # The sign of signed_length indicates the sign of the significand.
-big_number        = u8(0xca) & zigzag_leb128(~) & zigzag_leb128(var(slen, ~))
+big_number        = u8(0x8f) & zigzag_leb128(~) & zigzag_leb128(var(slen, ~))
                   & sized(abs(slen) * 8, uint(abs(slen) * 8, ~));
 
 boolean           = true | false;
-false             = u8(0xce);
-true              = u8(0xcf);
+false             = u8(0x91);
+true              = u8(0x92);
 
-null              = u8(0xcd);
+null              = u8(0x90);
 
 string            = string_short | string_long;
-string_short      = u8(var(code, 0xd0~0xdf)) & sized((code - 0xd0) * 8, char_string*);
+string_short      = u8(var(code, 0x65~0x84)) & sized((code - 0x65) * 8, char_string*);
 string_long       = u8(0xff) & char_string* & u8(0xff);
 
 # Zigzag LEB128: variable-length signed integer encoding.
