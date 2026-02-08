@@ -10,7 +10,8 @@ ABOUTME: BONJSON specification, formal grammar, conformance tests, and test spec
 
 ## Key conventions
 
-- BigNumber wire format: `0xCA + zigzag_leb128(exponent) + zigzag_leb128(signed_length) + LE magnitude bytes`.
+- BigNumber wire format: `0x8F + zigzag_leb128(exponent) + zigzag_leb128(signed_length) + LE magnitude bytes`.
+- Record definition: `0xA0 + string* + 0x95`. Record instance: `0xA1 + LEB128(def_index) + value* + 0x95`.
 - Decode tests with specific `input_bytes` must match the wire format exactly.
 - Roundtrip tests are format-agnostic (no byte sequences).
 - Comments in JSON test files use keys starting with `//`.

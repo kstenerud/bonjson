@@ -5,9 +5,9 @@ dogma_v1 utf-8
 - dogma       = https://github.com/kstenerud/dogma/blob/master/v1/dogma_v1.0.md
 
 document          = byte_order(lsb, ordered_document);
-ordered_document  = value;
+ordered_document  = record_def* & value;
 
-value             = typed_array | array | object | number | boolean | string | null;
+value             = typed_array | array | object | record | number | boolean | string | null;
 
 # Types
 
@@ -32,6 +32,10 @@ typed_element_size = [
                     ];
 array             = u8(0x93) & value* & u8(0x95);
 object            = u8(0x94) & (string & value)* & u8(0x95);
+# Record: compact encoding for repeated object schemas.
+# Definitions declare key lists; instances reference a definition by index.
+record_def        = u8(0xa0) & string* & u8(0x95);
+record            = u8(0xa1) & leb128(~) & value* & u8(0x95);
 
 number            = int_small | int_unsigned | int_signed | float_32 | float_64 | big_number;
 int_small         = u8(var(code, 0x00~0x64));  # value = code

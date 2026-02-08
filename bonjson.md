@@ -42,6 +42,7 @@ Contents
     - [Array](#array)
     - [Typed Array](#typed-array)
     - [Object](#object)
+    - [Record](#record)
   - [Boolean](#boolean)
   - [Null](#null)
   - [Interoperability Considerations](#interoperability-considerations)
@@ -148,7 +149,7 @@ BONJSON follows the same structural rules as [JSON](#json-standards), as illustr
 
 **Document**:
 
-    ──[value]──>
+    ──[record_def]*──[value]──>
 
 **Value**:
 
@@ -175,10 +176,23 @@ BONJSON follows the same structural rules as [JSON](#json-standards), as illustr
               ├─>─[string]──[value]─>─┤
               ╰─<─<─<─<─<─<─<─<─<─<─<─╯
 
+**Record Definition**:
+
+    ──[0xA0]──┬─>────────────┬──[0x95]──>
+              ├─>─[string]─>─┤
+              ╰─<─<─<─<─<─<──╯
+
+**Record Instance**:
+
+    ──[0xA1]──[def_index (LEB128)]──┬─>───────────┬──[0x95]──>
+                                    ├─>─[value]─>─┤
+                                    ╰─<─<─<─<─<─<─╯
+
 **Structural validity rules**:
 
-* A document **MUST** contain exactly one top-level value. An empty document (zero bytes) is invalid.
-* Every delimiter-terminated container ([array](#array) or [object](#object)) **MUST** be properly terminated with an end marker (`0x95`). A document that ends without the end marker for all open containers is invalid. ([Typed arrays](#typed-array) are length-prefixed and do not use end markers.)
+* A document **MUST** contain exactly one top-level value, optionally preceded by zero or more [record definitions](#record). An empty document (zero bytes) is invalid.
+* Every delimiter-terminated container ([array](#array), [object](#object), [record definition, or record instance](#record)) **MUST** be properly terminated with an end marker (`0x95`). A document that ends without the end marker for all open containers is invalid. ([Typed arrays](#typed-array) are length-prefixed and do not use end markers.)
+* All [record definitions](#record) **MUST** appear before the root value. A record definition type code (`0xA0`) encountered after any non-definition data has been read is invalid.
 
 **Note**: For robustness, decoders **MAY** offer an option to recover partial data from truncated documents (see [Convenience Considerations](#convenience-considerations)).
 
@@ -215,7 +229,9 @@ Every value is composed of an 8-bit type code, and in some cases also a payload:
 | 94        |                              | Container | [Object](#object)                          |
 | 95        |                              |           | Container end marker                       |
 | 96 - 9f   | Count + element data         | Container | [Typed Array](#typed-array)                |
-| a0 - fe   |                              |           | RESERVED                                   |
+| a0        | Key strings + end marker     |           | [Record Definition](#record)               |
+| a1        | Index + values + end marker  | Container | [Record Instance](#record)                 |
+| a2 - fe   |                              |           | RESERVED                                   |
 | ff        | Arbitrary length string      | String    | [Long String](#long-string)                |
 
 **Note**: Type codes marked RESERVED are not used in BONJSON. Decoders **MUST** reject documents containing reserved type codes.
@@ -390,7 +406,7 @@ The final value is derived as: `sign(signed_length)` × `magnitude` × 10^`expon
 Containers
 ----------
 
-Arrays and objects use delimiter-terminated encoding: the container [type code](#type-codes) is followed by zero or more children, terminated by an end marker (`0x95`). [Typed arrays](#typed-array) use a length-prefixed encoding for compact storage of homogeneous numeric data.
+Arrays, objects, and [records](#record) use delimiter-terminated encoding: the container [type code](#type-codes) is followed by zero or more children, terminated by an end marker (`0x95`). [Typed arrays](#typed-array) use a length-prefixed encoding for compact storage of homogeneous numeric data.
 
 
 ### Array
@@ -461,6 +477,65 @@ An object consists of an `object` type code (`0x94`), followed by zero or more k
 
     94 95                                    // {} (empty object)
     94 66 62 00 69 74 65 73 74 66 78 95      // {"b": 0, "test": "x"}
+
+
+### Record
+
+A record is a compact encoding for repeated object schemas. When many objects share the same set of keys, record encoding avoids repeating the key strings for every object by declaring the keys once in a **record definition** and then referencing that definition from each **record instance**.
+
+A record instance is semantically identical to an [object](#object) — it is a 1:1 JSON compatible encoding optimization, like [typed arrays](#typed-array) are for numeric arrays.
+
+
+#### Record Definition
+
+A record definition (`0xA0`) declares a list of key strings. It consists of the type code, followed by zero or more [strings](#strings), and terminated by an end marker (`0x95`).
+
+    [0xA0] [string ...] [0x95]
+
+Record definitions **MUST** appear at the beginning of a document, before the root value. Each definition is assigned a 0-based index in the order it appears. A document **MAY** contain zero or more record definitions.
+
+**Rules**:
+
+* A record definition encountered after any non-definition data has been read is invalid. Decoders **MUST** reject such documents.
+* Record definition keys **MUST** be [strings](#strings). A non-string type code in key position **MUST** be rejected.
+* An empty record definition (zero keys) is valid.
+* [Duplicate key](#duplicate-object-keys) rules apply to the keys within a record definition.
+* The [resource limit](#resource-limits) for maximum container size applies to the key count.
+
+
+#### Record Instance
+
+A record instance (`0xA1`) references a previously declared record definition and supplies values for each key. It consists of the type code, followed by an unsigned [LEB128](https://en.wikipedia.org/wiki/LEB128) definition index, zero or more values, and terminated by an end marker (`0x95`).
+
+    [0xA1] [def_index (LEB128)] [value ...] [0x95]
+
+The definition index is 0-based. The values are matched positionally to the keys from the referenced definition: the first value corresponds to the first key, the second value to the second key, and so on.
+
+**Rules**:
+
+* The definition index **MUST** refer to a previously declared record definition. An out-of-range index is invalid.
+* If fewer values are provided than keys in the definition (early end marker), the remaining keys have the value [null](#null).
+* If more values are provided than keys in the definition, the document is invalid. Decoders **MUST** reject such documents.
+* A record instance in a document with no record definitions is invalid.
+
+**Examples**:
+
+```text
+    a0 69 6e 61 6d 65 68 61 67 65 95             // Record def 0: keys ["name", "age"]
+    93                                            // [ (array start)
+       a1 00 6a 41 6c 69 63 65 1e 95             //     {"name": "Alice", "age": 30}
+       a1 00 68 42 6f 62 19 95                    //     {"name": "Bob", "age": 25}
+    95                                            // ] (array end)
+```
+
+The above is equivalent to `[{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]`.
+
+```text
+    a0 66 61 66 62 66 63 95                       // Record def 0: keys ["a", "b", "c"]
+    a1 00 01 95                                   // {"a": 1, "b": null, "c": null}
+```
+
+Early end marker: only one value is provided for a three-key definition, so `"b"` and `"c"` default to null.
 
 
 
@@ -727,9 +802,9 @@ dogma_v1 utf-8
 - dogma       = https://github.com/kstenerud/dogma/blob/master/v1/dogma_v1.0.md
 
 document          = byte_order(lsb, ordered_document);
-ordered_document  = value;
+ordered_document  = record_def* & value;
 
-value             = typed_array | array | object | number | boolean | string | null;
+value             = typed_array | array | object | record | number | boolean | string | null;
 
 # Types
 
@@ -754,6 +829,10 @@ typed_element_size = [
                     ];
 array             = u8(0x93) & value* & u8(0x95);
 object            = u8(0x94) & (string & value)* & u8(0x95);
+# Record: compact encoding for repeated object schemas.
+# Definitions declare key lists; instances reference a definition by index.
+record_def        = u8(0xa0) & string* & u8(0x95);
+record            = u8(0xa1) & leb128(~) & value* & u8(0x95);
 
 number            = int_small | int_unsigned | int_signed | float_32 | float_64 | big_number;
 int_small         = u8(var(code, 0x00~0x64));  # value = code
