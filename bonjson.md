@@ -422,20 +422,20 @@ A typed array is a compact encoding for homogeneous numeric arrays. It consists 
 
     [0xFB] [element_type] [element_count (LEB128)] [data bytes...]
 
-The element type byte reuses the existing integer and float [type codes](#type-codes) to identify the element type:
+The element type byte identifies the element type using sequential codes:
 
-| Element Type | Type Code | Element Size |
-| ------------ | --------- | ------------ |
-| uint8        | 0xE0      | 1 byte       |
-| uint16       | 0xE1      | 2 bytes      |
-| uint32       | 0xE2      | 4 bytes      |
-| uint64       | 0xE3      | 8 bytes      |
-| sint8        | 0xE4      | 1 byte       |
-| sint16       | 0xE5      | 2 bytes      |
-| sint32       | 0xE6      | 4 bytes      |
-| sint64       | 0xE7      | 8 bytes      |
-| float32      | 0xCB      | 4 bytes      |
-| float64      | 0xCC      | 8 bytes      |
+| Element Type | Code | Element Size |
+| ------------ | ---- | ------------ |
+| uint8        | 0x00 | 1 byte       |
+| uint16       | 0x01 | 2 bytes      |
+| uint32       | 0x02 | 4 bytes      |
+| uint64       | 0x03 | 8 bytes      |
+| sint8        | 0x04 | 1 byte       |
+| sint16       | 0x05 | 2 bytes      |
+| sint32       | 0x06 | 4 bytes      |
+| sint64       | 0x07 | 8 bytes      |
+| float32      | 0x08 | 4 bytes      |
+| float64      | 0x09 | 8 bytes      |
 
 The data section contains `element_count` elements of the specified type, encoded contiguously in little-endian byte order. The total data size in bytes is `element_count × element_size`.
 
@@ -444,16 +444,16 @@ A typed array is semantically identical to a regular [JSON](#json-standards) arr
 **Rules**:
 
 * An empty typed array (element count = 0) is valid and equivalent to `[]`.
-* The element type byte **MUST** be one of the 10 listed type codes. A document containing any other value in the element type position **MUST** be rejected.
+* The element type byte **MUST** be in the range `0x00` to `0x09`. A document containing any other value in the element type position **MUST** be rejected.
 * Encoders **MAY** use typed arrays when the array is homogeneous; it is always optional. Decoders **MUST** accept typed arrays.
 * The [resource limit](#resource-limits) for maximum container size applies to the element count.
 
 **Examples**:
 
-    fb e0 03 01 02 03                         // typed uint8 array [1, 2, 3]
-    fb cc 02 58 39 b4 c8 76 be f3 3f          // typed float64 array [1.234, 5.678]
+    fb 00 03 01 02 03                         // typed uint8 array [1, 2, 3]
+    fb 09 02 58 39 b4 c8 76 be f3 3f          // typed float64 array [1.234, 5.678]
        83 c0 ca a1 45 b6 16 40
-    fb e2 00                                  // typed uint32 array [] (empty)
+    fb 02 00                                  // typed uint32 array [] (empty)
 
 
 ### Object
@@ -750,18 +750,18 @@ value             = typed_array | array | object | number | boolean | string | n
 typed_array       = u8(0xfb) & typed_element_type & leb128(var(count, ~))
                   & sized(count * typed_element_size * 8,
                       ordered(uint(count * typed_element_size * 8, ~)));
-typed_element_type = u8(var(etype, 0xcb | 0xcc | 0xe0~0xe7));
+typed_element_type = u8(var(etype, 0x00~0x09));
 typed_element_size = [
-                        etype == 0xe0: 1;  # uint8
-                        etype == 0xe4: 1;  # sint8
-                        etype == 0xe1: 2;  # uint16
-                        etype == 0xe5: 2;  # sint16
-                        etype == 0xe2: 4;  # uint32
-                        etype == 0xe6: 4;  # sint32
-                        etype == 0xcb: 4;  # float32
-                        etype == 0xe3: 8;  # uint64
-                        etype == 0xe7: 8;  # sint64
-                        etype == 0xcc: 8;  # float64
+                        etype == 0x00: 1;  # uint8
+                        etype == 0x04: 1;  # sint8
+                        etype == 0x01: 2;  # uint16
+                        etype == 0x05: 2;  # sint16
+                        etype == 0x02: 4;  # uint32
+                        etype == 0x06: 4;  # sint32
+                        etype == 0x08: 4;  # float32
+                        etype == 0x03: 8;  # uint64
+                        etype == 0x07: 8;  # sint64
+                        etype == 0x09: 8;  # float64
                     ];
 array             = u8(0xfc) & value* & u8(0xfe);
 object            = u8(0xfd) & (string & value)* & u8(0xfe);
