@@ -7,12 +7,29 @@ dogma_v1 utf-8
 document          = byte_order(lsb, ordered_document);
 ordered_document  = value;
 
-value             = array | object | number | boolean | string | null;
+value             = typed_array | array | object | number | boolean | string | null;
 
 # Types
 
 # Containers use delimiter-terminated encoding.
 # 0xFC/0xFD opens, 0xFE closes.
+# Typed array is a compact encoding for homogeneous numeric arrays.
+typed_array       = u8(0xfb) & typed_element_type & leb128(var(count, ~))
+                  & sized(count * typed_element_size * 8,
+                      ordered(uint(count * typed_element_size * 8, ~)));
+typed_element_type = u8(var(etype, 0xcb | 0xcc | 0xe0~0xe7));
+typed_element_size = [
+                        etype == 0xe0: 1;  # uint8
+                        etype == 0xe4: 1;  # sint8
+                        etype == 0xe1: 2;  # uint16
+                        etype == 0xe5: 2;  # sint16
+                        etype == 0xe2: 4;  # uint32
+                        etype == 0xe6: 4;  # sint32
+                        etype == 0xcb: 4;  # float32
+                        etype == 0xe3: 8;  # uint64
+                        etype == 0xe7: 8;  # sint64
+                        etype == 0xcc: 8;  # float64
+                    ];
 array             = u8(0xfc) & value* & u8(0xfe);
 object            = u8(0xfd) & (string & value)* & u8(0xfe);
 

@@ -40,6 +40,7 @@ Contents
     - [Big Number](#big-number)
   - [Containers](#containers)
     - [Array](#array)
+    - [Typed Array](#typed-array)
     - [Object](#object)
   - [Boolean](#boolean)
   - [Null](#null)
@@ -164,6 +165,10 @@ BONJSON follows the same structural rules as [JSON](#json-standards), as illustr
               ├─>─[value]─>─┤
               ╰─<─<─<─<─<─<─╯
 
+**Typed Array**:
+
+    ──[0xFB]──[element_type]──[element_count (LEB128)]──[data bytes...]──>
+
 **Object**:
 
     ──[0xFD]──┬─>─────────────────────┬──[0xFE]──>
@@ -173,7 +178,7 @@ BONJSON follows the same structural rules as [JSON](#json-standards), as illustr
 **Structural validity rules**:
 
 * A document **MUST** contain exactly one top-level value. An empty document (zero bytes) is invalid.
-* Every container (array or object) **MUST** be properly terminated with an end marker (`0xFE`). A document that ends without the end marker for all open containers is invalid.
+* Every delimiter-terminated container ([array](#array) or [object](#object)) **MUST** be properly terminated with an end marker (`0xFE`). A document that ends without the end marker for all open containers is invalid. ([Typed arrays](#typed-array) are length-prefixed and do not use end markers.)
 
 **Note**: For robustness, decoders **MAY** offer an option to recover partial data from truncated documents (see [Convenience Considerations](#convenience-considerations)).
 
@@ -207,7 +212,8 @@ Every value is composed of an 8-bit type code, and in some cases also a payload:
 | d0 - df   | String of n bytes            | String    | [Short String](#short-string)              |
 | e0 - e3   | Unsigned integer of n bytes  | Number    | [Unsigned Integer](#integer)               |
 | e4 - e7   | Signed integer of n bytes    | Number    | [Signed Integer](#integer)                 |
-| e8 - fb   |                              |           | RESERVED                                   |
+| e8 - fa   |                              |           | RESERVED                                   |
+| fb        | Element type + count + data  | Container | [Typed Array](#typed-array)                |
 | fc        |                              | Container | [Array](#array)                            |
 | fd        |                              | Container | [Object](#object)                          |
 | fe        |                              |           | Container end marker                       |
@@ -394,7 +400,7 @@ The final value is derived as: `sign(signed_length)` × `magnitude` × 10^`expon
 Containers
 ----------
 
-Containers use delimiter-terminated encoding: the container [type code](#type-codes) is followed by zero or more children, terminated by an end marker (`0xFE`).
+Arrays and objects use delimiter-terminated encoding: the container [type code](#type-codes) is followed by zero or more children, terminated by an end marker (`0xFE`). [Typed arrays](#typed-array) use a length-prefixed encoding for compact storage of homogeneous numeric data.
 
 
 ### Array
@@ -408,6 +414,46 @@ An array consists of an `array` type code (`0xFC`), followed by zero or more val
     fc fe                      // [] (empty array)
     fc 65 fe                   // [1]
     fc d1 61 65 cd fe          // ["a", 1, null]
+
+
+### Typed Array
+
+A typed array is a compact encoding for homogeneous numeric arrays. It consists of a `typed_array` type code (`0xFB`), followed by an element type byte, an unsigned [LEB128](https://en.wikipedia.org/wiki/LEB128) element count, and then the raw element data.
+
+    [0xFB] [element_type] [element_count (LEB128)] [data bytes...]
+
+The element type byte reuses the existing integer and float [type codes](#type-codes) to identify the element type:
+
+| Element Type | Type Code | Element Size |
+| ------------ | --------- | ------------ |
+| uint8        | 0xE0      | 1 byte       |
+| uint16       | 0xE1      | 2 bytes      |
+| uint32       | 0xE2      | 4 bytes      |
+| uint64       | 0xE3      | 8 bytes      |
+| sint8        | 0xE4      | 1 byte       |
+| sint16       | 0xE5      | 2 bytes      |
+| sint32       | 0xE6      | 4 bytes      |
+| sint64       | 0xE7      | 8 bytes      |
+| float32      | 0xCB      | 4 bytes      |
+| float64      | 0xCC      | 8 bytes      |
+
+The data section contains `element_count` elements of the specified type, encoded contiguously in little-endian byte order. The total data size in bytes is `element_count × element_size`.
+
+A typed array is semantically identical to a regular [JSON](#json-standards) array of numbers — it is a 1:1 JSON compatible encoding optimization.
+
+**Rules**:
+
+* An empty typed array (element count = 0) is valid and equivalent to `[]`.
+* The element type byte **MUST** be one of the 10 listed type codes. A document containing any other value in the element type position **MUST** be rejected.
+* Encoders **MAY** use typed arrays when the array is homogeneous; it is always optional. Decoders **MUST** accept typed arrays.
+* The [resource limit](#resource-limits) for maximum container size applies to the element count.
+
+**Examples**:
+
+    fb e0 03 01 02 03                         // typed uint8 array [1, 2, 3]
+    fb cc 02 58 39 b4 c8 76 be f3 3f          // typed float64 array [1.234, 5.678]
+       83 c0 ca a1 45 b6 16 40
+    fb e2 00                                  // typed uint32 array [] (empty)
 
 
 ### Object
@@ -694,12 +740,29 @@ dogma_v1 utf-8
 document          = byte_order(lsb, ordered_document);
 ordered_document  = value;
 
-value             = array | object | number | boolean | string | null;
+value             = typed_array | array | object | number | boolean | string | null;
 
 # Types
 
 # Containers use delimiter-terminated encoding.
 # 0xFC/0xFD opens, 0xFE closes.
+# Typed array is a compact encoding for homogeneous numeric arrays.
+typed_array       = u8(0xfb) & typed_element_type & leb128(var(count, ~))
+                  & sized(count * typed_element_size * 8,
+                      ordered(uint(count * typed_element_size * 8, ~)));
+typed_element_type = u8(var(etype, 0xcb | 0xcc | 0xe0~0xe7));
+typed_element_size = [
+                        etype == 0xe0: 1;  # uint8
+                        etype == 0xe4: 1;  # sint8
+                        etype == 0xe1: 2;  # uint16
+                        etype == 0xe5: 2;  # sint16
+                        etype == 0xe2: 4;  # uint32
+                        etype == 0xe6: 4;  # sint32
+                        etype == 0xcb: 4;  # float32
+                        etype == 0xe3: 8;  # uint64
+                        etype == 0xe7: 8;  # sint64
+                        etype == 0xcc: 8;  # float64
+                    ];
 array             = u8(0xfc) & value* & u8(0xfe);
 object            = u8(0xfd) & (string & value)* & u8(0xfe);
 
