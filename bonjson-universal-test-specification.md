@@ -601,7 +601,7 @@ The `expected_error` field uses standardized error type identifiers:
 | `nul_character`                 | NUL (0x00) byte in string                  |
 | `duplicate_key`                 | Duplicate key in object                    |
 | `invalid_object_key`            | Non-string key in object                   |
-| `unclosed_container`            | Container missing `0xB5` end marker        |
+| `unclosed_container`            | Container missing `0xB3` end marker        |
 | `invalid_data`                  | Generic invalid data (e.g., BigNumber NaN) |
 | `value_out_of_range`            | Value exceeds allowed range                |
 | `max_depth_exceeded`            | Container nesting too deep                 |
@@ -1047,16 +1047,25 @@ Appendix A: Type Code Reference
 | `ad`    | Float32                                    |
 | `ae`    | Float64                                    |
 | `af`    | BigNumber                                  |
-| `b0`    | Null                                       |
-| `b1`    | False                                      |
-| `b2`    | True                                       |
-| `b3`    | Array                                      |
-| `b4`    | Object                                     |
-| `b5`    | Container end marker                       |
-| `b6-bf` | Typed arrays (uint8-float64)               |
-| `c0`    | Record definition                          |
-| `c1`    | Record instance                            |
-| `c2-fe` | Reserved                                   |
+| `b0`    | False                                      |
+| `b1`    | True                                       |
+| `b2`    | Null                                       |
+| `b3`    | Container end marker                       |
+| `b4`    | Array                                      |
+| `b5`    | Object                                     |
+| `b6`    | Record definition                          |
+| `b7`    | Record instance                            |
+| `b8-f4` | Reserved                                   |
+| `f5`    | Typed array float64                        |
+| `f6`    | Typed array float32                        |
+| `f7`    | Typed array sint64                         |
+| `f8`    | Typed array sint32                         |
+| `f9`    | Typed array sint16                         |
+| `fa`    | Typed array sint8                          |
+| `fb`    | Typed array uint64                         |
+| `fc`    | Typed array uint32                         |
+| `fd`    | Typed array uint16                         |
+| `fe`    | Typed array uint8                          |
 | `ff`    | Long string                                |
 
 
@@ -1070,11 +1079,11 @@ Appendix B: Complete Example
   "//": "Example test specification file",
   "tests": [
     {
-      "//": "Null encodes to single byte 0xB0",
+      "//": "Null encodes to single byte 0xB2",
       "name": "null_value",
       "type": "encode",
       "input": null,
-      "expected_bytes": "b0"
+      "expected_bytes": "b2"
     },
     {
       "//": "Small integer 42 encodes as type_code = 42 = 0x2a",
@@ -1125,7 +1134,7 @@ Appendix B: Complete Example
       "//": "Non-string object key should fail (object start, key is integer 0 instead of string, value is integer 1, end)",
       "name": "invalid_object_key",
       "type": "decode_error",
-      "input_bytes": "b4 00 01 b5",
+      "input_bytes": "b5 00 01 b3",
       "expected_error": "invalid_object_key"
     }
   ]

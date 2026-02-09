@@ -162,37 +162,37 @@ BONJSON follows the same structural rules as [JSON](#json-standards), as illustr
 
 **Array**:
 
-    ──[0xB3]──┬─>───────────┬──[0xB5]──>
+    ──[0xB4]──┬─>───────────┬──[0xB3]──>
               ├─>─[value]─>─┤
               ╰─<─<─<─<─<─<─╯
 
 **Typed Array**:
 
-    ──[0xB6-0xBF]──[element_count (LEB128)]──[data bytes...]──>
+    ──[0xF5-0xFE]──[element_count (LEB128)]──[data bytes...]──>
 
 **Object**:
 
-    ──[0xB4]──┬─>─────────────────────┬──[0xB5]──>
+    ──[0xB5]──┬─>─────────────────────┬──[0xB3]──>
               ├─>─[string]──[value]─>─┤
               ╰─<─<─<─<─<─<─<─<─<─<─<─╯
 
 **Record Definition**:
 
-    ──[0xC0]──┬─>────────────┬──[0xB5]──>
+    ──[0xB6]──┬─>────────────┬──[0xB3]──>
               ├─>─[string]─>─┤
               ╰─<─<─<─<─<─<──╯
 
 **Record Instance**:
 
-    ──[0xC1]──[def_index (LEB128)]──┬─>───────────┬──[0xB5]──>
+    ──[0xB7]──[def_index (LEB128)]──┬─>───────────┬──[0xB3]──>
                                     ├─>─[value]─>─┤
                                     ╰─<─<─<─<─<─<─╯
 
 **Structural validity rules**:
 
 * A document **MUST** contain exactly one top-level value, optionally preceded by zero or more [record definitions](#record). An empty document (zero bytes) is invalid.
-* Every delimiter-terminated container ([array](#array), [object](#object), [record definition, or record instance](#record)) **MUST** be properly terminated with an end marker (`0xB5`). A document that ends without the end marker for all open containers is invalid. ([Typed arrays](#typed-array) are length-prefixed and do not use end markers.)
-* All [record definitions](#record) **MUST** appear before the root value. A record definition type code (`0xC0`) encountered after any non-definition data has been read is invalid.
+* Every delimiter-terminated container ([array](#array), [object](#object), [record definition, or record instance](#record)) **MUST** be properly terminated with an end marker (`0xB3`). A document that ends without the end marker for all open containers is invalid. ([Typed arrays](#typed-array) are length-prefixed and do not use end markers.)
+* All [record definitions](#record) **MUST** appear before the root value. A record definition type code (`0xB6`) encountered after any non-definition data has been read is invalid.
 
 **Note**: For robustness, decoders **MAY** offer an option to recover partial data from truncated documents (see [Convenience Considerations](#convenience-considerations)).
 
@@ -222,16 +222,25 @@ Every value is composed of an 8-bit type code, and in some cases also a payload:
 | ad        | 32-bit ieee754 binary float  | Number    | [32-bit float](#32-bit-float)              |
 | ae        | 64-bit ieee754 binary float  | Number    | [64-bit float](#64-bit-float)              |
 | af        | Zigzag LEB128 + LE magnitude | Number    | [Big Number](#big-number)                  |
-| b0        |                              | Null      | [Null](#null)                              |
-| b1        |                              | Boolean   | [False](#boolean)                          |
-| b2        |                              | Boolean   | [True](#boolean)                           |
-| b3        |                              | Container | [Array](#array)                            |
-| b4        |                              | Container | [Object](#object)                          |
-| b5        |                              |           | Container end marker                       |
-| b6 - bf   | Count + element data         | Container | [Typed Array](#typed-array)                |
-| c0        | Key strings + end marker     |           | [Record Definition](#record)               |
-| c1        | Index + values + end marker  | Container | [Record Instance](#record)                 |
-| c2 - fe   |                              |           | RESERVED                                   |
+| b0        |                              | Boolean   | [False](#boolean)                          |
+| b1        |                              | Boolean   | [True](#boolean)                           |
+| b2        |                              | Null      | [Null](#null)                              |
+| b3        |                              |           | Container end marker                       |
+| b4        |                              | Container | [Array](#array)                            |
+| b5        |                              | Container | [Object](#object)                          |
+| b6        | Key strings + end marker     |           | [Record Definition](#record)               |
+| b7        | Index + values + end marker  | Container | [Record Instance](#record)                 |
+| b8 - f4   |                              |           | RESERVED                                   |
+| f5        | Count + element data         | Container | [Typed Array float64](#typed-array)        |
+| f6        | Count + element data         | Container | [Typed Array float32](#typed-array)        |
+| f7        | Count + element data         | Container | [Typed Array sint64](#typed-array)         |
+| f8        | Count + element data         | Container | [Typed Array sint32](#typed-array)         |
+| f9        | Count + element data         | Container | [Typed Array sint16](#typed-array)         |
+| fa        | Count + element data         | Container | [Typed Array sint8](#typed-array)          |
+| fb        | Count + element data         | Container | [Typed Array uint64](#typed-array)         |
+| fc        | Count + element data         | Container | [Typed Array uint32](#typed-array)         |
+| fd        | Count + element data         | Container | [Typed Array uint16](#typed-array)         |
+| fe        | Count + element data         | Container | [Typed Array uint8](#typed-array)          |
 | ff        | Arbitrary length string      | String    | [Long String](#long-string)                |
 
 **Note**: Type codes marked RESERVED are not used in BONJSON. Decoders **MUST** reject documents containing reserved type codes.
@@ -406,25 +415,25 @@ The final value is derived as: `sign(signed_length)` × `magnitude` × 10^`expon
 Containers
 ----------
 
-Arrays, objects, and [records](#record) use delimiter-terminated encoding: the container [type code](#type-codes) is followed by zero or more children, terminated by an end marker (`0xB5`). [Typed arrays](#typed-array) use a length-prefixed encoding for compact storage of homogeneous numeric data.
+Arrays, objects, and [records](#record) use delimiter-terminated encoding: the container [type code](#type-codes) is followed by zero or more children, terminated by an end marker (`0xB3`). [Typed arrays](#typed-array) use a length-prefixed encoding for compact storage of homogeneous numeric data.
 
 
 ### Array
 
-An array consists of an `array` type code (`0xB3`), followed by zero or more values, and terminated by an end marker (`0xB5`).
+An array consists of an `array` type code (`0xB4`), followed by zero or more values, and terminated by an end marker (`0xB3`).
 
-    [0xB3] [value ...] [0xB5]
+    [0xB4] [value ...] [0xB3]
 
 **Examples**:
 
-    b3 b5                      // [] (empty array)
-    b3 01 b5                   // [1]
-    b3 66 61 01 b0 b5          // ["a", 1, null]
+    b4 b3                      // [] (empty array)
+    b4 01 b3                   // [1]
+    b4 66 61 01 b2 b3          // ["a", 1, null]
 
 
 ### Typed Array
 
-A typed array is a compact encoding for homogeneous numeric arrays. The element type is encoded directly into the type code (`0xB6`-`0xBF`), followed by an unsigned [LEB128](https://en.wikipedia.org/wiki/LEB128) element count, and then the raw element data.
+A typed array is a compact encoding for homogeneous numeric arrays. The element type is encoded directly into the type code (`0xF5`-`0xFE`), followed by an unsigned [LEB128](https://en.wikipedia.org/wiki/LEB128) element count, and then the raw element data.
 
     [type_code] [element_count (LEB128)] [data bytes...]
 
@@ -432,16 +441,16 @@ The type code identifies the element type:
 
 | Element Type | Type Code | Element Size |
 | ------------ | --------- | ------------ |
-| uint8        | b6        | 1 byte       |
-| uint16       | b7        | 2 bytes      |
-| uint32       | b8        | 4 bytes      |
-| uint64       | b9        | 8 bytes      |
-| sint8        | ba        | 1 byte       |
-| sint16       | bb        | 2 bytes      |
-| sint32       | bc        | 4 bytes      |
-| sint64       | bd        | 8 bytes      |
-| float32      | be        | 4 bytes      |
-| float64      | bf        | 8 bytes      |
+| uint8        | fe        | 1 byte       |
+| uint16       | fd        | 2 bytes      |
+| uint32       | fc        | 4 bytes      |
+| uint64       | fb        | 8 bytes      |
+| sint8        | fa        | 1 byte       |
+| sint16       | f9        | 2 bytes      |
+| sint32       | f8        | 4 bytes      |
+| sint64       | f7        | 8 bytes      |
+| float32      | f6        | 4 bytes      |
+| float64      | f5        | 8 bytes      |
 
 The data section contains `element_count` elements of the specified type, encoded contiguously in little-endian byte order. The total data size in bytes is `element_count × element_size`.
 
@@ -455,17 +464,17 @@ A typed array is semantically identical to a regular [JSON](#json-standards) arr
 
 **Examples**:
 
-    b6 03 01 02 03                            // typed uint8 array [1, 2, 3]
-    bf 02 58 39 b4 c8 76 be f3 3f             // typed float64 array [1.234, 5.678]
+    fe 03 01 02 03                            // typed uint8 array [1, 2, 3]
+    f5 02 58 39 b4 c8 76 be f3 3f             // typed float64 array [1.234, 5.678]
        83 c0 ca a1 45 b6 16 40
-    b8 00                                     // typed uint32 array [] (empty)
+    fc 00                                     // typed uint32 array [] (empty)
 
 
 ### Object
 
-An object consists of an `object` type code (`0xB4`), followed by zero or more key-value pairs, and terminated by an end marker (`0xB5`). Each pair is a [string](#strings) key followed by a value.
+An object consists of an `object` type code (`0xB5`), followed by zero or more key-value pairs, and terminated by an end marker (`0xB3`). Each pair is a [string](#strings) key followed by a value.
 
-    [0xB4] [string value ...] [0xB5]
+    [0xB5] [string value ...] [0xB3]
 
 **Notes**:
 
@@ -475,8 +484,8 @@ An object consists of an `object` type code (`0xB4`), followed by zero or more k
 
 **Examples**:
 
-    b4 b5                                    // {} (empty object)
-    b4 66 62 00 69 74 65 73 74 66 78 b5      // {"b": 0, "test": "x"}
+    b5 b3                                    // {} (empty object)
+    b5 66 62 00 69 74 65 73 74 66 78 b3      // {"b": 0, "test": "x"}
 
 
 ### Record
@@ -488,9 +497,9 @@ A record instance is semantically identical to an [object](#object) — it is a 
 
 #### Record Definition
 
-A record definition (`0xC0`) declares a list of key strings. It consists of the type code, followed by zero or more [strings](#strings), and terminated by an end marker (`0xB5`).
+A record definition (`0xB6`) declares a list of key strings. It consists of the type code, followed by zero or more [strings](#strings), and terminated by an end marker (`0xB3`).
 
-    [0xC0] [string ...] [0xB5]
+    [0xB6] [string ...] [0xB3]
 
 Record definitions **MUST** appear at the beginning of a document, before the root value. Each definition is assigned a 0-based index in the order it appears. A document **MAY** contain zero or more record definitions.
 
@@ -505,9 +514,9 @@ Record definitions **MUST** appear at the beginning of a document, before the ro
 
 #### Record Instance
 
-A record instance (`0xC1`) references a previously declared record definition and supplies values for each key. It consists of the type code, followed by an unsigned [LEB128](https://en.wikipedia.org/wiki/LEB128) definition index, zero or more values, and terminated by an end marker (`0xB5`).
+A record instance (`0xB7`) references a previously declared record definition and supplies values for each key. It consists of the type code, followed by an unsigned [LEB128](https://en.wikipedia.org/wiki/LEB128) definition index, zero or more values, and terminated by an end marker (`0xB3`).
 
-    [0xC1] [def_index (LEB128)] [value ...] [0xB5]
+    [0xB7] [def_index (LEB128)] [value ...] [0xB3]
 
 The definition index is 0-based. The values are matched positionally to the keys from the referenced definition: the first value corresponds to the first key, the second value to the second key, and so on.
 
@@ -521,18 +530,18 @@ The definition index is 0-based. The values are matched positionally to the keys
 **Examples**:
 
 ```text
-    c0 69 6e 61 6d 65 68 61 67 65 b5             // Record def 0: keys ["name", "age"]
-    b3                                            // [ (array start)
-       c1 00 6a 41 6c 69 63 65 1e b5             //     {"name": "Alice", "age": 30}
-       c1 00 68 42 6f 62 19 b5                    //     {"name": "Bob", "age": 25}
-    b5                                            // ] (array end)
+    b6 69 6e 61 6d 65 68 61 67 65 b3             // Record def 0: keys ["name", "age"]
+    b4                                            // [ (array start)
+       b7 00 6a 41 6c 69 63 65 1e b3             //     {"name": "Alice", "age": 30}
+       b7 00 68 42 6f 62 19 b3                    //     {"name": "Bob", "age": 25}
+    b3                                            // ] (array end)
 ```
 
 The above is equivalent to `[{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]`.
 
 ```text
-    c0 66 61 66 62 66 63 b5                       // Record def 0: keys ["a", "b", "c"]
-    c1 00 01 b5                                   // {"a": 1, "b": null, "c": null}
+    b6 66 61 66 62 66 63 b3                       // Record def 0: keys ["a", "b", "c"]
+    b7 00 01 b3                                   // {"a": 1, "b": null, "c": null}
 ```
 
 Early end marker: only one value is provided for a three-key definition, so `"b"` and `"c"` default to null.
@@ -544,15 +553,15 @@ Boolean
 
 Boolean values are encoded into the [type codes](#type-codes) themselves:
 
- * False has type code `0xB1`
- * True has type code `0xB2`
+ * False has type code `0xB0`
+ * True has type code `0xB1`
 
 
 
 Null
 ----
 
-Null has [type code](#type-codes) `0xB0`.
+Null has [type code](#type-codes) `0xB2`.
 
 
 
@@ -754,21 +763,21 @@ Full Example
 **BONJSON**:
 
 ```text
-    b4                                                 // { (object start)
+    b5                                                 // { (object start)
        6b 6e 75 6d 62 65 72                            //     "number":
        32                                              //     50,
        69 6e 75 6c 6c                                  //     "null":
-       b0                                              //     null,
+       b2                                              //     null,
        6c 62 6f 6f 6c 65 61 6e                         //     "boolean":
-       b2                                              //     true,
+       b1                                              //     true,
        6a 61 72 72 61 79                               //     "array":
-       b3                                              //     [ (array start)
+       b4                                              //     [ (array start)
           66 78                                        //         "x",
           aa e8 03                                     //         1000,
           ad 00 00 a0 bf                               //         -1.25
-       b5                                              //     ] (array end),
+       b3                                              //     ] (array end),
        6b 6f 62 6a 65 63 74                            //     "object":
-       b4                                              //     { (object start)
+       b5                                              //     { (object start)
           74 6e 65 67 61 74 69 76 65 20 6e 75 6d 62    //         "negative number":
              65 72                                     //
           a9 9c                                        //         -100,
@@ -782,8 +791,8 @@ Full Example
              31 32 33 34 35 36 37 38 39 30             //
              31 32 33 34                               //
           ff                                           //
-       b5                                              //     } (object end)
-    b5                                                 // } (object end)
+       b3                                              //     } (object end)
+    b3                                                 // } (object end)
 ```
 
     Size:    148 bytes
@@ -812,12 +821,12 @@ value             = typed_array | array | object | record | number | boolean | s
 # Types
 
 # Containers use delimiter-terminated encoding.
-# 0xB3/0xB4 opens, 0xB5 closes.
+# 0xB4/0xB5 opens, 0xB3 closes.
 # Typed array is a compact encoding for homogeneous numeric arrays.
-typed_array       = u8(var(code, 0xb6~0xbf)) & leb128(var(count, ~))
+typed_array       = u8(var(code, 0xf5~0xfe)) & leb128(var(count, ~))
                   & sized(count * typed_element_size * 8,
                       ordered(uint(count * typed_element_size * 8, ~)));
-typed_element_type = var(etype, code - 0xb6);
+typed_element_type = var(etype, 0xfe - code);
 typed_element_size = [
                         etype == 0: 1;  # uint8
                         etype == 4: 1;  # sint8
@@ -830,12 +839,12 @@ typed_element_size = [
                         etype == 7: 8;  # sint64
                         etype == 9: 8;  # float64
                     ];
-array             = u8(0xb3) & value* & u8(0xb5);
-object            = u8(0xb4) & (string & value)* & u8(0xb5);
+array             = u8(0xb4) & value* & u8(0xb3);
+object            = u8(0xb5) & (string & value)* & u8(0xb3);
 # Record: compact encoding for repeated object schemas.
 # Definitions declare key lists; instances reference a definition by index.
-record_def        = u8(0xc0) & string* & u8(0xb5);
-record            = u8(0xc1) & leb128(~) & value* & u8(0xb5);
+record_def        = u8(0xb6) & string* & u8(0xb3);
+record            = u8(0xb7) & leb128(~) & value* & u8(0xb3);
 
 number            = int_small | int_unsigned | int_signed | float_32 | float_64 | big_number;
 int_small         = u8(var(code, 0x00~0x64));  # value = code
@@ -858,10 +867,10 @@ big_number        = u8(0xaf) & zigzag_leb128(~) & zigzag_leb128(var(slen, ~))
                   & sized(abs(slen) * 8, uint(abs(slen) * 8, ~));
 
 boolean           = true | false;
-false             = u8(0xb1);
-true              = u8(0xb2);
+false             = u8(0xb0);
+true              = u8(0xb1);
 
-null              = u8(0xb0);
+null              = u8(0xb2);
 
 string            = string_short | string_long;
 string_short      = u8(var(code, 0x65~0xa4)) & sized((code - 0x65) * 8, char_string*);

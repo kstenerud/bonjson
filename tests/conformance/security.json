@@ -7,14 +7,14 @@
       "//": "Duplicate key detection - exact duplicate (2 pairs → 0x08)",
       "name": "duplicate_key_simple",
       "type": "decode_error",
-      "input_bytes": "b4666101666102b5",
+      "input_bytes": "b5666101666102b3",
       "expected_error": "duplicate_key"
     },
     {
       "//": "Duplicate key with longer key name (2 pairs → 0x08)",
       "name": "duplicate_key_longer",
       "type": "decode_error",
-      "input_bytes": "b468414243016841424302b5",
+      "input_bytes": "b568414243016841424302b3",
       "expected_error": "duplicate_key"
     },
     {
@@ -276,7 +276,7 @@
       "//note": "Each array: f8 + count. Inner arrays have 1 element (→0x04), innermost is empty (→0x00)",
       "name": "max_depth_exceeded_arrays",
       "type": "decode_error",
-      "input_bytes": "b3b3b3b3b3b3b5b5b5b5b5b5",
+      "input_bytes": "b4b4b4b4b4b4b3b3b3b3b3b3",
       "expected_error": "max_depth_exceeded",
       "options": {
         "max_depth": 5
@@ -286,7 +286,7 @@
       "//": "6 nested objects with empty string keys, limit 5",
       "name": "max_depth_exceeded_objects",
       "type": "decode_error",
-      "input_bytes": "b465b465b465b465b465b4b5b5b5b5b5b5",
+      "input_bytes": "b565b565b565b565b565b5b3b3b3b3b3b3",
       "expected_error": "max_depth_exceeded",
       "options": {
         "max_depth": 5
@@ -297,7 +297,7 @@
       "//note": "5 nested arrays, innermost contains integer 0",
       "name": "max_depth_at_limit",
       "type": "decode",
-      "input_bytes": "b3b3b3b3b300b5b5b5b5b5",
+      "input_bytes": "b4b4b4b4b400b3b3b3b3b3",
       "expected_value": [
         [
           [
@@ -357,7 +357,7 @@
       "//": "Maximum container size exceeded - array (6 elements, count=6 → 0x18)",
       "name": "max_container_size_exceeded_array",
       "type": "decode_error",
-      "input_bytes": "b300010203040595",
+      "input_bytes": "b400010203040595",
       "expected_error": "max_container_size_exceeded",
       "options": {
         "max_container_size": 5
@@ -367,7 +367,7 @@
       "//": "Maximum container size exceeded - object (6 pairs, count=6 → 0x18)",
       "name": "max_container_size_exceeded_object",
       "type": "decode_error",
-      "input_bytes": "b4666100666201666302666403666504666605b5",
+      "input_bytes": "b5666100666201666302666403666504666605b3",
       "expected_error": "max_container_size_exceeded",
       "options": {
         "max_container_size": 5
@@ -377,7 +377,7 @@
       "//": "At the limit is OK - array (5 elements, count=5 → 0x14)",
       "name": "container_size_at_limit_array",
       "type": "decode",
-      "input_bytes": "b30001020304b5",
+      "input_bytes": "b40001020304b3",
       "expected_value": [
         0,
         1,
@@ -393,7 +393,7 @@
       "//": "At the limit is OK - object (5 pairs, count=5 → 0x14)",
       "name": "container_size_at_limit_object",
       "type": "decode",
-      "input_bytes": "b4666100666201666302666403666504b5",
+      "input_bytes": "b5666100666201666302666403666504b3",
       "expected_value": {
         "a": 0,
         "b": 1,
@@ -419,7 +419,7 @@
       "//": "At the limit is OK (4 elements, count=4 → 0x10, total 6 bytes)",
       "name": "document_size_at_limit",
       "type": "decode",
-      "input_bytes": "b30001020395",
+      "input_bytes": "b40001020395",
       "expected_value": [
         0,
         1,
@@ -566,7 +566,7 @@
       "//note": "keep_first silently ignores subsequent duplicates (2 pairs → 0x08)",
       "name": "dup_key_keep_first",
       "type": "decode",
-      "input_bytes": "b4666101666102b5",
+      "input_bytes": "b5666101666102b3",
       "expected_value": {
         "a": 1
       },
@@ -578,7 +578,7 @@
       "//": "keep_last replaces with latest value (2 pairs → 0x08)",
       "name": "dup_key_keep_last",
       "type": "decode",
-      "input_bytes": "b4666101666102b5",
+      "input_bytes": "b5666101666102b3",
       "expected_value": {
         "a": 2
       },
@@ -590,7 +590,7 @@
       "//": "Multiple duplicates with keep_first (3 pairs → 0x0c)",
       "name": "dup_key_keep_first_multiple",
       "type": "decode",
-      "input_bytes": "b4666101666102666103b5",
+      "input_bytes": "b5666101666102666103b3",
       "expected_value": {
         "a": 1
       },
@@ -602,7 +602,7 @@
       "//": "Multiple duplicates with keep_last (3 pairs → 0x0c)",
       "name": "dup_key_keep_last_multiple",
       "type": "decode",
-      "input_bytes": "b4666101666102666103b5",
+      "input_bytes": "b5666101666102666103b3",
       "expected_value": {
         "a": 3
       },

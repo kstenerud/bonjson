@@ -133,7 +133,7 @@
       "expected_error": "truncated"
     },
     {
-      "//": "Invalid (reserved) type codes — codes in the 0xC2-0xFE range are reserved",
+      "//": "Invalid (reserved) type codes — codes in the 0xb8-0xf4 range are reserved",
       "name": "invalid_type_code_c9",
       "type": "decode_error",
       "input_bytes": "c9",
@@ -179,7 +179,7 @@
       "//": "Container end marker at top level (no container to close)",
       "name": "unexpected_container_end",
       "type": "decode_error",
-      "input_bytes": "b5",
+      "input_bytes": "b3",
       "expected_error": "invalid_type_code"
     },
     {
@@ -190,42 +190,42 @@
       "//": "Array with no end marker and no content",
       "name": "unclosed_array_empty",
       "type": "decode_error",
-      "input_bytes": "b3",
+      "input_bytes": "b4",
       "expected_error": "truncated"
     },
     {
       "//": "Object with no end marker and no content",
       "name": "unclosed_object_empty",
       "type": "decode_error",
-      "input_bytes": "b4",
+      "input_bytes": "b5",
       "expected_error": "truncated"
     },
     {
       "//": "Array with element but no end marker",
       "name": "unclosed_array_with_element",
       "type": "decode_error",
-      "input_bytes": "b301",
+      "input_bytes": "b401",
       "expected_error": "truncated"
     },
     {
       "//": "Object with key-value pair but no end marker",
       "name": "unclosed_object_with_pair",
       "type": "decode_error",
-      "input_bytes": "b4666101",
+      "input_bytes": "b5666101",
       "expected_error": "truncated"
     },
     {
       "//": "Nested array where inner is truncated",
       "name": "nested_array_inner_truncated",
       "type": "decode_error",
-      "input_bytes": "b3b3",
+      "input_bytes": "b4b4",
       "expected_error": "truncated"
     },
     {
       "//": "Nested object where inner is truncated",
       "name": "nested_object_inner_truncated",
       "type": "decode_error",
-      "input_bytes": "b465b4",
+      "input_bytes": "b565b5",
       "expected_error": "truncated"
     },
     {
@@ -346,49 +346,49 @@
     {
       "name": "object_key_integer",
       "type": "decode_error",
-      "input_bytes": "b40100b5",
+      "input_bytes": "b50100b3",
       "expected_error": "invalid_object_key"
     },
     {
       "name": "object_key_null",
       "type": "decode_error",
-      "input_bytes": "b4b000b5",
+      "input_bytes": "b5b200b3",
       "expected_error": "invalid_object_key"
     },
     {
       "name": "object_key_true",
       "type": "decode_error",
-      "input_bytes": "b4b200b5",
+      "input_bytes": "b5b100b3",
       "expected_error": "invalid_object_key"
     },
     {
       "name": "object_key_false",
       "type": "decode_error",
-      "input_bytes": "b4b100b5",
+      "input_bytes": "b5b000b3",
       "expected_error": "invalid_object_key"
     },
     {
       "name": "object_key_array",
       "type": "decode_error",
-      "input_bytes": "b4b3b500b5",
+      "input_bytes": "b5b4b300b3",
       "expected_error": "invalid_object_key"
     },
     {
       "name": "object_key_object",
       "type": "decode_error",
-      "input_bytes": "b4b4b500b5",
+      "input_bytes": "b5b5b300b3",
       "expected_error": "invalid_object_key"
     },
     {
       "name": "object_key_float32",
       "type": "decode_error",
-      "input_bytes": "b4ad0000000000b5",
+      "input_bytes": "b5ad0000000000b3",
       "expected_error": "invalid_object_key"
     },
     {
       "name": "object_key_float64",
       "type": "decode_error",
-      "input_bytes": "b4ae000000000000000000b5",
+      "input_bytes": "b5ae000000000000000000b3",
       "expected_error": "invalid_object_key"
     },
     {
@@ -454,28 +454,28 @@
       "//": "Object with key but missing value (truncated before value)",
       "name": "object_key_without_value",
       "type": "decode_error",
-      "input_bytes": "b46661",
+      "input_bytes": "b56661",
       "expected_error": "truncated"
     },
     {
       "//": "Object with long string key but missing value",
       "name": "object_long_key_without_value",
       "type": "decode_error",
-      "input_bytes": "b4ff6b6579ff",
+      "input_bytes": "b5ff6b6579ff",
       "expected_error": "truncated"
     },
     {
       "//": "Object truncated mid-key (short string header but data missing)",
       "name": "object_truncated_after_key_start",
       "type": "decode_error",
-      "input_bytes": "b466",
+      "input_bytes": "b566",
       "expected_error": "truncated"
     },
     {
       "//": "Object with value but missing key (integer where key expected)",
       "name": "object_value_without_key",
       "type": "decode_error",
-      "input_bytes": "b401b5",
+      "input_bytes": "b501b3",
       "expected_error": "invalid_object_key"
     },
     {
@@ -486,21 +486,21 @@
       "//": "Extra data after valid empty array",
       "name": "trailing_after_empty_array",
       "type": "decode_error",
-      "input_bytes": "b3b500",
+      "input_bytes": "b4b300",
       "expected_error": "trailing_bytes"
     },
     {
       "//": "Extra data after array with element",
       "name": "trailing_after_array_with_element",
       "type": "decode_error",
-      "input_bytes": "b301b500",
+      "input_bytes": "b401b300",
       "expected_error": "trailing_bytes"
     },
     {
       "//": "Extra data after valid empty object",
       "name": "trailing_after_empty_object",
       "type": "decode_error",
-      "input_bytes": "b4b500",
+      "input_bytes": "b5b300",
       "expected_error": "trailing_bytes"
     },
     {

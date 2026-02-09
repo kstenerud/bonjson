@@ -264,7 +264,7 @@ Error type values are case-sensitive (must be lowercase).
 | `invalid_utf8`                | Invalid UTF-8 sequence in string              |
 | `nul_character`               | NUL (0x00) in string (default rejection)      |
 | `duplicate_key`               | Duplicate key in object                       |
-| `unclosed_container`          | Container missing `0xFE` end marker           |
+| `unclosed_container`          | Container missing `0xB3` end marker           |
 | `invalid_data`                | Generic invalid data (e.g., NaN in BigNumber) |
 | `value_out_of_range`          | Value exceeds allowed range                   |
 | `max_depth_exceeded`          | Container nesting too deep                    |
@@ -502,14 +502,23 @@ For reference when writing byte sequences:
 | `ad`    | Float32                              |
 | `ae`    | Float64                              |
 | `af`    | BigNumber                            |
-| `b0`    | Null                                 |
-| `b1`    | False                                |
-| `b2`    | True                                 |
-| `b3`    | Array                                |
-| `b4`    | Object                               |
-| `b5`    | Container end marker                 |
-| `b6-bf` | Typed arrays                         |
-| `c0`    | Record definition                    |
-| `c1`    | Record instance                      |
-| `c2-fe` | Reserved                             |
+| `b0`    | False                                |
+| `b1`    | True                                 |
+| `b2`    | Null                                 |
+| `b3`    | Container end marker                 |
+| `b4`    | Array                                |
+| `b5`    | Object                               |
+| `b6`    | Record definition                    |
+| `b7`    | Record instance                      |
+| `b8-f4` | Reserved                             |
+| `f5`    | Typed array float64                  |
+| `f6`    | Typed array float32                  |
+| `f7`    | Typed array sint64                   |
+| `f8`    | Typed array sint32                   |
+| `f9`    | Typed array sint16                   |
+| `fa`    | Typed array sint8                    |
+| `fb`    | Typed array uint64                   |
+| `fc`    | Typed array uint32                   |
+| `fd`    | Typed array uint16                   |
+| `fe`    | Typed array uint8                    |
 | `ff`    | Long string                          |

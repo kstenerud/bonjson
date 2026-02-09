@@ -183,7 +183,7 @@
         1,
         null
       ],
-      "expected_bytes": "b3666101b0b5"
+      "expected_bytes": "b4666101b2b3"
     },
     {
       "//": "Object example from spec (roundtrip since key order is unspecified)",
@@ -199,20 +199,20 @@
       "name": "spec_bool_false",
       "type": "encode",
       "input": false,
-      "expected_bytes": "b1"
+      "expected_bytes": "b0"
     },
     {
       "name": "spec_bool_true",
       "type": "encode",
       "input": true,
-      "expected_bytes": "b2"
+      "expected_bytes": "b1"
     },
     {
       "//": "Null example from spec",
       "name": "spec_null",
       "type": "encode",
       "input": null,
-      "expected_bytes": "b0"
+      "expected_bytes": "b2"
     },
     {
       "//": "Full example from spec (roundtrip since key order is unspecified)",
@@ -246,7 +246,7 @@
       "//note": "Chunk1: count=2,cont=1 → 0x0a. Chunk2: count=1,cont=0 → 0x04",
       "name": "spec_array_chunked",
       "type": "decode",
-      "input_bytes": "b3666101b0b5",
+      "input_bytes": "b4666101b2b3",
       "expected_value": [
         "a",
         1,
