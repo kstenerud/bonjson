@@ -495,19 +495,21 @@ For reference when writing byte sequences:
 
 | Range   | Type                                 |
 |---------|--------------------------------------|
-| `00-c8` | Small integers (-100 to 100)         |
-| `c9`    | Reserved                             |
-| `ca`    | BigNumber                            |
-| `cb`    | Float32                              |
-| `cc`    | Float64                              |
-| `cd`    | Null                                 |
-| `ce`    | False                                |
-| `cf`    | True                                 |
-| `d0-df` | Short strings (0-15 bytes)           |
-| `e0-e3` | Unsigned integers (8, 16, 32, 64 bit)|
-| `e4-e7` | Signed integers (8, 16, 32, 64 bit)  |
-| `e8-fb` | Reserved                             |
-| `fc`    | Array                                |
-| `fd`    | Object                               |
-| `fe`    | Container end marker                 |
+| `00-64` | Small integers (0 to 100)            |
+| `65-a4` | Short strings (0-63 bytes)           |
+| `a5-a8` | Unsigned integers (8, 16, 32, 64 bit)|
+| `a9-ac` | Signed integers (8, 16, 32, 64 bit)  |
+| `ad`    | Float32                              |
+| `ae`    | Float64                              |
+| `af`    | BigNumber                            |
+| `b0`    | Null                                 |
+| `b1`    | False                                |
+| `b2`    | True                                 |
+| `b3`    | Array                                |
+| `b4`    | Object                               |
+| `b5`    | Container end marker                 |
+| `b6-bf` | Typed arrays                         |
+| `c0`    | Record definition                    |
+| `c1`    | Record instance                      |
+| `c2-fe` | Reserved                             |
 | `ff`    | Long string                          |

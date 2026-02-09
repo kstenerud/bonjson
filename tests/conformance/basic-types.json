@@ -4,39 +4,39 @@
   "//": "Basic type encoding tests for null, boolean, and simple values",
   "tests": [
     {
-      "//": "Null encodes to type code 0x90",
+      "//": "Null encodes to type code 0xb0",
       "name": "null",
       "type": "encode",
       "input": null,
-      "expected_bytes": "90"
+      "expected_bytes": "b0"
     },
     {
-      "//": "True encodes to type code 0x92",
+      "//": "True encodes to type code 0xb2",
       "name": "bool_true",
       "type": "encode",
       "input": true,
-      "expected_bytes": "92"
+      "expected_bytes": "b2"
     },
     {
-      "//": "False encodes to type code 0x91",
+      "//": "False encodes to type code 0xb1",
       "name": "bool_false",
       "type": "encode",
       "input": false,
-      "expected_bytes": "91"
+      "expected_bytes": "b1"
     },
     {
-      "//": "Empty array encodes to start (0x93) + count chunk (0 elements → 0x00)",
+      "//": "Empty array encodes to start (0xb3) + count chunk (0 elements → 0x00)",
       "name": "empty_array",
       "type": "encode",
       "input": [],
-      "expected_bytes": "9395"
+      "expected_bytes": "b3b5"
     },
     {
-      "//": "Empty object encodes to start (0x94) + count chunk (0 pairs → 0x00)",
+      "//": "Empty object encodes to start (0xb4) + count chunk (0 pairs → 0x00)",
       "name": "empty_object",
       "type": "encode",
       "input": {},
-      "expected_bytes": "9495"
+      "expected_bytes": "b4b5"
     },
     {
       "//": "Simple array with mixed types (3 elements → 0x0c)",
@@ -47,7 +47,7 @@
         "x",
         null
       ],
-      "expected_bytes": "930166789095"
+      "expected_bytes": "b3016678b0b5"
     },
     {
       "//": "Object with single key-value pair (1 pair → 0x04)",
@@ -56,7 +56,7 @@
       "input": {
         "a": 1
       },
-      "expected_bytes": "9466610195"
+      "expected_bytes": "b4666101b5"
     },
     {
       "//": "Object with multiple keys (key order is implementation-defined)",

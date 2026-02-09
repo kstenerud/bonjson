@@ -9,7 +9,7 @@
       "//note": "Zero: exponent=0 (0x00), signed_length=0 (0x00), no magnitude bytes",
       "name": "decode_bignumber_zero",
       "type": "decode",
-      "input_bytes": "8f0000",
+      "input_bytes": "af0000",
       "expected_value": 0
     },
     {
@@ -221,7 +221,7 @@
       "//": "Zero exponent, significand=1: exponent=0, signed_length=+1→zigzag(1)=0x02, magnitude=0x01",
       "name": "decode_bignumber_zero_exponent",
       "type": "decode",
-      "input_bytes": "8f000201",
+      "input_bytes": "af000201",
       "expected_value": 1
     },
     {
@@ -296,35 +296,35 @@
       "//": "Value 255: signed_length=+1→zigzag(1)=0x02, magnitude=0xFF",
       "name": "decode_bignumber_sig_1_byte",
       "type": "decode",
-      "input_bytes": "8f0002ff",
+      "input_bytes": "af0002ff",
       "expected_value": 255
     },
     {
       "//": "Value 65535: signed_length=+2→zigzag(2)=0x04, magnitude=0xFFFF LE",
       "name": "decode_bignumber_sig_2_bytes",
       "type": "decode",
-      "input_bytes": "8f0004ffff",
+      "input_bytes": "af0004ffff",
       "expected_value": 65535
     },
     {
       "//": "Value 65537: signed_length=+3→zigzag(3)=0x06, magnitude=0x010001 LE = 01 00 01",
       "name": "decode_bignumber_sig_3_bytes",
       "type": "decode",
-      "input_bytes": "8f0006010001",
+      "input_bytes": "af0006010001",
       "expected_value": 65537
     },
     {
       "//": "Value -255: signed_length=-1→zigzag(-1)=0x01, magnitude=0xFF",
       "name": "decode_bignumber_negative_1_byte",
       "type": "decode",
-      "input_bytes": "8f0001ff",
+      "input_bytes": "af0001ff",
       "expected_value": -255
     },
     {
       "//": "Value -65535: signed_length=-2→zigzag(-2)=0x03, magnitude=0xFFFF LE",
       "name": "decode_bignumber_negative_2_bytes",
       "type": "decode",
-      "input_bytes": "8f0003ffff",
+      "input_bytes": "af0003ffff",
       "expected_value": -65535
     },
     {

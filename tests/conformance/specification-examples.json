@@ -72,13 +72,13 @@
       "name": "spec_smallint_neg60",
       "type": "encode",
       "input": -60,
-      "expected_bytes": "89c4"
+      "expected_bytes": "a9c4"
     },
     {
       "name": "spec_smallint_neg100",
       "type": "encode",
       "input": -100,
-      "expected_bytes": "899c"
+      "expected_bytes": "a99c"
     },
     {
       "//": "Integer examples from spec - 180 can be uint8 or sint16",
@@ -90,14 +90,14 @@
       "//": "Decode test: 180 encoded as uint8 (spec example)",
       "name": "decode_spec_int_180_uint8",
       "type": "decode",
-      "input_bytes": "85b4",
+      "input_bytes": "a5b4",
       "expected_value": 180
     },
     {
       "name": "spec_int_neg1000",
       "type": "encode",
       "input": -1000,
-      "expected_bytes": "8a18fc"
+      "expected_bytes": "aa18fc"
     },
     {
       "//": "32768 can be uint16 or sint24",
@@ -109,7 +109,7 @@
       "//": "Decode test: 32768 encoded as uint16 (spec example)",
       "name": "decode_spec_int_32768_uint16",
       "type": "decode",
-      "input_bytes": "860080",
+      "input_bytes": "a60080",
       "expected_value": 32768
     },
     {
@@ -117,13 +117,13 @@
       "name": "spec_int_large",
       "type": "encode",
       "input": 20015998343868,
-      "expected_bytes": "8cbc9a785634120000"
+      "expected_bytes": "acbc9a785634120000"
     },
     {
       "name": "spec_int_min_int64",
       "type": "encode",
       "input": -9223372036854775808,
-      "expected_bytes": "8c0000000000000080"
+      "expected_bytes": "ac0000000000000080"
     },
     {
       "//": "0xded0d0d0dedadada",
@@ -132,20 +132,20 @@
       "input": {
         "$number": "16055562267086478042"
       },
-      "expected_bytes": "88dadadaded0d0d0de"
+      "expected_bytes": "a8dadadaded0d0d0de"
     },
     {
       "//": "Float32 example from spec: 1.125 fits in float32",
       "name": "spec_float32_1_125",
       "type": "encode",
       "input": 1.125,
-      "expected_bytes": "8d0000903f"
+      "expected_bytes": "ad0000903f"
     },
     {
       "//": "Float32 example from spec: 0x1.3f7p5",
       "name": "spec_float32",
       "type": "decode",
-      "input_bytes": "8d00b81f42",
+      "input_bytes": "ad00b81f42",
       "expected_value": {
         "$number": "0x1.3f7p5"
       }
@@ -155,13 +155,13 @@
       "name": "spec_float64",
       "type": "encode",
       "input": 1.234,
-      "expected_bytes": "8e5839b4c876bef33f"
+      "expected_bytes": "ae5839b4c876bef33f"
     },
     {
       "//": "BigNumber decoding: 1.5 = 15 * 10^-1. exp=zigzag(-1)=0x01, signed_length=+1→zigzag(1)=0x02, magnitude=15=0x0F",
       "name": "spec_bignumber_1_5",
       "type": "decode",
-      "input_bytes": "8f01020f",
+      "input_bytes": "af01020f",
       "expected_value": {
         "$number": "1.5"
       }
@@ -170,7 +170,7 @@
       "//": "Negative zero bignum: not representable (signed_length=0 is always positive zero; use IEEE754 float -0.0 instead)",
       "name": "spec_bignumber_neg_zero",
       "type": "decode",
-      "input_bytes": "8f0000",
+      "input_bytes": "af0000",
       "expected_value": 0,
       "//note": "signed_length=0 always means positive zero; negative zero uses float encoding"
     },
@@ -183,7 +183,7 @@
         1,
         null
       ],
-      "expected_bytes": "936661019095"
+      "expected_bytes": "b3666101b0b5"
     },
     {
       "//": "Object example from spec (roundtrip since key order is unspecified)",
@@ -199,20 +199,20 @@
       "name": "spec_bool_false",
       "type": "encode",
       "input": false,
-      "expected_bytes": "91"
+      "expected_bytes": "b1"
     },
     {
       "name": "spec_bool_true",
       "type": "encode",
       "input": true,
-      "expected_bytes": "92"
+      "expected_bytes": "b2"
     },
     {
       "//": "Null example from spec",
       "name": "spec_null",
       "type": "encode",
       "input": null,
-      "expected_bytes": "90"
+      "expected_bytes": "b0"
     },
     {
       "//": "Full example from spec (roundtrip since key order is unspecified)",
@@ -246,7 +246,7 @@
       "//note": "Chunk1: count=2,cont=1 → 0x0a. Chunk2: count=1,cont=0 → 0x04",
       "name": "spec_array_chunked",
       "type": "decode",
-      "input_bytes": "936661019095",
+      "input_bytes": "b3666101b0b5",
       "expected_value": [
         "a",
         1,

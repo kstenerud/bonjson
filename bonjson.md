@@ -162,37 +162,37 @@ BONJSON follows the same structural rules as [JSON](#json-standards), as illustr
 
 **Array**:
 
-    ──[0x93]──┬─>───────────┬──[0x95]──>
+    ──[0xB3]──┬─>───────────┬──[0xB5]──>
               ├─>─[value]─>─┤
               ╰─<─<─<─<─<─<─╯
 
 **Typed Array**:
 
-    ──[0x96-0x9F]──[element_count (LEB128)]──[data bytes...]──>
+    ──[0xB6-0xBF]──[element_count (LEB128)]──[data bytes...]──>
 
 **Object**:
 
-    ──[0x94]──┬─>─────────────────────┬──[0x95]──>
+    ──[0xB4]──┬─>─────────────────────┬──[0xB5]──>
               ├─>─[string]──[value]─>─┤
               ╰─<─<─<─<─<─<─<─<─<─<─<─╯
 
 **Record Definition**:
 
-    ──[0xA0]──┬─>────────────┬──[0x95]──>
+    ──[0xC0]──┬─>────────────┬──[0xB5]──>
               ├─>─[string]─>─┤
               ╰─<─<─<─<─<─<──╯
 
 **Record Instance**:
 
-    ──[0xA1]──[def_index (LEB128)]──┬─>───────────┬──[0x95]──>
+    ──[0xC1]──[def_index (LEB128)]──┬─>───────────┬──[0xB5]──>
                                     ├─>─[value]─>─┤
                                     ╰─<─<─<─<─<─<─╯
 
 **Structural validity rules**:
 
 * A document **MUST** contain exactly one top-level value, optionally preceded by zero or more [record definitions](#record). An empty document (zero bytes) is invalid.
-* Every delimiter-terminated container ([array](#array), [object](#object), [record definition, or record instance](#record)) **MUST** be properly terminated with an end marker (`0x95`). A document that ends without the end marker for all open containers is invalid. ([Typed arrays](#typed-array) are length-prefixed and do not use end markers.)
-* All [record definitions](#record) **MUST** appear before the root value. A record definition type code (`0xA0`) encountered after any non-definition data has been read is invalid.
+* Every delimiter-terminated container ([array](#array), [object](#object), [record definition, or record instance](#record)) **MUST** be properly terminated with an end marker (`0xB5`). A document that ends without the end marker for all open containers is invalid. ([Typed arrays](#typed-array) are length-prefixed and do not use end markers.)
+* All [record definitions](#record) **MUST** appear before the root value. A record definition type code (`0xC0`) encountered after any non-definition data has been read is invalid.
 
 **Note**: For robustness, decoders **MAY** offer an option to recover partial data from truncated documents (see [Convenience Considerations](#convenience-considerations)).
 
@@ -216,22 +216,22 @@ Every value is composed of an 8-bit type code, and in some cases also a payload:
 | Type Code | Payload                      | Type      | Description                                |
 | --------- | ---------------------------- | --------- | ------------------------------------------ |
 | 00 - 64   |                              | Number    | [Integers 0 through 100](#small-integer)   |
-| 65 - 84   | String of n bytes            | String    | [Short String](#short-string)              |
-| 85 - 88   | Unsigned integer of n bytes  | Number    | [Unsigned Integer](#integer)               |
-| 89 - 8c   | Signed integer of n bytes    | Number    | [Signed Integer](#integer)                 |
-| 8d        | 32-bit ieee754 binary float  | Number    | [32-bit float](#32-bit-float)              |
-| 8e        | 64-bit ieee754 binary float  | Number    | [64-bit float](#64-bit-float)              |
-| 8f        | Zigzag LEB128 + LE magnitude | Number    | [Big Number](#big-number)                  |
-| 90        |                              | Null      | [Null](#null)                              |
-| 91        |                              | Boolean   | [False](#boolean)                          |
-| 92        |                              | Boolean   | [True](#boolean)                           |
-| 93        |                              | Container | [Array](#array)                            |
-| 94        |                              | Container | [Object](#object)                          |
-| 95        |                              |           | Container end marker                       |
-| 96 - 9f   | Count + element data         | Container | [Typed Array](#typed-array)                |
-| a0        | Key strings + end marker     |           | [Record Definition](#record)               |
-| a1        | Index + values + end marker  | Container | [Record Instance](#record)                 |
-| a2 - fe   |                              |           | RESERVED                                   |
+| 65 - a4   | String of n bytes            | String    | [Short String](#short-string)              |
+| a5 - a8   | Unsigned integer of n bytes  | Number    | [Unsigned Integer](#integer)               |
+| a9 - ac   | Signed integer of n bytes    | Number    | [Signed Integer](#integer)                 |
+| ad        | 32-bit ieee754 binary float  | Number    | [32-bit float](#32-bit-float)              |
+| ae        | 64-bit ieee754 binary float  | Number    | [64-bit float](#64-bit-float)              |
+| af        | Zigzag LEB128 + LE magnitude | Number    | [Big Number](#big-number)                  |
+| b0        |                              | Null      | [Null](#null)                              |
+| b1        |                              | Boolean   | [False](#boolean)                          |
+| b2        |                              | Boolean   | [True](#boolean)                           |
+| b3        |                              | Container | [Array](#array)                            |
+| b4        |                              | Container | [Object](#object)                          |
+| b5        |                              |           | Container end marker                       |
+| b6 - bf   | Count + element data         | Container | [Typed Array](#typed-array)                |
+| c0        | Key strings + end marker     |           | [Record Definition](#record)               |
+| c1        | Index + values + end marker  | Container | [Record Instance](#record)                 |
+| c2 - fe   |                              |           | RESERVED                                   |
 | ff        | Arbitrary length string      | String    | [Long String](#long-string)                |
 
 **Note**: Type codes marked RESERVED are not used in BONJSON. Decoders **MUST** reject documents containing reserved type codes.
@@ -250,7 +250,7 @@ Strings are UTF-8 encoded sequences of Unicode codepoints, and can be encoded in
 
 ### Short String
 
-Short strings have their byte length (up to 31) encoded into the type code. The length is computed as: `type_code - 0x65`.
+Short strings have their byte length (up to 63) encoded into the type code. The length is computed as: `type_code - 0x65`.
 
 **Examples**:
 
@@ -297,9 +297,9 @@ All primitive numeric types are encoded exactly as they would appear in memory o
  * `NaN` and `infinity` are by default not valid, but decoders **MAY** choose to accept them anyway. See [Values incompatible with JSON](#values-incompatible-with-json).
  * Numeric type fidelity is not guaranteed. The encoding used (integer, float, big number) carries no semantic meaning — only the mathematical value matters. A decoder **MAY** decode any numeric encoding into whatever native type best represents the value.
  * Decoders **MUST** accept any valid numeric encoding for a value, even if it is not the most compact representation. Only the mathematical value matters, not the encoding used to represent it.
- * A value such as `1.0` **MAY** be encoded as an integer (`0x01`) or as a float (`8d 00 00 80 3f`). Decoders **MUST** treat these as equivalent.
+ * A value such as `1.0` **MAY** be encoded as an integer (`0x01`) or as a float (`ad 00 00 80 3f`). Decoders **MUST** treat these as equivalent.
  * Subnormal (denormalized) float values are valid and **MUST** be accepted by decoders.
- * Negative zero (`-0.0`) **MUST** be encoded using a float encoding that preserves the sign. Encoders **SHOULD** prefer [32-bit float](#32-bit-float) (`8d 00 00 00 80`) as the most compact representation. Encoding `-0.0` as integer `0` would lose the sign and is therefore considered data loss.
+ * Negative zero (`-0.0`) **MUST** be encoded using a float encoding that preserves the sign. Encoders **SHOULD** prefer [32-bit float](#32-bit-float) (`ad 00 00 00 80`) as the most compact representation. Encoding `-0.0` as integer `0` would lose the sign and is therefore considered data loss.
 
 
 ### Small Integer
@@ -319,14 +319,14 @@ Integers are encoded in little-endian byte order following the [type code](#type
 
 | Type Code | Size    | Signedness |
 | --------- | ------- | ---------- |
-| 85        | 1 byte  | Unsigned   |
-| 86        | 2 bytes | Unsigned   |
-| 87        | 4 bytes | Unsigned   |
-| 88        | 8 bytes | Unsigned   |
-| 89        | 1 byte  | Signed     |
-| 8a        | 2 bytes | Signed     |
-| 8b        | 4 bytes | Signed     |
-| 8c        | 8 bytes | Signed     |
+| a5        | 1 byte  | Unsigned   |
+| a6        | 2 bytes | Unsigned   |
+| a7        | 4 bytes | Unsigned   |
+| a8        | 8 bytes | Unsigned   |
+| a9        | 1 byte  | Signed     |
+| aa        | 2 bytes | Signed     |
+| ab        | 4 bytes | Signed     |
+| ac        | 8 bytes | Signed     |
 
 Integer sizes are restricted to CPU-native widths (1, 2, 4, 8 bytes) for efficient decoding without byte-shifting or padding.
 
@@ -336,44 +336,44 @@ Encoders **SHOULD** use the smallest encoding that can represent the value:
 2. Otherwise, use whichever of signed or unsigned requires fewer bytes.
 3. If both signed and unsigned require the same number of bytes, prefer signed.
 
-For example: 127 fits in 1 byte as either signed or unsigned, so use signed (`89 7f`). 128 requires 2 bytes signed but only 1 byte unsigned, so use unsigned (`85 80`).
+For example: 127 fits in 1 byte as either signed or unsigned, so use signed (`a9 7f`). 128 requires 2 bytes signed but only 1 byte unsigned, so use unsigned (`a5 80`).
 
 **Note**: Using a larger-than-necessary encoding (e.g., encoding `1` as a 64-bit integer) produces a valid document that decoders **MUST** accept. However, it wastes bytes and is not recommended.
 
 **Examples**:
 
-    85 b4                      //  180
-    8a 18 fc                   // -1000
-    86 00 80                   //  0x8000
-    88 da da da de d0 d0 d0 de //  0xded0d0d0dedadada (is all I want to say to you)
-    8c 00 00 00 00 00 00 00 80 // -0x8000000000000000
+    a5 b4                      //  180
+    aa 18 fc                   // -1000
+    a6 00 80                   //  0x8000
+    a8 da da da de d0 d0 d0 de //  0xded0d0d0dedadada (is all I want to say to you)
+    ac 00 00 00 00 00 00 00 80 // -0x8000000000000000
 
 
 ### 32-bit Float
 
-32-bit float is encoded as a little-endian [32-bit ieee754 binary float](https://en.wikipedia.org/wiki/Single-precision_floating-point_format) following the [type code](#type-codes) (`0x8d`).
+32-bit float is encoded as a little-endian [32-bit ieee754 binary float](https://en.wikipedia.org/wiki/Single-precision_floating-point_format) following the [type code](#type-codes) (`0xAD`).
 
 **Example**:
 
-    8d 00 b8 1f 42 // 0x1.3f7p5
+    ad 00 b8 1f 42 // 0x1.3f7p5
 
 
 ### 64-bit Float
 
-64-bit float is encoded as a little-endian [64-bit ieee754 binary float](https://en.wikipedia.org/wiki/Double-precision_floating-point_format) following the [type code](#type-codes) (`0x8e`).
+64-bit float is encoded as a little-endian [64-bit ieee754 binary float](https://en.wikipedia.org/wiki/Double-precision_floating-point_format) following the [type code](#type-codes) (`0xAE`).
 
 **Example**:
 
-    8e 58 39 b4 c8 76 be f3 3f // 1.234
+    ae 58 39 b4 c8 76 be f3 3f // 1.234
 
 
 ### Big Number
 
-Big Number ([type code](#type-codes) `0x8f`) encodes arbitrary-precision base-10 numbers using [zigzag](https://en.wikipedia.org/wiki/Variable-length_quantity#Zigzag_encoding) [LEB128](https://en.wikipedia.org/wiki/LEB128) metadata and little-endian magnitude bytes.
+Big Number ([type code](#type-codes) `0xAF`) encodes arbitrary-precision base-10 numbers using [zigzag](https://en.wikipedia.org/wiki/Variable-length_quantity#Zigzag_encoding) [LEB128](https://en.wikipedia.org/wiki/LEB128) metadata and little-endian magnitude bytes.
 
 The structure of a big number is as follows:
 
-    0x8F [exponent] [signed length] [magnitude bytes]
+    0xAF [exponent] [signed length] [magnitude bytes]
 
  * The `exponent` is encoded as a zigzag LEB128 value representing a base-10 exponent.
  * The `signed length` is encoded as a zigzag LEB128 value. Its absolute value is the byte count of the magnitude field. Its sign indicates the sign of the significand: positive means the significand is positive, negative means the significand is negative, and zero means the significand is zero (with no magnitude bytes following).
@@ -391,40 +391,40 @@ The final value is derived as: `sign(signed_length)` × `magnitude` × 10^`expon
 
 **Examples**:
 
-    8f 00 00                   // 0 (exponent=0, signed_length=0 → significand is zero)
-    8f 00 02 02                // 2 (exponent=0, signed_length=+1, magnitude=0x02)
-    8f 00 01 01                // -1 (exponent=0, signed_length=-1, magnitude=0x01)
-    8f 01 02 0f                // 1.5 (exponent=zigzag(0x01)=-1, signed_length=+1,
+    af 00 00                   // 0 (exponent=0, signed_length=0 → significand is zero)
+    af 00 02 02                // 2 (exponent=0, signed_length=+1, magnitude=0x02)
+    af 00 01 01                // -1 (exponent=0, signed_length=-1, magnitude=0x01)
+    af 01 02 0f                // 1.5 (exponent=zigzag(0x01)=-1, signed_length=+1,
                                //   magnitude=0x0F=15) → 15 × 10⁻¹ = 1.5
-    8f 04 02 0a                // 1000 (exponent=zigzag(0x04)=2, signed_length=+1,
+    af 04 02 0a                // 1000 (exponent=zigzag(0x04)=2, signed_length=+1,
                                //   magnitude=0x0A=10) → 10 × 10² = 1000
 
-**Encoder normalization**: Encoders **SHOULD** produce the most compact representation by normalizing trailing zeros out of the significand and into the exponent. For example, the value 1000 is more compactly encoded as `significand=1, exponent=3` than `significand=10, exponent=2`. If the significand is zero, encoders **SHOULD** also normalize the exponent to zero (i.e., encode as `8f 00 00` rather than using a non-zero exponent). See also [Interoperability Considerations](#interoperability-considerations).
+**Encoder normalization**: Encoders **SHOULD** produce the most compact representation by normalizing trailing zeros out of the significand and into the exponent. For example, the value 1000 is more compactly encoded as `significand=1, exponent=3` than `significand=10, exponent=2`. If the significand is zero, encoders **SHOULD** also normalize the exponent to zero (i.e., encode as `af 00 00` rather than using a non-zero exponent). See also [Interoperability Considerations](#interoperability-considerations).
 
 
 
 Containers
 ----------
 
-Arrays, objects, and [records](#record) use delimiter-terminated encoding: the container [type code](#type-codes) is followed by zero or more children, terminated by an end marker (`0x95`). [Typed arrays](#typed-array) use a length-prefixed encoding for compact storage of homogeneous numeric data.
+Arrays, objects, and [records](#record) use delimiter-terminated encoding: the container [type code](#type-codes) is followed by zero or more children, terminated by an end marker (`0xB5`). [Typed arrays](#typed-array) use a length-prefixed encoding for compact storage of homogeneous numeric data.
 
 
 ### Array
 
-An array consists of an `array` type code (`0x93`), followed by zero or more values, and terminated by an end marker (`0x95`).
+An array consists of an `array` type code (`0xB3`), followed by zero or more values, and terminated by an end marker (`0xB5`).
 
-    [0x93] [value ...] [0x95]
+    [0xB3] [value ...] [0xB5]
 
 **Examples**:
 
-    93 95                      // [] (empty array)
-    93 01 95                   // [1]
-    93 66 61 01 90 95          // ["a", 1, null]
+    b3 b5                      // [] (empty array)
+    b3 01 b5                   // [1]
+    b3 66 61 01 b0 b5          // ["a", 1, null]
 
 
 ### Typed Array
 
-A typed array is a compact encoding for homogeneous numeric arrays. The element type is encoded directly into the type code (`0x96`-`0x9F`), followed by an unsigned [LEB128](https://en.wikipedia.org/wiki/LEB128) element count, and then the raw element data.
+A typed array is a compact encoding for homogeneous numeric arrays. The element type is encoded directly into the type code (`0xB6`-`0xBF`), followed by an unsigned [LEB128](https://en.wikipedia.org/wiki/LEB128) element count, and then the raw element data.
 
     [type_code] [element_count (LEB128)] [data bytes...]
 
@@ -432,16 +432,16 @@ The type code identifies the element type:
 
 | Element Type | Type Code | Element Size |
 | ------------ | --------- | ------------ |
-| uint8        | 96        | 1 byte       |
-| uint16       | 97        | 2 bytes      |
-| uint32       | 98        | 4 bytes      |
-| uint64       | 99        | 8 bytes      |
-| sint8        | 9a        | 1 byte       |
-| sint16       | 9b        | 2 bytes      |
-| sint32       | 9c        | 4 bytes      |
-| sint64       | 9d        | 8 bytes      |
-| float32      | 9e        | 4 bytes      |
-| float64      | 9f        | 8 bytes      |
+| uint8        | b6        | 1 byte       |
+| uint16       | b7        | 2 bytes      |
+| uint32       | b8        | 4 bytes      |
+| uint64       | b9        | 8 bytes      |
+| sint8        | ba        | 1 byte       |
+| sint16       | bb        | 2 bytes      |
+| sint32       | bc        | 4 bytes      |
+| sint64       | bd        | 8 bytes      |
+| float32      | be        | 4 bytes      |
+| float64      | bf        | 8 bytes      |
 
 The data section contains `element_count` elements of the specified type, encoded contiguously in little-endian byte order. The total data size in bytes is `element_count × element_size`.
 
@@ -455,17 +455,17 @@ A typed array is semantically identical to a regular [JSON](#json-standards) arr
 
 **Examples**:
 
-    96 03 01 02 03                            // typed uint8 array [1, 2, 3]
-    9f 02 58 39 b4 c8 76 be f3 3f             // typed float64 array [1.234, 5.678]
+    b6 03 01 02 03                            // typed uint8 array [1, 2, 3]
+    bf 02 58 39 b4 c8 76 be f3 3f             // typed float64 array [1.234, 5.678]
        83 c0 ca a1 45 b6 16 40
-    98 00                                     // typed uint32 array [] (empty)
+    b8 00                                     // typed uint32 array [] (empty)
 
 
 ### Object
 
-An object consists of an `object` type code (`0x94`), followed by zero or more key-value pairs, and terminated by an end marker (`0x95`). Each pair is a [string](#strings) key followed by a value.
+An object consists of an `object` type code (`0xB4`), followed by zero or more key-value pairs, and terminated by an end marker (`0xB5`). Each pair is a [string](#strings) key followed by a value.
 
-    [0x94] [string value ...] [0x95]
+    [0xB4] [string value ...] [0xB5]
 
 **Notes**:
 
@@ -475,8 +475,8 @@ An object consists of an `object` type code (`0x94`), followed by zero or more k
 
 **Examples**:
 
-    94 95                                    // {} (empty object)
-    94 66 62 00 69 74 65 73 74 66 78 95      // {"b": 0, "test": "x"}
+    b4 b5                                    // {} (empty object)
+    b4 66 62 00 69 74 65 73 74 66 78 b5      // {"b": 0, "test": "x"}
 
 
 ### Record
@@ -488,9 +488,9 @@ A record instance is semantically identical to an [object](#object) — it is a 
 
 #### Record Definition
 
-A record definition (`0xA0`) declares a list of key strings. It consists of the type code, followed by zero or more [strings](#strings), and terminated by an end marker (`0x95`).
+A record definition (`0xC0`) declares a list of key strings. It consists of the type code, followed by zero or more [strings](#strings), and terminated by an end marker (`0xB5`).
 
-    [0xA0] [string ...] [0x95]
+    [0xC0] [string ...] [0xB5]
 
 Record definitions **MUST** appear at the beginning of a document, before the root value. Each definition is assigned a 0-based index in the order it appears. A document **MAY** contain zero or more record definitions.
 
@@ -505,9 +505,9 @@ Record definitions **MUST** appear at the beginning of a document, before the ro
 
 #### Record Instance
 
-A record instance (`0xA1`) references a previously declared record definition and supplies values for each key. It consists of the type code, followed by an unsigned [LEB128](https://en.wikipedia.org/wiki/LEB128) definition index, zero or more values, and terminated by an end marker (`0x95`).
+A record instance (`0xC1`) references a previously declared record definition and supplies values for each key. It consists of the type code, followed by an unsigned [LEB128](https://en.wikipedia.org/wiki/LEB128) definition index, zero or more values, and terminated by an end marker (`0xB5`).
 
-    [0xA1] [def_index (LEB128)] [value ...] [0x95]
+    [0xC1] [def_index (LEB128)] [value ...] [0xB5]
 
 The definition index is 0-based. The values are matched positionally to the keys from the referenced definition: the first value corresponds to the first key, the second value to the second key, and so on.
 
@@ -521,18 +521,18 @@ The definition index is 0-based. The values are matched positionally to the keys
 **Examples**:
 
 ```text
-    a0 69 6e 61 6d 65 68 61 67 65 95             // Record def 0: keys ["name", "age"]
-    93                                            // [ (array start)
-       a1 00 6a 41 6c 69 63 65 1e 95             //     {"name": "Alice", "age": 30}
-       a1 00 68 42 6f 62 19 95                    //     {"name": "Bob", "age": 25}
-    95                                            // ] (array end)
+    c0 69 6e 61 6d 65 68 61 67 65 b5             // Record def 0: keys ["name", "age"]
+    b3                                            // [ (array start)
+       c1 00 6a 41 6c 69 63 65 1e b5             //     {"name": "Alice", "age": 30}
+       c1 00 68 42 6f 62 19 b5                    //     {"name": "Bob", "age": 25}
+    b5                                            // ] (array end)
 ```
 
 The above is equivalent to `[{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]`.
 
 ```text
-    a0 66 61 66 62 66 63 95                       // Record def 0: keys ["a", "b", "c"]
-    a1 00 01 95                                   // {"a": 1, "b": null, "c": null}
+    c0 66 61 66 62 66 63 b5                       // Record def 0: keys ["a", "b", "c"]
+    c1 00 01 b5                                   // {"a": 1, "b": null, "c": null}
 ```
 
 Early end marker: only one value is provided for a three-key definition, so `"b"` and `"c"` default to null.
@@ -544,15 +544,15 @@ Boolean
 
 Boolean values are encoded into the [type codes](#type-codes) themselves:
 
- * False has type code `0x91`
- * True has type code `0x92`
+ * False has type code `0xB1`
+ * True has type code `0xB2`
 
 
 
 Null
 ----
 
-Null has [type code](#type-codes) `0x90`.
+Null has [type code](#type-codes) `0xB0`.
 
 
 
@@ -743,47 +743,50 @@ Full Example
     ],
     "object": {
         "negative number": -100,
-        "long string": "1234567890123456789012345678901234567890"
+        "long string": "1234567890123456789012345678901234567890123456789012345678901234"
     }
 }
 ```
 
-    Size:     245 bytes
-    Minified: 156 bytes
+    Size:     269 bytes
+    Minified: 180 bytes
 
 **BONJSON**:
 
 ```text
-    94                                                 // { (object start)
+    b4                                                 // { (object start)
        6b 6e 75 6d 62 65 72                            //     "number":
        32                                              //     50,
        69 6e 75 6c 6c                                  //     "null":
-       90                                              //     null,
+       b0                                              //     null,
        6c 62 6f 6f 6c 65 61 6e                         //     "boolean":
-       92                                              //     true,
+       b2                                              //     true,
        6a 61 72 72 61 79                               //     "array":
-       93                                              //     [ (array start)
+       b3                                              //     [ (array start)
           66 78                                        //         "x",
-          8a e8 03                                     //         1000,
-          8d 00 00 a0 bf                               //         -1.25
-       95                                              //     ] (array end),
+          aa e8 03                                     //         1000,
+          ad 00 00 a0 bf                               //         -1.25
+       b5                                              //     ] (array end),
        6b 6f 62 6a 65 63 74                            //     "object":
-       94                                              //     { (object start)
+       b4                                              //     { (object start)
           74 6e 65 67 61 74 69 76 65 20 6e 75 6d 62    //         "negative number":
              65 72                                     //
-          89 9c                                        //         -100,
+          a9 9c                                        //         -100,
           70 6c 6f 6e 67 20 73 74 72 69 6e 67          //         "long string":
-          ff                                           //         "1234567890123456789012345678901234567890"
+          ff                                           //         "12345678901234567890123456789012
+             31 32 33 34 35 36 37 38 39 30             //          34567890123456789012345678901234"
              31 32 33 34 35 36 37 38 39 30             //
              31 32 33 34 35 36 37 38 39 30             //
              31 32 33 34 35 36 37 38 39 30             //
              31 32 33 34 35 36 37 38 39 30             //
+             31 32 33 34 35 36 37 38 39 30             //
+             31 32 33 34                               //
           ff                                           //
-       95                                              //     } (object end)
-    95                                                 // } (object end)
+       b5                                              //     } (object end)
+    b5                                                 // } (object end)
 ```
 
-    Size:    124 bytes
+    Size:    148 bytes
 
 
 
@@ -809,12 +812,12 @@ value             = typed_array | array | object | record | number | boolean | s
 # Types
 
 # Containers use delimiter-terminated encoding.
-# 0x93/0x94 opens, 0x95 closes.
+# 0xB3/0xB4 opens, 0xB5 closes.
 # Typed array is a compact encoding for homogeneous numeric arrays.
-typed_array       = u8(var(code, 0x96~0x9f)) & leb128(var(count, ~))
+typed_array       = u8(var(code, 0xb6~0xbf)) & leb128(var(count, ~))
                   & sized(count * typed_element_size * 8,
                       ordered(uint(count * typed_element_size * 8, ~)));
-typed_element_type = var(etype, code - 0x96);
+typed_element_type = var(etype, code - 0xb6);
 typed_element_size = [
                         etype == 0: 1;  # uint8
                         etype == 4: 1;  # sint8
@@ -827,41 +830,41 @@ typed_element_size = [
                         etype == 7: 8;  # sint64
                         etype == 9: 8;  # float64
                     ];
-array             = u8(0x93) & value* & u8(0x95);
-object            = u8(0x94) & (string & value)* & u8(0x95);
+array             = u8(0xb3) & value* & u8(0xb5);
+object            = u8(0xb4) & (string & value)* & u8(0xb5);
 # Record: compact encoding for repeated object schemas.
 # Definitions declare key lists; instances reference a definition by index.
-record_def        = u8(0xa0) & string* & u8(0x95);
-record            = u8(0xa1) & leb128(~) & value* & u8(0x95);
+record_def        = u8(0xc0) & string* & u8(0xb5);
+record            = u8(0xc1) & leb128(~) & value* & u8(0xb5);
 
 number            = int_small | int_unsigned | int_signed | float_32 | float_64 | big_number;
 int_small         = u8(var(code, 0x00~0x64));  # value = code
-int_unsigned      = u8(0x85) & ordered(uint( 8, ~))
-                  | u8(0x86) & ordered(uint(16, ~))
-                  | u8(0x87) & ordered(uint(32, ~))
-                  | u8(0x88) & ordered(uint(64, ~))
+int_unsigned      = u8(0xa5) & ordered(uint( 8, ~))
+                  | u8(0xa6) & ordered(uint(16, ~))
+                  | u8(0xa7) & ordered(uint(32, ~))
+                  | u8(0xa8) & ordered(uint(64, ~))
                   ;
-int_signed        = u8(0x89) & ordered(sint( 8, ~))
-                  | u8(0x8a) & ordered(sint(16, ~))
-                  | u8(0x8b) & ordered(sint(32, ~))
-                  | u8(0x8c) & ordered(sint(64, ~))
+int_signed        = u8(0xa9) & ordered(sint( 8, ~))
+                  | u8(0xaa) & ordered(sint(16, ~))
+                  | u8(0xab) & ordered(sint(32, ~))
+                  | u8(0xac) & ordered(sint(64, ~))
                   ;
-float_32          = u8(0x8d) & ordered(f32(~));
-float_64          = u8(0x8e) & ordered(f64(~));
+float_32          = u8(0xad) & ordered(f32(~));
+float_64          = u8(0xae) & ordered(f64(~));
 # Big number: exponent (zigzag LEB128), signed_length (zigzag LEB128),
 # then abs(signed_length) unsigned LE magnitude bytes.
 # The sign of signed_length indicates the sign of the significand.
-big_number        = u8(0x8f) & zigzag_leb128(~) & zigzag_leb128(var(slen, ~))
+big_number        = u8(0xaf) & zigzag_leb128(~) & zigzag_leb128(var(slen, ~))
                   & sized(abs(slen) * 8, uint(abs(slen) * 8, ~));
 
 boolean           = true | false;
-false             = u8(0x91);
-true              = u8(0x92);
+false             = u8(0xb1);
+true              = u8(0xb2);
 
-null              = u8(0x90);
+null              = u8(0xb0);
 
 string            = string_short | string_long;
-string_short      = u8(var(code, 0x65~0x84)) & sized((code - 0x65) * 8, char_string*);
+string_short      = u8(var(code, 0x65~0xa4)) & sized((code - 0x65) * 8, char_string*);
 string_long       = u8(0xff) & char_string* & u8(0xff);
 
 # Zigzag LEB128: variable-length signed integer encoding.

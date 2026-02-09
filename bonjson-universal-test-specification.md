@@ -208,11 +208,11 @@ Entries in the `tests` array that contain **only** keys starting with `//` are c
   "version": "1.0.0",
   "tests": [
     {"//": "=== Integer Encoding Tests ==="},
-    {"name": "int_zero", "type": "encode", "input": 0, "expected_bytes": "64"},
-    {"name": "int_one", "type": "encode", "input": 1, "expected_bytes": "65"},
+    {"name": "int_zero", "type": "encode", "input": 0, "expected_bytes": "00"},
+    {"name": "int_one", "type": "encode", "input": 1, "expected_bytes": "01"},
 
     {"//section": "Negative Integers", "//note": "Testing negative range"},
-    {"name": "int_neg_one", "type": "encode", "input": -1, "expected_bytes": "63"}
+    {"name": "int_neg_one", "type": "encode", "input": -1, "expected_bytes": "a9 ff"}
   ]
 }
 ```
@@ -295,7 +295,7 @@ Verify that encoding a value produces an exact byte sequence.
   "name": "int16_1000",
   "type": "encode",
   "input": 1000,
-  "expected_bytes": "e5 e8 03"
+  "expected_bytes": "aa e8 03"
 }
 ```
 
@@ -312,7 +312,7 @@ Verify that decoding a byte sequence produces a specific value.
 {
   "name": "decode_float32",
   "type": "decode",
-  "input_bytes": "cb 00 00 90 3f",
+  "input_bytes": "ad 00 00 90 3f",
   "expected_value": 1.125
 }
 ```
@@ -364,7 +364,7 @@ Verify that decoding a byte sequence fails with a specific error.
 {
   "name": "truncated_int16",
   "type": "decode_error",
-  "input_bytes": "e5 e8",
+  "input_bytes": "aa e8",
   "expected_error": "truncated"
 }
 ```
@@ -577,7 +577,7 @@ Tests using `$bytes` in expected values **MUST** include `requires: ["raw_string
 {
   "name": "decode_passthrough_invalid_utf8",
   "type": "decode",
-  "input_bytes": "e5 68 65 6c 6c 6f ff 77 6f 72 6c 64",
+  "input_bytes": "70 68 65 6c 6c 6f ff 77 6f 72 6c 64",
   "expected_value": {"$bytes": "68 65 6c 6c 6f ff 77 6f 72 6c 64"},
   "options": {"invalid_utf8": "pass_through"},
   "requires": ["raw_string_bytes"]
@@ -601,7 +601,7 @@ The `expected_error` field uses standardized error type identifiers:
 | `nul_character`                 | NUL (0x00) byte in string                  |
 | `duplicate_key`                 | Duplicate key in object                    |
 | `invalid_object_key`            | Non-string key in object                   |
-| `unclosed_container`            | Container missing `0x95` end marker        |
+| `unclosed_container`            | Container missing `0xB5` end marker        |
 | `invalid_data`                  | Generic invalid data (e.g., BigNumber NaN) |
 | `value_out_of_range`            | Value exceeds allowed range                |
 | `max_depth_exceeded`            | Container nesting too deep                 |
@@ -1041,20 +1041,22 @@ Appendix A: Type Code Reference
 | Range   | Type                                       |
 |---------|--------------------------------------------|
 | `00-64` | Small integers (0 to 100)                  |
-| `65-84` | Short strings (0-31 bytes)                 |
-| `85-88` | Unsigned integers (8, 16, 32, 64 bit)      |
-| `89-8c` | Signed integers (8, 16, 32, 64 bit)        |
-| `8d`    | Float32                                    |
-| `8e`    | Float64                                    |
-| `8f`    | BigNumber                                  |
-| `90`    | Null                                       |
-| `91`    | False                                      |
-| `92`    | True                                       |
-| `93`    | Array                                      |
-| `94`    | Object                                     |
-| `95`    | Container end marker                       |
-| `96-9f` | Typed arrays (uint8-float64)               |
-| `a0-fe` | Reserved                                   |
+| `65-a4` | Short strings (0-63 bytes)                 |
+| `a5-a8` | Unsigned integers (8, 16, 32, 64 bit)      |
+| `a9-ac` | Signed integers (8, 16, 32, 64 bit)        |
+| `ad`    | Float32                                    |
+| `ae`    | Float64                                    |
+| `af`    | BigNumber                                  |
+| `b0`    | Null                                       |
+| `b1`    | False                                      |
+| `b2`    | True                                       |
+| `b3`    | Array                                      |
+| `b4`    | Object                                     |
+| `b5`    | Container end marker                       |
+| `b6-bf` | Typed arrays (uint8-float64)               |
+| `c0`    | Record definition                          |
+| `c1`    | Record instance                            |
+| `c2-fe` | Reserved                                   |
 | `ff`    | Long string                                |
 
 
@@ -1068,11 +1070,11 @@ Appendix B: Complete Example
   "//": "Example test specification file",
   "tests": [
     {
-      "//": "Null encodes to single byte 0x90",
+      "//": "Null encodes to single byte 0xB0",
       "name": "null_value",
       "type": "encode",
       "input": null,
-      "expected_bytes": "90"
+      "expected_bytes": "b0"
     },
     {
       "//": "Small integer 42 encodes as type_code = 42 = 0x2a",
@@ -1082,10 +1084,10 @@ Appendix B: Complete Example
       "expected_bytes": "2a"
     },
     {
-      "//": "Truncated sint16 should fail (0x8a = sint16, missing second byte)",
+      "//": "Truncated sint16 should fail (0xAA = sint16, missing second byte)",
       "name": "truncated_int16",
       "type": "decode_error",
-      "input_bytes": "8ae8",
+      "input_bytes": "aae8",
       "expected_error": "truncated"
     },
     {
@@ -1106,24 +1108,24 @@ Appendix B: Complete Example
       "expected_error": "invalid_data"
     },
     {
-      "//": "Large unsigned integer (0x88 = uint64)",
+      "//": "Large unsigned integer (0xA8 = uint64)",
       "name": "uint64_large",
       "type": "encode",
       "input": {"$number": "18446744073709551615"},
-      "expected_bytes": "88 ff ff ff ff ff ff ff ff"
+      "expected_bytes": "a8 ff ff ff ff ff ff ff ff"
     },
     {
-      "//": "BigNumber decodes to 1.5 (0x8f = BigNumber, zigzag LEB128 + LE magnitude)",
+      "//": "BigNumber decodes to 1.5 (0xAF = BigNumber, zigzag LEB128 + LE magnitude)",
       "name": "bignumber_1_5",
       "type": "decode",
-      "input_bytes": "8f 01 02 0f",
+      "input_bytes": "af 01 02 0f",
       "expected_value": {"$number": "1.5"}
     },
     {
       "//": "Non-string object key should fail (object start, key is integer 0 instead of string, value is integer 1, end)",
       "name": "invalid_object_key",
       "type": "decode_error",
-      "input_bytes": "94 00 01 95",
+      "input_bytes": "b4 00 01 b5",
       "expected_error": "invalid_object_key"
     }
   ]
