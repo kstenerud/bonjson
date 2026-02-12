@@ -8,55 +8,55 @@
       "name": "float16_1_125",
       "type": "encode",
       "input": 1.125,
-      "expected_bytes": "ad0000903f"
+      "expected_bytes": "b00000903f"
     },
     {
       "//": "Float32 uses type code 0x8d",
       "name": "float32_39_875",
       "type": "encode",
       "input": 39.875,
-      "expected_bytes": "ad00801f42"
+      "expected_bytes": "b000801f42"
     },
     {
       "//": "Float64 uses type code 0x8e - 1.234 requires full precision",
       "name": "float64_1_234",
       "type": "encode",
       "input": 1.234,
-      "expected_bytes": "ae5839b4c876bef33f"
+      "expected_bytes": "b15839b4c876bef33f"
     },
     {
       "//": "Negative float16: -1.25",
       "name": "float16_neg1_25",
       "type": "encode",
       "input": -1.25,
-      "expected_bytes": "ad0000a0bf"
+      "expected_bytes": "b00000a0bf"
     },
     {
       "//": "Small float that fits in float64: -5.923441e-50",
       "name": "float64_small",
       "type": "encode",
       "input": -5.923441e-50,
-      "expected_bytes": "ae353cce818729b6b5"
+      "expected_bytes": "b1353cce818729b6b5"
     },
     {
       "//": "Decode tests - float32 encoding of 1.125 decodes correctly",
       "name": "decode_float32_1_125",
       "type": "decode",
-      "input_bytes": "ad0000903f",
+      "input_bytes": "b00000903f",
       "expected_value": 1.125
     },
     {
       "//": "Decode float64 encoding of 1.125",
       "name": "decode_float64_1_125",
       "type": "decode",
-      "input_bytes": "ae000000000000f23f",
+      "input_bytes": "b1000000000000f23f",
       "expected_value": 1.125
     },
     {
       "//": "Decode float64 pi using hex float for precise representation",
       "name": "decode_float64_pi_hex",
       "type": "decode",
-      "input_bytes": "ae182d4454fb210940",
+      "input_bytes": "b1182d4454fb210940",
       "expected_value": {
         "$number": "0x1.921fb54442d18p+1"
       }
@@ -65,7 +65,7 @@
       "//": "Decode float64 e using hex float for precise representation",
       "name": "decode_float64_e_hex",
       "type": "decode",
-      "input_bytes": "ae6957148b0abf0540",
+      "input_bytes": "b16957148b0abf0540",
       "expected_value": {
         "$number": "0x1.5bf0a8b145769p+1"
       }
@@ -116,7 +116,7 @@
       "//": "=== Negative zero tests ===",
       "name": "decode_float16_negative_zero",
       "type": "decode",
-      "input_bytes": "ad00000080",
+      "input_bytes": "b000000080",
       "expected_value": {
         "$number": "-0.0"
       }
@@ -124,7 +124,7 @@
     {
       "name": "decode_float32_negative_zero",
       "type": "decode",
-      "input_bytes": "ad00000080",
+      "input_bytes": "b000000080",
       "expected_value": {
         "$number": "-0.0"
       }
@@ -132,7 +132,7 @@
     {
       "name": "decode_float64_negative_zero",
       "type": "decode",
-      "input_bytes": "ae0000000000000080",
+      "input_bytes": "b10000000000000080",
       "expected_value": {
         "$number": "-0.0"
       }
@@ -177,13 +177,13 @@
       "//note": "Verify decoder accepts float values encoded in larger formats",
       "name": "decode_1_125_as_float64",
       "type": "decode",
-      "input_bytes": "ae000000000000f23f",
+      "input_bytes": "b1000000000000f23f",
       "expected_value": 1.125
     },
     {
       "name": "decode_1_25_as_float32",
       "type": "decode",
-      "input_bytes": "ad0000a03f",
+      "input_bytes": "b00000a03f",
       "expected_value": 1.25
     },
     {
@@ -217,7 +217,7 @@
       "input": {
         "$number": "-0.0"
       },
-      "expected_bytes": "ad00000080"
+      "expected_bytes": "b000000080"
     },
     {
       "//": "=== Additional precision boundary tests ===",
@@ -284,7 +284,7 @@
       "name": "decode_float64_min_subnormal",
       "type": "decode",
       "//note2": "Bits: 0x0000000000000001 (little-endian: 01 00 00 00 00 00 00 00)",
-      "input_bytes": "ae0100000000000000",
+      "input_bytes": "b10100000000000000",
       "expected_value": {
         "$number": "5e-324"
       }
@@ -294,7 +294,7 @@
       "name": "decode_float64_max_subnormal",
       "type": "decode",
       "//note2": "Bits: 0x000fffffffffffff (little-endian: ff ff ff ff ff ff 0f 00)",
-      "input_bytes": "aeffffffffffff0f00",
+      "input_bytes": "b1ffffffffffff0f00",
       "expected_value": {
         "$number": "2.225073858507201e-308"
       }
@@ -304,7 +304,7 @@
       "name": "decode_float64_neg_min_subnormal",
       "type": "decode",
       "//note2": "Bits: 0x8000000000000001 (little-endian: 01 00 00 00 00 00 00 80)",
-      "input_bytes": "ae0100000000000080",
+      "input_bytes": "b10100000000000080",
       "expected_value": {
         "$number": "-5e-324"
       }
@@ -334,7 +334,7 @@
       "name": "decode_float32_min_subnormal",
       "type": "decode",
       "//note2": "Bits: 0x00000001 (little-endian: 01 00 00 00)",
-      "input_bytes": "ad01000000",
+      "input_bytes": "b001000000",
       "expected_value": {
         "$number": "0x1p-149"
       }
@@ -344,7 +344,7 @@
       "name": "decode_float32_max_subnormal",
       "type": "decode",
       "//note2": "Bits: 0x007fffff (little-endian: ff ff 7f 00)",
-      "input_bytes": "adffff7f00",
+      "input_bytes": "b0ffff7f00",
       "expected_value": {
         "$number": "0x1.fffffcp-127"
       }

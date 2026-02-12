@@ -8,35 +8,35 @@
       "name": "null",
       "type": "encode",
       "input": null,
-      "expected_bytes": "b2"
+      "expected_bytes": "b3"
     },
     {
       "//": "True encodes to type code 0xb1",
       "name": "bool_true",
       "type": "encode",
       "input": true,
-      "expected_bytes": "b1"
+      "expected_bytes": "b5"
     },
     {
       "//": "False encodes to type code 0xb0",
       "name": "bool_false",
       "type": "encode",
       "input": false,
-      "expected_bytes": "b0"
+      "expected_bytes": "b4"
     },
     {
       "//": "Empty array encodes to start (0xb4) + end (0xb3)",
       "name": "empty_array",
       "type": "encode",
       "input": [],
-      "expected_bytes": "b4b3"
+      "expected_bytes": "b7b6"
     },
     {
       "//": "Empty object encodes to start (0xb5) + end (0xb3)",
       "name": "empty_object",
       "type": "encode",
       "input": {},
-      "expected_bytes": "b5b3"
+      "expected_bytes": "b8b6"
     },
     {
       "//": "Simple array with mixed types (3 elements → 0x0c)",
@@ -47,7 +47,7 @@
         "x",
         null
       ],
-      "expected_bytes": "b4016678b2b3"
+      "expected_bytes": "b7016678b3b6"
     },
     {
       "//": "Object with single key-value pair (1 pair → 0x04)",
@@ -56,7 +56,7 @@
       "input": {
         "a": 1
       },
-      "expected_bytes": "b5666101b3"
+      "expected_bytes": "b8666101b6"
     },
     {
       "//": "Object with multiple keys (key order is implementation-defined)",

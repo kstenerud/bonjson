@@ -25,6 +25,12 @@
       "path": "./specification-examples.json"
     },
     {
+      "path": "./typed-arrays.json"
+    },
+    {
+      "path": "./records.json"
+    },
+    {
       "path": "./errors.json"
     },
     {

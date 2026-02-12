@@ -7,14 +7,14 @@
       "//": "Duplicate key detection - exact duplicate (2 pairs → 0x08)",
       "name": "duplicate_key_simple",
       "type": "decode_error",
-      "input_bytes": "b5666101666102b3",
+      "input_bytes": "b8666101666102b6",
       "expected_error": "duplicate_key"
     },
     {
       "//": "Duplicate key with longer key name (2 pairs → 0x08)",
       "name": "duplicate_key_longer",
       "type": "decode_error",
-      "input_bytes": "b568414243016841424302b3",
+      "input_bytes": "b868414243016841424302b6",
       "expected_error": "duplicate_key"
     },
     {
@@ -98,14 +98,14 @@
       "name": "boundary_neg1_uses_2_bytes",
       "type": "encode",
       "input": -1,
-      "expected_bytes": "a9ff"
+      "expected_bytes": "acff"
     },
     {
       "//": "-128 is the minimum sint8 value (2 bytes)",
       "name": "boundary_neg128_uses_2_bytes",
       "type": "encode",
       "input": -128,
-      "expected_bytes": "a980"
+      "expected_bytes": "ac80"
     },
     {
       "//": "100 uses single byte (small integer)",
@@ -119,21 +119,21 @@
       "name": "boundary_101_uses_2_bytes",
       "type": "encode",
       "input": 101,
-      "expected_bytes": "a965"
+      "expected_bytes": "ac65"
     },
     {
-      "//": "Short string boundary tests. Short strings are 0-31 bytes.",
-      "name": "boundary_string_31_uses_short_encoding",
+      "//": "Short string boundary tests. Short strings are 0-63 bytes.",
+      "name": "boundary_string_63_uses_short_encoding",
       "type": "encode",
-      "input": "1234567890123456789012345678901",
-      "expected_bytes": "8431323334353637383930313233343536373839303132333435363738393031"
+      "input": "123456789012345678901234567890123456789012345678901234567890123",
+      "expected_bytes": "a4313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930313233"
     },
     {
-      "//": "32-byte string uses long encoding",
-      "name": "boundary_string_32_uses_long_encoding",
+      "//": "64-byte string uses long encoding",
+      "name": "boundary_string_64_uses_long_encoding",
       "type": "encode",
-      "input": "12345678901234567890123456789012",
-      "expected_bytes": "ff3132333435363738393031323334353637383930313233343536373839303132ff"
+      "input": "1234567890123456789012345678901234567890123456789012345678901234",
+      "expected_bytes": "a531323334353637383930313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334"
     },
     {
       "//": "Unicode strings should round-trip correctly",
@@ -250,14 +250,14 @@
     {
       "name": "trailing_bytes_after_string",
       "type": "decode_error",
-      "input_bytes": "a66164",
+      "input_bytes": "866164",
       "expected_error": "trailing_bytes"
     },
     {
       "//": "Empty object (0 pairs → 0x00) followed by trailing byte",
       "name": "trailing_bytes_after_object",
       "type": "decode_error",
-      "input_bytes": "f9a99cff",
+      "input_bytes": "f9899cff",
       "expected_error": "trailing_bytes"
     },
     {
@@ -276,7 +276,7 @@
       "//note": "Each array: f8 + count. Inner arrays have 1 element (→0x04), innermost is empty (→0x00)",
       "name": "max_depth_exceeded_arrays",
       "type": "decode_error",
-      "input_bytes": "b4b4b4b4b4b4b3b3b3b3b3b3",
+      "input_bytes": "b7b7b7b7b7b7b6b6b6b6b6b6",
       "expected_error": "max_depth_exceeded",
       "options": {
         "max_depth": 5
@@ -286,7 +286,7 @@
       "//": "6 nested objects with empty string keys, limit 5",
       "name": "max_depth_exceeded_objects",
       "type": "decode_error",
-      "input_bytes": "b565b565b565b565b565b5b3b3b3b3b3b3",
+      "input_bytes": "b865b865b865b865b865b8b6b6b6b6b6b6",
       "expected_error": "max_depth_exceeded",
       "options": {
         "max_depth": 5
@@ -297,7 +297,7 @@
       "//note": "5 nested arrays, innermost contains integer 0",
       "name": "max_depth_at_limit",
       "type": "decode",
-      "input_bytes": "b4b4b4b4b400b3b3b3b3b3",
+      "input_bytes": "b7b7b7b7b700b6b6b6b6b6",
       "expected_value": [
         [
           [
@@ -357,7 +357,7 @@
       "//": "Maximum container size exceeded - array (6 elements, count=6 → 0x18)",
       "name": "max_container_size_exceeded_array",
       "type": "decode_error",
-      "input_bytes": "b400010203040595",
+      "input_bytes": "b7 00 01 02 03 04 05 b6",
       "expected_error": "max_container_size_exceeded",
       "options": {
         "max_container_size": 5
@@ -367,7 +367,7 @@
       "//": "Maximum container size exceeded - object (6 pairs, count=6 → 0x18)",
       "name": "max_container_size_exceeded_object",
       "type": "decode_error",
-      "input_bytes": "b5666100666201666302666403666504666605b3",
+      "input_bytes": "b8666100666201666302666403666504666605b6",
       "expected_error": "max_container_size_exceeded",
       "options": {
         "max_container_size": 5
@@ -377,7 +377,7 @@
       "//": "At the limit is OK - array (5 elements, count=5 → 0x14)",
       "name": "container_size_at_limit_array",
       "type": "decode",
-      "input_bytes": "b40001020304b3",
+      "input_bytes": "b70001020304b6",
       "expected_value": [
         0,
         1,
@@ -393,7 +393,7 @@
       "//": "At the limit is OK - object (5 pairs, count=5 → 0x14)",
       "name": "container_size_at_limit_object",
       "type": "decode",
-      "input_bytes": "b5666100666201666302666403666504b3",
+      "input_bytes": "b8666100666201666302666403666504b6",
       "expected_value": {
         "a": 0,
         "b": 1,
@@ -409,7 +409,7 @@
       "//": "Maximum document size exceeded (10 elements, count=10 → 0x28, total 12 bytes)",
       "name": "max_document_size_exceeded",
       "type": "decode_error",
-      "input_bytes": "b3000102030405060708095",
+      "input_bytes": "b700010203040506070809b6",
       "expected_error": "max_document_size_exceeded",
       "options": {
         "max_document_size": 10
@@ -419,7 +419,7 @@
       "//": "At the limit is OK (4 elements, count=4 → 0x10, total 6 bytes)",
       "name": "document_size_at_limit",
       "type": "decode",
-      "input_bytes": "b40001020395",
+      "input_bytes": "b700010203b6",
       "expected_value": [
         0,
         1,
@@ -470,14 +470,14 @@
       "//": "Positive Infinity rejected by default",
       "name": "infinity_rejected_default",
       "type": "decode_error",
-      "input_bytes": "f1a99e",
+      "input_bytes": "f1899e",
       "expected_error": "infinity_not_allowed"
     },
     {
       "//": "Negative Infinity rejected by default (expLen=1, neg=1)",
       "name": "neg_infinity_rejected_default",
       "type": "decode_error",
-      "input_bytes": "f1a99f",
+      "input_bytes": "f1899f",
       "expected_error": "infinity_not_allowed"
     },
     {
@@ -497,7 +497,7 @@
       "//": "Positive Infinity allowed with option",
       "name": "infinity_allowed",
       "type": "decode",
-      "input_bytes": "f1a99e",
+      "input_bytes": "f1899e",
       "expected_value": {
         "$number": "Infinity"
       },
@@ -510,7 +510,7 @@
       "//": "Negative Infinity allowed with option (expLen=1, neg=1)",
       "name": "neg_infinity_allowed",
       "type": "decode",
-      "input_bytes": "f1a99f",
+      "input_bytes": "f1899f",
       "expected_value": {
         "$number": "-Infinity"
       },
@@ -537,7 +537,7 @@
       "//": "Positive Infinity converted to string with stringify option",
       "name": "infinity_stringify",
       "type": "decode",
-      "input_bytes": "f1a99e",
+      "input_bytes": "f1899e",
       "expected_value": "Infinity",
       "options": {
         "nan_infinity_behavior": "stringify"
@@ -551,7 +551,7 @@
       "//": "Negative Infinity converted to string with stringify option (expLen=1, neg=1)",
       "name": "neg_infinity_stringify",
       "type": "decode",
-      "input_bytes": "f1a99f",
+      "input_bytes": "f1899f",
       "expected_value": "-Infinity",
       "options": {
         "nan_infinity_behavior": "stringify"
@@ -566,7 +566,7 @@
       "//note": "keep_first silently ignores subsequent duplicates (2 pairs → 0x08)",
       "name": "dup_key_keep_first",
       "type": "decode",
-      "input_bytes": "b5666101666102b3",
+      "input_bytes": "b8666101666102b6",
       "expected_value": {
         "a": 1
       },
@@ -578,7 +578,7 @@
       "//": "keep_last replaces with latest value (2 pairs → 0x08)",
       "name": "dup_key_keep_last",
       "type": "decode",
-      "input_bytes": "b5666101666102b3",
+      "input_bytes": "b8666101666102b6",
       "expected_value": {
         "a": 2
       },
@@ -590,7 +590,7 @@
       "//": "Multiple duplicates with keep_first (3 pairs → 0x0c)",
       "name": "dup_key_keep_first_multiple",
       "type": "decode",
-      "input_bytes": "b5666101666102666103b3",
+      "input_bytes": "b8666101666102666103b6",
       "expected_value": {
         "a": 1
       },
@@ -602,7 +602,7 @@
       "//": "Multiple duplicates with keep_last (3 pairs → 0x0c)",
       "name": "dup_key_keep_last_multiple",
       "type": "decode",
-      "input_bytes": "b5666101666102666103b3",
+      "input_bytes": "b8666101666102666103b6",
       "expected_value": {
         "a": 3
       },

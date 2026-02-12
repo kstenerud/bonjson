@@ -160,7 +160,7 @@
       "//note": "FC FF FE FF FE = array( long_string('\\xFE') ) — structurally valid, but string is invalid UTF-8",
       "name": "array_long_string_with_fe_byte",
       "type": "decode_error",
-      "input_bytes": "b4fffeffb3",
+      "input_bytes": "b7fffeffb6",
       "expected_error": "invalid_utf8"
     },
     {
@@ -168,7 +168,7 @@
       "//note": "FC D1 FE FE = array( short_string('\\xFE') )",
       "name": "array_short_string_with_fe_byte",
       "type": "decode_error",
-      "input_bytes": "b466feb3",
+      "input_bytes": "b766feb6",
       "expected_error": "invalid_utf8"
     },
     {
@@ -176,7 +176,7 @@
       "//note": "FC FF FC FF FE = array( long_string('\\xFC') )",
       "name": "array_long_string_with_fc_byte",
       "type": "decode_error",
-      "input_bytes": "b4fffcffb3",
+      "input_bytes": "b7fffcffb6",
       "expected_error": "invalid_utf8"
     },
     {
@@ -184,7 +184,7 @@
       "//note": "FC FF FD FF FE = array( long_string('\\xFD') )",
       "name": "array_long_string_with_fd_byte",
       "type": "decode_error",
-      "input_bytes": "b4fffdffb3",
+      "input_bytes": "b7fffdffb6",
       "expected_error": "invalid_utf8"
     },
     {
@@ -192,7 +192,7 @@
       "//note": "FD D1 FC 64 FE = object( key='\\xFC', value=0 )",
       "name": "object_key_short_string_with_fc",
       "type": "decode_error",
-      "input_bytes": "b566fc00b3",
+      "input_bytes": "b866fc00b6",
       "expected_error": "invalid_utf8"
     },
     {
@@ -200,7 +200,7 @@
       "//note": "FD FF FE FF 64 FE = object( key='\\xFE', value=0 )",
       "name": "object_key_long_string_with_fe",
       "type": "decode_error",
-      "input_bytes": "b5fffeff00b3",
+      "input_bytes": "b8fffeff00b6",
       "expected_error": "invalid_utf8"
     },
     {
@@ -208,7 +208,7 @@
       "//note": "FD D1 61 FF FD FF FE = object( key='a', value='\\xFD' )",
       "name": "object_value_long_string_with_fd",
       "type": "decode_error",
-      "input_bytes": "b56661fffdffb3",
+      "input_bytes": "b86661fffdffb6",
       "expected_error": "invalid_utf8"
     },
     {
@@ -216,7 +216,7 @@
       "//note": "FD D1 61 FC D1 FE FE FE = object( key='a', value=array( short_string('\\xFE') ) )",
       "name": "nested_object_array_string_with_fe",
       "type": "decode_error",
-      "input_bytes": "b56661b466feb3b3",
+      "input_bytes": "b86661b766feb6b6",
       "expected_error": "invalid_utf8"
     },
     {
@@ -236,21 +236,21 @@
       "//note": "FC FF 61 62 FE (no FF) → truncated",
       "name": "long_string_in_array_unterminated_fe",
       "type": "decode_error",
-      "input_bytes": "b4ff6162fe",
+      "input_bytes": "b7ff6162fe",
       "expected_error": "truncated"
     },
     {
       "//": "Long string in array, data contains FC (invalid UTF-8) but no FF terminator",
       "name": "long_string_in_array_unterminated_fc",
       "type": "decode_error",
-      "input_bytes": "b4ff6162fc",
+      "input_bytes": "b7ff6162fc",
       "expected_error": "truncated"
     },
     {
       "//": "Long string in array, data contains FD (invalid UTF-8) but no FF terminator",
       "name": "long_string_in_array_unterminated_fd",
       "type": "decode_error",
-      "input_bytes": "b4ff6162fd",
+      "input_bytes": "b7ff6162fd",
       "expected_error": "truncated"
     },
     {
@@ -261,7 +261,7 @@
       "//": "Empty long string in array: FC FF FF FE",
       "name": "valid_empty_long_string_in_array",
       "type": "decode",
-      "input_bytes": "b4ffffb3",
+      "input_bytes": "b7ffffb6",
       "expected_value": [
         ""
       ]
@@ -270,7 +270,7 @@
       "//": "Two consecutive long strings in array: FC FF 61 FF FF 62 FF FE",
       "name": "valid_two_long_strings_in_array",
       "type": "decode",
-      "input_bytes": "b4ff61ffff62ffb3",
+      "input_bytes": "b7ff61ffff62ffb6",
       "expected_value": [
         "a",
         "b"
@@ -280,7 +280,7 @@
       "//": "Long string value in object: FD D1 61 FF 62 FF FE",
       "name": "valid_long_string_value_in_object",
       "type": "decode",
-      "input_bytes": "b56661ff62ffb3",
+      "input_bytes": "b86661ff62ffb6",
       "expected_value": {
         "a": "b"
       }
@@ -289,7 +289,7 @@
       "//": "Long string key and value in object: FD FF 61 FF FF 62 FF FE",
       "name": "valid_long_string_key_and_value",
       "type": "decode",
-      "input_bytes": "b5ff61ffff62ffb3",
+      "input_bytes": "b8ff61ffff62ffb6",
       "expected_value": {
         "a": "b"
       }
@@ -298,7 +298,7 @@
       "//": "Empty long string as object key: FD FF FF 64 FE",
       "name": "valid_empty_long_string_key",
       "type": "decode",
-      "input_bytes": "b5ffff00b3",
+      "input_bytes": "b8ffff00b6",
       "expected_value": {
         "": 0
       }
@@ -307,7 +307,7 @@
       "//": "Array with mix of short and long strings: FC D1 61 FF 62 FF D1 63 FE",
       "name": "valid_mixed_short_long_strings",
       "type": "decode",
-      "input_bytes": "b46661ff62ff6663b3",
+      "input_bytes": "b76661ff62ff6663b6",
       "expected_value": [
         "a",
         "b",
@@ -318,7 +318,7 @@
       "//": "Nested arrays with long strings: FC FC FF 61 FF FE FC FF 62 FF FE FE",
       "name": "valid_nested_arrays_with_long_strings",
       "type": "decode",
-      "input_bytes": "b4b4ff61ffb3b4ff62ffb3b3",
+      "input_bytes": "b7b7ff61ffb6b7ff62ffb6b6",
       "expected_value": [
         [
           "a"
@@ -332,7 +332,7 @@
       "//": "Deeply nested container with long string leaf: FC FC FC FF 78 FF FE FE FE",
       "name": "valid_deeply_nested_long_string",
       "type": "decode",
-      "input_bytes": "b4b4b4ff78ffb3b3b3",
+      "input_bytes": "b7b7b7ff78ffb6b6b6",
       "expected_value": [
         [
           [
@@ -346,7 +346,7 @@
       "//note": "0xFB is typed array uint64. It's invalid UTF-8, so we use 0x7B ('{') which is the last valid ASCII byte before the 0xFC-0xFF range",
       "name": "valid_string_with_high_ascii_in_nested",
       "type": "decode",
-      "input_bytes": "b56661b4ff7b7dffb3b3",
+      "input_bytes": "b86661b7ff7b7dffb6b6",
       "expected_value": {
         "a": [
           "{}"

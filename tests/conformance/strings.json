@@ -70,18 +70,18 @@
       "expected_bytes": "8431323334353637383930313233343536373839303132333435363738393031"
     },
     {
-      "//": "32 byte string (length field = 0x80)",
+      "//": "32 byte string uses long string encoding (short strings are now 0-31 bytes)",
       "name": "long_string_32bytes",
       "type": "encode",
       "input": "12345678901234567890123456789012",
-      "expected_bytes": "ff3132333435363738393031323334353637383930313233343536373839303132ff"
+      "expected_bytes": "853132333435363738393031323334353637383930313233343536373839303132"
     },
     {
       "//": "64 byte string (2-byte length field: 0x01 0x02)",
       "name": "long_string_64bytes",
       "type": "encode",
       "input": "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ",
-      "expected_bytes": "ff5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5aff"
+      "expected_bytes": "a55a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"
     },
     {
       "//": "130 character string (length field = 0x11 0x04)",
