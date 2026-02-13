@@ -187,7 +187,7 @@ A complete test runner implementation should handle:
 - [ ] All five test types
 - [ ] All type-specific required fields
 - [ ] Hex string parsing (case-insensitive, spaces allowed)
-- [ ] `$number` parsing (NaN, sNaN, Infinity, hex int, hex float, decimal, scientific)
+- [ ] `$number` parsing (NaN, Infinity, hex int, hex float, decimal, scientific)
 - [ ] `$bytes` parsing (raw byte sequences for invalid UTF-8 testing)
 - [ ] Negative zero preservation
 - [ ] Option type validation (boolean, integer, and string options)
@@ -201,4 +201,4 @@ A complete test runner implementation should handle:
 - [ ] Non-JSON file skipping
 - [ ] Duplicate path deduplication
 - [ ] Skip source handling
-- [ ] Value comparison (qNaN=qNaN, sNaN=sNaN, qNaN≠sNaN, -0.0≠0.0, object order independence)
+- [ ] Value comparison (NaN=NaN, -0.0≠0.0, object order independence)

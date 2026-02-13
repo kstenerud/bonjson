@@ -212,7 +212,6 @@ JSON cannot directly represent some numeric values. Use the `$number` marker:
 
 ```json
 {"$number": "NaN"}
-{"$number": "sNaN"}
 {"$number": "Infinity"}
 {"$number": "-Infinity"}
 {"$number": "18446744073709551615"}
@@ -222,7 +221,7 @@ JSON cannot directly represent some numeric values. Use the `$number` marker:
 
 | Format                                 | Interpretation                                                                     |
 |----------------------------------------|------------------------------------------------------------------------------------|
-| `NaN`, `sNaN`, `Infinity`, `-Infinity` | IEEE 754 special values (case-insensitive). `NaN` is quiet NaN; `sNaN` is signaling NaN. |
+| `NaN`, `Infinity`, `-Infinity` | IEEE 754 special values (case-insensitive). |
 | `0x...p...`                    | Hex float (C99 format, case-insensitive)                  |
 | Decimal                        | Arbitrary-precision number (case-insensitive for `e`/`E`) |
 
@@ -323,7 +322,6 @@ Available capabilities:
 | `int64`                          | Support for full 64-bit signed integers. Some platforms cannot represent integers beyond ±2^53-1.                                                                                       |
 | `negative_zero`                  | Support for IEEE 754 negative zero (-0.0) preservation. Some platforms or type systems cannot distinguish -0.0 from +0.0.                                                               |
 | `raw_string_bytes`               | Support for representing strings as raw byte sequences (for testing `invalid_utf8: "pass_through"`). Implementations using native string types that require valid UTF-8 cannot support this. |
-| `signaling_nan`                  | Support for preserving the signaling bit of NaN values. Most platforms convert signaling NaN to quiet NaN on any operation.                                                          |
 
 Test runners should:
 1. Define which capabilities their implementation supports

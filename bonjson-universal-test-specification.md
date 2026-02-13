@@ -100,7 +100,7 @@ The following elements are **case-sensitive** (must match exactly):
 The following elements are **case-insensitive**:
 
 - Test `name` field (for duplicate detection only; names may contain any case)
-- `$number` special values (`"NaN"`, `"sNaN"`, `"Infinity"`, `"-Infinity"`)
+- `$number` special values (`"NaN"`, `"Infinity"`, `"-Infinity"`)
 - `$number` hex prefix (`"0x"`, `"0X"`) for both hex integers and hex floats
 - `$number` hex float exponent (`"p"`, `"P"`)
 - `$number` hex digits (`"0xabc"` = `"0xABC"`)
@@ -456,7 +456,6 @@ The following capability identifiers are defined:
 | `int64`                          | Support for full 64-bit signed integers. Some platforms cannot represent integers beyond ±2^53-1.                                                                                    |
 | `negative_zero`                  | Support for IEEE 754 negative zero (-0.0) preservation. Some platforms or type systems cannot distinguish -0.0 from +0.0.                                                            |
 | `raw_string_bytes`               | Support for representing strings as raw byte sequences (for testing `invalid_utf8: "pass_through"`). Implementations using native string types that require valid UTF-8 cannot support this. |
-| `signaling_nan`                  | Support for preserving the signaling bit of NaN values. Most platforms convert signaling NaN to quiet NaN on any operation; tests using `sNaN` should require this capability.       |
 | `out_of_range_stringify`         | Support for the `out_of_range: "stringify"` option, which converts out-of-range BigNumber values to string representations. Not all implementations support this mode.               |
 
 Test runners **SHOULD**:
@@ -515,7 +514,6 @@ The `$number` marker represents stringified numeric values that cannot be safely
 
 ```json
 {"$number": "NaN"}
-{"$number": "sNaN"}
 {"$number": "Infinity"}
 {"$number": "-Infinity"}
 {"$number": "18446744073709551615"}
@@ -527,7 +525,7 @@ The test runner parses the string based on its format:
 
 | Format                                 | Interpretation                                                                     |
 |----------------------------------------|------------------------------------------------------------------------------------|
-| `NaN`, `sNaN`, `Infinity`, `-Infinity` | IEEE 754 special float values (case-insensitive). `NaN` is quiet NaN; `sNaN` is signaling NaN. |
+| `NaN`, `Infinity`, `-Infinity` | IEEE 754 special float values (case-insensitive). |
 | `0x...p...`                    | IEEE 754 hex float (C99 `%a` format) for precise representation (case-insensitive) |
 | `0x...` (no `p`)               | Hex integer (case-insensitive)                                                     |
 | Decimal integer or float       | Arbitrary-precision decimal number (case-insensitive for `e`/`E` exponent)         |
@@ -749,9 +747,9 @@ Values **MUST** be compared for semantic equality:
 - Raw byte sequences (`$bytes`): Equal if they contain the same bytes in the same order. Byte-by-byte comparison is used, not Unicode comparison. This is relevant only for decode tests with `invalid_utf8: "pass_through"`.
 - Arrays: Equal if they are the same length and all elements are equal and in the same order
 - Objects: Equal if they have the same keys and every associated value is equal (order-independent)
-- Special values: Quiet NaN equals quiet NaN; signaling NaN equals signaling NaN; but quiet NaN does NOT equal signaling NaN. Positive infinity and negative infinity are distinct values.
+- Special values: NaN equals NaN; positive infinity and negative infinity are distinct values.
 
-**Implementation note**: IEEE 754 defines NaN as not equal to anything, including itself. Implementations **MUST** use special comparison logic that checks both the NaN status and the signaling bit. The specific NaN payload bits (other than the signaling bit) **MUST** be ignored for test comparison purposes—two quiet NaNs are equal regardless of their payload bits, and two signaling NaNs are equal regardless of their payload bits.
+**Implementation note**: IEEE 754 defines NaN as not equal to anything, including itself. Implementations **MUST** use special comparison logic to treat NaN as equal to itself. The specific NaN payload bits **MUST** be ignored for test comparison purposes—two NaNs are equal regardless of their payload bits.
 
 When comparing `$number` values from test expectations against decoded results, the same mathematical equality rules apply. The test runner **SHOULD** parse both values to a common representation (e.g., arbitrary-precision decimal) before comparison.
 

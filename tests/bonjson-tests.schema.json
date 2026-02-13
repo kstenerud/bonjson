@@ -102,7 +102,7 @@
         },
         "requires": {
           "type": "array",
-          "description": "Capabilities required to run this test. Implementations should skip tests requiring capabilities they don't support. Known capabilities: arbitrary_precision_bignumber, bignumber_exponent_gt_127, bignumber_exponent_lt_neg128, nan_infinity_stringify, uint64, int64, negative_zero, raw_string_bytes, signaling_nan. Unknown capabilities should cause the test to be skipped (for forward compatibility).",
+          "description": "Capabilities required to run this test. Implementations should skip tests requiring capabilities they don't support. Known capabilities: arbitrary_precision_bignumber, bignumber_exponent_gt_127, bignumber_exponent_lt_neg128, nan_infinity_stringify, uint64, int64, negative_zero, raw_string_bytes. Unknown capabilities should cause the test to be skipped (for forward compatibility).",
           "items": {
             "type": "string"
           }

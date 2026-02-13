@@ -319,45 +319,5 @@
         "$number": "0x1.fffffcp-127"
       }
     },
-    {
-      "//": "=== Signaling NaN tests ==="
-    },
-    {
-      "//": "Float32 sNaN: 0x7fa00000 (quiet bit=0, fraction bit 21=1)",
-      "name": "decode_float32_snan",
-      "type": "decode",
-      "input_bytes": "b00000a07f",
-      "expected_value": {
-        "$number": "sNaN"
-      },
-      "options": {
-        "nan_infinity_behavior": "allow"
-      },
-      "requires": ["signaling_nan"]
-    },
-    {
-      "//": "Float64 sNaN: 0x7ff4000000000000 (quiet bit=0, fraction bit 50=1)",
-      "name": "decode_float64_snan",
-      "type": "decode",
-      "input_bytes": "b1000000000000f47f",
-      "expected_value": {
-        "$number": "sNaN"
-      },
-      "options": {
-        "nan_infinity_behavior": "allow"
-      },
-      "requires": ["signaling_nan"]
-    },
-    {
-      "name": "roundtrip_float32_snan",
-      "type": "roundtrip",
-      "input": {
-        "$number": "sNaN"
-      },
-      "options": {
-        "nan_infinity_behavior": "allow"
-      },
-      "requires": ["signaling_nan"]
-    }
   ]
 }
