@@ -68,7 +68,8 @@
       "input": {
         "a": 1152921504606846976
       },
-      "expected_bytes": "b86661af0000000000000010b6"
+      "expected_bytes": "b86661af0000000000000010b6",
+      "requires": ["int64"]
     },
     {
       "//": "Object with negative int64 value",
@@ -77,7 +78,8 @@
       "input": {
         "a": -1152921504606846976
       },
-      "expected_bytes": "b86661af00000000000000f0b6"
+      "expected_bytes": "b86661af00000000000000f0b6",
+      "requires": ["int64"]
     },
     {
       "//": "Object with float16 value",

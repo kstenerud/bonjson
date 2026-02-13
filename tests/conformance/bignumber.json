@@ -120,15 +120,7 @@
       ]
     },
     {
-      "//": "=== Negative BigNumber tests ===",
-      "//note": "Negative integer within int64 range"
-    },
-    {
-      "name": "roundtrip_bignumber_negative",
-      "type": "roundtrip",
-      "input": {
-        "$number": "-9007199254740993"
-      }
+      "//": "=== Negative BigNumber tests ==="
     },
     {
       "//": "Negative high precision decimal (requires arbitrary precision)",
@@ -203,7 +195,8 @@
       "type": "roundtrip",
       "input": {
         "$number": "9007199254740993"
-      }
+      },
+      "requires": ["int64"]
     },
     {
       "//": "Negative value beyond float64 precision",
@@ -211,7 +204,8 @@
       "type": "roundtrip",
       "input": {
         "$number": "-9007199254740993"
-      }
+      },
+      "requires": ["int64"]
     },
     {
       "//": "=== BigNumber wire format tests ===",

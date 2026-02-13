@@ -123,7 +123,8 @@
       "name": "spec_int_min_int64",
       "type": "encode",
       "input": -9223372036854775808,
-      "expected_bytes": "af0000000000000080"
+      "expected_bytes": "af0000000000000080",
+      "requires": ["int64"]
     },
     {
       "//": "0xded0d0d0dedadada",
@@ -132,7 +133,8 @@
       "input": {
         "$number": "16055562267086478042"
       },
-      "expected_bytes": "abdadadaded0d0d0de"
+      "expected_bytes": "abdadadaded0d0d0de",
+      "requires": ["uint64"]
     },
     {
       "//": "Float32 example from spec: 1.125 fits in float32",

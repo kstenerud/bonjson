@@ -269,26 +269,30 @@
       "//": "Value 36028797018963968 can be encoded as uint64 (0xab) or sint64 (0xaf)",
       "name": "roundtrip_36028797018963968",
       "type": "roundtrip",
-      "input": 36028797018963968
+      "input": 36028797018963968,
+      "requires": ["int64"]
     },
     {
       "//": "Signed int64 uses type code 0xaf",
       "name": "sint64_72057594037927936",
       "type": "encode",
       "input": 72057594037927936,
-      "expected_bytes": "af0000000000000001"
+      "expected_bytes": "af0000000000000001",
+      "requires": ["int64"]
     },
     {
       "name": "sint64_max",
       "type": "encode",
       "input": 9223372036854775807,
-      "expected_bytes": "afffffffffffffff7f"
+      "expected_bytes": "afffffffffffffff7f",
+      "requires": ["int64"]
     },
     {
       "name": "sint64_min",
       "type": "encode",
       "input": -9223372036854775808,
-      "expected_bytes": "af0000000000000080"
+      "expected_bytes": "af0000000000000080",
+      "requires": ["int64"]
     },
     {
       "//": "Unsigned int64 (values > INT64_MAX) must use type code 0xab",
@@ -297,7 +301,8 @@
       "input": {
         "$number": "9223372036854775808"
       },
-      "expected_bytes": "ab0000000000000080"
+      "expected_bytes": "ab0000000000000080",
+      "requires": ["uint64"]
     },
     {
       "//": "Example from spec: 0xded0d0d0dedadada",
@@ -306,7 +311,8 @@
       "input": {
         "$number": "16055562267086478042"
       },
-      "expected_bytes": "abdadadaded0d0d0de"
+      "expected_bytes": "abdadadaded0d0d0de",
+      "requires": ["uint64"]
     },
     {
       "name": "uint64_max",
@@ -314,7 +320,8 @@
       "input": {
         "$number": "18446744073709551615"
       },
-      "expected_bytes": "abffffffffffffffff"
+      "expected_bytes": "abffffffffffffffff",
+      "requires": ["uint64"]
     },
     {
       "//": "=== Decode tests - verify decoder accepts all valid encodings ===",
@@ -434,7 +441,8 @@
       "name": "decode_uint56_36028797018963968",
       "type": "decode",
       "input_bytes": "ab0000000000008000",
-      "expected_value": 36028797018963968
+      "expected_value": 36028797018963968,
+      "requires": ["int64"]
     },
     {
       "//": "Round-trip tests for integer boundaries",
@@ -492,7 +500,8 @@
       "name": "sint56_neg36028797018963968",
       "type": "encode",
       "input": -36028797018963968,
-      "expected_bytes": "af00000000000080ff"
+      "expected_bytes": "af00000000000080ff",
+      "requires": ["int64"]
     },
     {
       "//": "=== Negative boundary roundtrip tests ===",
@@ -518,7 +527,8 @@
     {
       "name": "roundtrip_sint56_min",
       "type": "roundtrip",
-      "input": -36028797018963968
+      "input": -36028797018963968,
+      "requires": ["int64"]
     },
     {
       "//": "=== Decode tolerance tests ===",
