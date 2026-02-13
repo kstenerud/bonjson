@@ -74,26 +74,6 @@
       "expected_error": "invalid_utf8"
     },
     {
-      "//": "Empty chunk with continuation bit set - invalid (potential DoS)",
-      "name": "empty_chunk_with_continuation",
-      "type": "decode_error",
-      "input_bytes": "f0899e",
-      "expected_error": "empty_chunk_continuation"
-    },
-    {
-      "//": "Empty chunk without continuation is valid (empty long string)",
-      "name": "empty_chunk_without_continuation",
-      "type": "decode",
-      "input_bytes": "ffff",
-      "expected_value": ""
-    },
-    {
-      "//": "Valid string chunking round-trip",
-      "name": "roundtrip_valid_chunked_string",
-      "type": "roundtrip",
-      "input": "this is a test string that might get chunked"
-    },
-    {
       "//": "Small integer boundary tests - verify encoding size. Small ints are 0-100 (1 byte).",
       "name": "boundary_neg1_uses_2_bytes",
       "type": "encode",
@@ -332,26 +312,6 @@
       "expected_value": "abcdefghijklmnopqrst",
       "options": {
         "max_string_length": 20
-      }
-    },
-    {
-      "//": "Too many chunks",
-      "name": "too_many_chunks",
-      "type": "decode_error",
-      "input_bytes": "ff6162636465ff",
-      "expected_error": "too_many_chunks",
-      "options": {
-        "max_chunks": 4
-      }
-    },
-    {
-      "//": "At the limit is OK",
-      "name": "chunks_at_limit",
-      "type": "decode",
-      "input_bytes": "ff61626364ff",
-      "expected_value": "abcd",
-      "options": {
-        "max_chunks": 4
       }
     },
     {

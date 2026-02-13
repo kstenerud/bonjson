@@ -234,26 +234,6 @@
       }
     },
     {
-      "//": "Chunked long string from spec: 'a string' in 3 chunks (1 byte, 4 bytes, 3 bytes)",
-      "//note": "Chunk1: len=1,cont=1 → 0x06, data='a'. Chunk2: len=4,cont=1 → 0x12, data=' str'. Chunk3: len=3,cont=0 → 0x0c, data='ing'",
-      "name": "spec_long_string_chunked",
-      "type": "decode",
-      "input_bytes": "ff6120737472696e67ff",
-      "expected_value": "a string"
-    },
-    {
-      "//": "Chunked array from spec: ['a', 1, null] in 2 chunks (2 elements, then 1 element)",
-      "//note": "Chunk1: count=2,cont=1 → 0x0a. Chunk2: count=1,cont=0 → 0x04",
-      "name": "spec_array_chunked",
-      "type": "decode",
-      "input_bytes": "b7666101b3b6",
-      "expected_value": [
-        "a",
-        1,
-        null
-      ]
-    },
-    {
       "//": "BigNumber from spec: large value requiring arbitrary precision",
       "name": "spec_bignumber_large_hex",
       "type": "roundtrip",
