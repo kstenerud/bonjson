@@ -43,11 +43,11 @@
       "expected_value": "a string"
     },
     {
-      "//": "64 Z's (length field = 0x01 0x02)",
+      "//": "64 Z's encoded as long string (spec example uses ff...ff framing)",
       "name": "spec_long_string_64chars",
-      "type": "encode",
-      "input": "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ",
-      "expected_bytes": "a55a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"
+      "type": "decode",
+      "input_bytes": "ff5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5aff",
+      "expected_value": "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ"
     },
     {
       "//": "Small Integer examples from spec (value = type_code)",
@@ -69,18 +69,6 @@
       "expected_bytes": "00"
     },
     {
-      "name": "spec_smallint_neg60",
-      "type": "encode",
-      "input": -60,
-      "expected_bytes": "acc4"
-    },
-    {
-      "name": "spec_smallint_neg100",
-      "type": "encode",
-      "input": -100,
-      "expected_bytes": "ac9c"
-    },
-    {
       "//": "Integer examples from spec - 180 can be uint8 or sint16",
       "name": "spec_int_180",
       "type": "roundtrip",
@@ -100,7 +88,7 @@
       "expected_bytes": "ad18fc"
     },
     {
-      "//": "32768 can be uint16 or sint24",
+      "//": "32768 can be uint16 or sint32",
       "name": "spec_int_32768",
       "type": "roundtrip",
       "input": 32768
@@ -111,13 +99,6 @@
       "type": "decode",
       "input_bytes": "a90080",
       "expected_value": 32768
-    },
-    {
-      "//": "0x123456789abc",
-      "name": "spec_int_large",
-      "type": "encode",
-      "input": 20015998343868,
-      "expected_bytes": "afbc9a785634120000"
     },
     {
       "name": "spec_int_min_int64",
@@ -137,11 +118,18 @@
       "requires": ["uint64"]
     },
     {
-      "//": "Float32 example from spec: 1.125 fits in float32",
-      "name": "spec_float32_1_125",
-      "type": "encode",
-      "input": 1.125,
-      "expected_bytes": "b00000903f"
+      "//": "Encoding guidance: 127 fits in 1 byte signed or unsigned, prefer signed",
+      "name": "spec_encode_guidance_127_signed",
+      "type": "decode",
+      "input_bytes": "ac7f",
+      "expected_value": 127
+    },
+    {
+      "//": "Encoding guidance: 128 requires 2 bytes signed but only 1 byte unsigned",
+      "name": "spec_encode_guidance_128_unsigned",
+      "type": "decode",
+      "input_bytes": "a880",
+      "expected_value": 128
     },
     {
       "//": "Float32 example from spec: 0x1.3f7p5",
@@ -160,7 +148,21 @@
       "expected_bytes": "b15839b4c876bef33f"
     },
     {
-      "//": "BigNumber decoding: 1.5 = 15 * 10^-1. exp=zigzag(-1)=0x01, signed_length=+1→zigzag(1)=0x02, magnitude=15=0x0F",
+      "//": "BigNumber: 2 (exponent=0, signed_length=+1, magnitude=2)",
+      "name": "spec_bignumber_2",
+      "type": "decode",
+      "input_bytes": "b2000202",
+      "expected_value": 2
+    },
+    {
+      "//": "BigNumber: -1 (exponent=0, signed_length=-1, magnitude=1)",
+      "name": "spec_bignumber_neg1",
+      "type": "decode",
+      "input_bytes": "b2000101",
+      "expected_value": -1
+    },
+    {
+      "//": "BigNumber: 1.5 = 15 * 10^-1",
       "name": "spec_bignumber_1_5",
       "type": "decode",
       "input_bytes": "b201020f",
@@ -169,23 +171,46 @@
       }
     },
     {
-      "//": "Negative zero bignum: not representable (signed_length=0 is always positive zero; use IEEE754 float -0.0 instead)",
-      "name": "spec_bignumber_neg_zero",
+      "//": "BigNumber: 1000 (exponent=2, signed_length=+1, magnitude=10)",
+      "name": "spec_bignumber_1000",
       "type": "decode",
-      "input_bytes": "b20000",
-      "expected_value": 0,
-      "//note": "signed_length=0 always means positive zero; negative zero uses float encoding"
+      "input_bytes": "b204020a",
+      "expected_value": 1000
     },
     {
-      "//": "Array example from spec (3 elements → count=0x0c)",
+      "//": "BigNumber zero: signed_length=0 always means positive zero",
+      "name": "spec_bignumber_zero",
+      "type": "decode",
+      "input_bytes": "b20000",
+      "expected_value": 0
+    },
+    {
+      "//": "Empty array from spec",
+      "name": "spec_empty_array",
+      "type": "decode",
+      "input_bytes": "b7b6",
+      "expected_value": []
+    },
+    {
+      "//": "Array [1] from spec",
+      "name": "spec_array_1",
+      "type": "decode",
+      "input_bytes": "b701b6",
+      "expected_value": [1]
+    },
+    {
+      "//": "Array example from spec: [\"a\", 1, null]",
       "name": "spec_array",
       "type": "encode",
-      "input": [
-        "a",
-        1,
-        null
-      ],
+      "input": ["a", 1, null],
       "expected_bytes": "b7666101b3b6"
+    },
+    {
+      "//": "Empty object from spec",
+      "name": "spec_empty_object",
+      "type": "decode",
+      "input_bytes": "b8b6",
+      "expected_value": {}
     },
     {
       "//": "Object example from spec (roundtrip since key order is unspecified)",
@@ -195,6 +220,41 @@
         "b": 0,
         "test": "x"
       }
+    },
+    {
+      "//": "Typed uint8 array [1, 2, 3] from spec",
+      "name": "spec_typed_uint8_array",
+      "type": "decode",
+      "input_bytes": "fe03010203",
+      "expected_value": [1, 2, 3]
+    },
+    {
+      "//": "Typed float64 array [1.234, 5.678] from spec",
+      "name": "spec_typed_float64_array",
+      "type": "decode",
+      "input_bytes": "f5025839b4c876bef33f83c0caa145b61640",
+      "expected_value": [1.234, 5.678]
+    },
+    {
+      "//": "Empty typed uint32 array from spec",
+      "name": "spec_typed_uint32_empty",
+      "type": "decode",
+      "input_bytes": "fc00",
+      "expected_value": []
+    },
+    {
+      "//": "Record example: def [name, age] + array of two instances",
+      "name": "spec_record_array",
+      "type": "decode",
+      "input_bytes": "b9696e616d6568616765b6b7ba006a416c6963651eb6ba0068426f6219b6b6",
+      "expected_value": [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
+    },
+    {
+      "//": "Record with early end marker: fewer values than keys default to null",
+      "name": "spec_record_early_end",
+      "type": "decode",
+      "input_bytes": "b9666166626663b6ba0001b6",
+      "expected_value": {"a": 1, "b": null, "c": null}
     },
     {
       "//": "Boolean examples from spec",
@@ -231,20 +291,9 @@
         ],
         "object": {
           "negative number": -100,
-          "long string": "1234567890123456789012345678901234567890"
+          "long string": "1234567890123456789012345678901234567890123456789012345678901234"
         }
       }
-    },
-    {
-      "//": "BigNumber from spec: large value requiring arbitrary precision",
-      "name": "spec_bignumber_large_hex",
-      "type": "roundtrip",
-      "input": {
-        "$number": "4701378187390224568320"
-      },
-      "requires": [
-        "arbitrary_precision_bignumber"
-      ]
     }
   ]
 }

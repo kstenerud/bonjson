@@ -179,6 +179,31 @@
       "name": "roundtrip_unicode_emoji_varied",
       "type": "roundtrip",
       "input": "😀🎉🌍"
+    },
+    {
+      "//": "=== Unicode NFC normalization tests ==="
+    },
+    {
+      "//": "Decomposed 'café' (e + combining acute) normalized to precomposed on decode",
+      "//note": "Input: 6b = short string len 6, then c(63) a(61) f(66) e(65) combining-acute(cc81)",
+      "name": "decode_nfc_cafe_decomposed",
+      "type": "decode",
+      "input_bytes": "6b63616665cc81",
+      "expected_value": "café",
+      "options": {
+        "unicode_normalization": "nfc"
+      }
+    },
+    {
+      "//": "Duplicate key detection after NFC normalization: precomposed vs decomposed 'café'",
+      "//note": "Key1: 6a + café precomposed (c3a9). Key2: 6b + café decomposed (65 cc81). After NFC both are identical.",
+      "name": "nfc_duplicate_key_detection",
+      "type": "decode_error",
+      "input_bytes": "b86a636166c3a9016b63616665cc8102b6",
+      "expected_error": "duplicate_key",
+      "options": {
+        "unicode_normalization": "nfc"
+      }
     }
   ]
 }

@@ -1,6 +1,101 @@
 {
   "type": "bonjson-test",
   "version": "1.0.0",
-  "//": "Record definition and instance conformance tests (placeholder - tests not yet available)",
-  "tests": []
+  "//": "Record definition and instance conformance tests. Def: 0xB9 + strings + 0xB6. Instance: 0xBA + LEB128(index) + values + 0xB6.",
+  "tests": [
+    {
+      "//": "=== Record decode tests ==="
+    },
+    {
+      "//": "Empty record definition + instance with no values → {}",
+      "name": "decode_record_empty",
+      "type": "decode",
+      "input_bytes": "b9b6ba00b6",
+      "expected_value": {}
+    },
+    {
+      "//": "Single-key record: def [a], instance with value 1 → {a: 1}",
+      "name": "decode_record_single_key",
+      "type": "decode",
+      "input_bytes": "b96661b6ba0001b6",
+      "expected_value": {"a": 1}
+    },
+    {
+      "//": "Multi-key record: def [a, b], instance with values 1, 2 → {a: 1, b: 2}",
+      "name": "decode_record_multi_key",
+      "type": "decode",
+      "input_bytes": "b966616662b6ba000102b6",
+      "expected_value": {"a": 1, "b": 2}
+    },
+    {
+      "//": "Early end marker: def [a, b], instance with 1 value → {a: 1, b: null}",
+      "name": "decode_record_early_end",
+      "type": "decode",
+      "input_bytes": "b966616662b6ba0001b6",
+      "expected_value": {"a": 1, "b": null}
+    },
+    {
+      "//": "Multiple definitions: def0 [a], def1 [b], instance of def1 → {b: 2}",
+      "name": "decode_record_multiple_defs",
+      "type": "decode",
+      "input_bytes": "b96661b6b96662b6ba0102b6",
+      "expected_value": {"b": 2}
+    },
+    {
+      "//": "Record instance with string value: def [name], instance → {name: Alice}",
+      "name": "decode_record_string_value",
+      "type": "decode",
+      "input_bytes": "b9696e616d65b6ba006a416c696365b6",
+      "expected_value": {"name": "Alice"}
+    },
+    {
+      "//": "Record instance with nested array value",
+      "name": "decode_record_nested_array",
+      "type": "decode",
+      "input_bytes": "b96661b6ba00b70102b6b6",
+      "expected_value": {"a": [1, 2]}
+    },
+    {
+      "//": "Two instances of same definition in an array",
+      "name": "decode_record_two_instances",
+      "type": "decode",
+      "input_bytes": "b96661b6b7ba0001b6ba0002b6b6",
+      "expected_value": [{"a": 1}, {"a": 2}]
+    },
+    {
+      "//": "Record with all values null (early end immediately)",
+      "name": "decode_record_all_null",
+      "type": "decode",
+      "input_bytes": "b966616662b6ba00b6",
+      "expected_value": {"a": null, "b": null}
+    },
+    {
+      "//": "=== Record roundtrip tests ==="
+    },
+    {
+      "name": "roundtrip_record_single",
+      "type": "roundtrip",
+      "input": {"a": 1}
+    },
+    {
+      "name": "roundtrip_record_multi",
+      "type": "roundtrip",
+      "input": {"a": 1, "b": 2, "c": 3}
+    },
+    {
+      "name": "roundtrip_record_nested",
+      "type": "roundtrip",
+      "input": {"name": "Alice", "scores": [95, 87, 92]}
+    },
+    {
+      "name": "roundtrip_record_array_of_objects",
+      "type": "roundtrip",
+      "input": [{"x": 1}, {"x": 2}, {"x": 3}]
+    },
+    {
+      "name": "roundtrip_record_with_nulls",
+      "type": "roundtrip",
+      "input": {"a": 1, "b": null, "c": null}
+    }
+  ]
 }

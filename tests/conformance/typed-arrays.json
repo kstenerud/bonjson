@@ -1,6 +1,240 @@
 {
   "type": "bonjson-test",
   "version": "1.0.0",
-  "//": "Typed array conformance tests (placeholder - tests not yet available)",
-  "tests": []
+  "//": "Typed array conformance tests. Wire format: [type_code] [element_count (LEB128)] [data bytes...]",
+  "tests": [
+    {
+      "//": "=== Empty typed arrays (element count = 0) ==="
+    },
+    {
+      "name": "decode_typed_uint8_empty",
+      "type": "decode",
+      "input_bytes": "fe00",
+      "expected_value": []
+    },
+    {
+      "name": "decode_typed_uint16_empty",
+      "type": "decode",
+      "input_bytes": "fd00",
+      "expected_value": []
+    },
+    {
+      "name": "decode_typed_uint32_empty",
+      "type": "decode",
+      "input_bytes": "fc00",
+      "expected_value": []
+    },
+    {
+      "name": "decode_typed_uint64_empty",
+      "type": "decode",
+      "input_bytes": "fb00",
+      "expected_value": []
+    },
+    {
+      "name": "decode_typed_sint8_empty",
+      "type": "decode",
+      "input_bytes": "fa00",
+      "expected_value": []
+    },
+    {
+      "name": "decode_typed_sint16_empty",
+      "type": "decode",
+      "input_bytes": "f900",
+      "expected_value": []
+    },
+    {
+      "name": "decode_typed_sint32_empty",
+      "type": "decode",
+      "input_bytes": "f800",
+      "expected_value": []
+    },
+    {
+      "name": "decode_typed_sint64_empty",
+      "type": "decode",
+      "input_bytes": "f700",
+      "expected_value": []
+    },
+    {
+      "name": "decode_typed_float32_empty",
+      "type": "decode",
+      "input_bytes": "f600",
+      "expected_value": []
+    },
+    {
+      "name": "decode_typed_float64_empty",
+      "type": "decode",
+      "input_bytes": "f500",
+      "expected_value": []
+    },
+    {
+      "//": "=== Typed array decode tests ==="
+    },
+    {
+      "//": "uint8 [1, 2, 3]: fe 03 01 02 03",
+      "name": "decode_typed_uint8_123",
+      "type": "decode",
+      "input_bytes": "fe03010203",
+      "expected_value": [1, 2, 3]
+    },
+    {
+      "//": "uint16 [1, 256]: fd 02 0100 0001 (little-endian)",
+      "name": "decode_typed_uint16",
+      "type": "decode",
+      "input_bytes": "fd0201000001",
+      "expected_value": [1, 256]
+    },
+    {
+      "//": "uint32 [1]: fc 01 01000000",
+      "name": "decode_typed_uint32_1",
+      "type": "decode",
+      "input_bytes": "fc0101000000",
+      "expected_value": [1]
+    },
+    {
+      "//": "uint64 [1]: fb 01 0100000000000000",
+      "name": "decode_typed_uint64_1",
+      "type": "decode",
+      "input_bytes": "fb010100000000000000",
+      "expected_value": [1]
+    },
+    {
+      "//": "sint8 [-1, 0, 1]: fa 03 ff 00 01",
+      "name": "decode_typed_sint8",
+      "type": "decode",
+      "input_bytes": "fa03ff0001",
+      "expected_value": [-1, 0, 1]
+    },
+    {
+      "//": "sint16 [-1]: f9 01 ffff",
+      "name": "decode_typed_sint16_neg1",
+      "type": "decode",
+      "input_bytes": "f901ffff",
+      "expected_value": [-1]
+    },
+    {
+      "//": "sint32 [-1]: f8 01 ffffffff",
+      "name": "decode_typed_sint32_neg1",
+      "type": "decode",
+      "input_bytes": "f801ffffffff",
+      "expected_value": [-1]
+    },
+    {
+      "//": "sint64 [-1]: f7 01 ffffffffffffffff",
+      "name": "decode_typed_sint64_neg1",
+      "type": "decode",
+      "input_bytes": "f701ffffffffffffffff",
+      "expected_value": [-1],
+      "requires": ["int64"]
+    },
+    {
+      "//": "float32 [1.5]: f6 01 0000c03f (1.5 as float32 LE = 0x3FC00000)",
+      "name": "decode_typed_float32_1_5",
+      "type": "decode",
+      "input_bytes": "f6010000c03f",
+      "expected_value": [1.5]
+    },
+    {
+      "//": "float64 [1.5]: f5 01 000000000000f83f (1.5 as float64 LE = 0x3FF8000000000000)",
+      "name": "decode_typed_float64_1_5",
+      "type": "decode",
+      "input_bytes": "f501000000000000f83f",
+      "expected_value": [1.5]
+    },
+    {
+      "//": "uint16 [0, 65535]: boundary values",
+      "name": "decode_typed_uint16_boundaries",
+      "type": "decode",
+      "input_bytes": "fd020000ffff",
+      "expected_value": [0, 65535]
+    },
+    {
+      "//": "sint16 [-32768, 32767]: boundary values",
+      "name": "decode_typed_sint16_boundaries",
+      "type": "decode",
+      "input_bytes": "f9020080ff7f",
+      "expected_value": [-32768, 32767]
+    },
+    {
+      "//": "uint8 [0, 255]: boundary values",
+      "name": "decode_typed_uint8_boundaries",
+      "type": "decode",
+      "input_bytes": "fe0200ff",
+      "expected_value": [0, 255]
+    },
+    {
+      "//": "sint8 [-128, 127]: boundary values",
+      "name": "decode_typed_sint8_boundaries",
+      "type": "decode",
+      "input_bytes": "fa02807f",
+      "expected_value": [-128, 127]
+    },
+    {
+      "//": "=== Typed array roundtrip tests ==="
+    },
+    {
+      "name": "roundtrip_typed_uint8",
+      "type": "roundtrip",
+      "input": [1, 2, 3, 4, 5]
+    },
+    {
+      "name": "roundtrip_typed_sint8",
+      "type": "roundtrip",
+      "input": [-128, -1, 0, 1, 127]
+    },
+    {
+      "name": "roundtrip_typed_uint16",
+      "type": "roundtrip",
+      "input": [0, 1, 256, 65535]
+    },
+    {
+      "name": "roundtrip_typed_sint16",
+      "type": "roundtrip",
+      "input": [-32768, -1, 0, 1, 32767]
+    },
+    {
+      "name": "roundtrip_typed_uint32",
+      "type": "roundtrip",
+      "input": [0, 1, 65536, 4294967295]
+    },
+    {
+      "name": "roundtrip_typed_sint32",
+      "type": "roundtrip",
+      "input": [-2147483648, -1, 0, 1, 2147483647]
+    },
+    {
+      "name": "roundtrip_typed_float32",
+      "type": "roundtrip",
+      "input": [0.0, 1.5, -1.25, 100.0]
+    },
+    {
+      "name": "roundtrip_typed_float64",
+      "type": "roundtrip",
+      "input": [0.0, 1.5, -1.25, 3.141592653589793]
+    },
+    {
+      "name": "roundtrip_typed_empty",
+      "type": "roundtrip",
+      "input": []
+    },
+    {
+      "//": "Single-element arrays",
+      "name": "roundtrip_typed_single_element",
+      "type": "roundtrip",
+      "input": [42]
+    },
+    {
+      "//": "Multiple uint64 values",
+      "name": "roundtrip_typed_uint64",
+      "type": "roundtrip",
+      "input": [0, 1, 4294967296],
+      "requires": ["int64"]
+    },
+    {
+      "//": "Multiple sint64 values",
+      "name": "roundtrip_typed_sint64",
+      "type": "roundtrip",
+      "input": [-4294967296, 0, 4294967296],
+      "requires": ["int64"]
+    }
+  ]
 }

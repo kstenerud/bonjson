@@ -346,6 +346,44 @@
       "requires": [
         "arbitrary_precision_bignumber"
       ]
+    },
+    {
+      "//": "=== Large value requiring arbitrary precision (moved from spec-examples) ==="
+    },
+    {
+      "name": "roundtrip_bignumber_large_value",
+      "type": "roundtrip",
+      "input": {
+        "$number": "4701378187390224568320"
+      },
+      "requires": [
+        "arbitrary_precision_bignumber"
+      ]
+    },
+    {
+      "//": "=== Out-of-range stringify tests ==="
+    },
+    {
+      "//": "BigNumber 1e309 exceeds float64 range; stringify converts to string instead of error",
+      "name": "decode_bignumber_stringify_large_exponent",
+      "type": "decode",
+      "input_bytes": "b2ea040201",
+      "expected_value": "1e309",
+      "options": {
+        "out_of_range": "stringify"
+      },
+      "requires": ["out_of_range_stringify"]
+    },
+    {
+      "//": "Negative BigNumber stringified: -1e309",
+      "name": "decode_bignumber_stringify_negative",
+      "type": "decode",
+      "input_bytes": "b2ea040101",
+      "expected_value": "-1e309",
+      "options": {
+        "out_of_range": "stringify"
+      },
+      "requires": ["out_of_range_stringify"]
     }
   ]
 }

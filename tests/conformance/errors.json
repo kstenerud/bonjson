@@ -505,6 +505,146 @@
       "type": "decode_error",
       "input_bytes": "c0",
       "expected_error": "invalid_type_code"
+    },
+    {
+      "//": "=== Additional reserved type codes (0xf1-0xf4) ==="
+    },
+    {
+      "name": "invalid_type_code_f1",
+      "type": "decode_error",
+      "input_bytes": "f1",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_f2",
+      "type": "decode_error",
+      "input_bytes": "f2",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_f3",
+      "type": "decode_error",
+      "input_bytes": "f3",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "name": "invalid_type_code_f4",
+      "type": "decode_error",
+      "input_bytes": "f4",
+      "expected_error": "invalid_type_code"
+    },
+    {
+      "//": "=== Typed array errors ==="
+    },
+    {
+      "//": "Typed array with no count byte",
+      "name": "truncated_typed_uint8_no_count",
+      "type": "decode_error",
+      "input_bytes": "fe",
+      "expected_error": "truncated"
+    },
+    {
+      "//": "Typed uint8 array: count=3 but only 2 data bytes",
+      "name": "truncated_typed_uint8_partial_data",
+      "type": "decode_error",
+      "input_bytes": "fe030102",
+      "expected_error": "truncated"
+    },
+    {
+      "//": "Typed uint32 array: count=1 but only 3 of 4 data bytes",
+      "name": "truncated_typed_uint32_partial_data",
+      "type": "decode_error",
+      "input_bytes": "fc01010000",
+      "expected_error": "truncated"
+    },
+    {
+      "//": "=== Record errors ==="
+    },
+    {
+      "//": "Record instance with no preceding definitions",
+      "name": "record_instance_no_definitions",
+      "type": "decode_error",
+      "input_bytes": "ba00b6",
+      "expected_error": "invalid_data"
+    },
+    {
+      "//": "Record instance references out-of-range definition index",
+      "name": "record_instance_bad_index",
+      "type": "decode_error",
+      "input_bytes": "b9b6ba01b6",
+      "expected_error": "invalid_data"
+    },
+    {
+      "//": "Record definition in value position (inside array)",
+      "name": "record_def_in_value_position",
+      "type": "decode_error",
+      "input_bytes": "b7b96661b6b6",
+      "expected_error": "invalid_data"
+    },
+    {
+      "//": "More values than keys in record instance: def [a], instance has 2 values",
+      "name": "record_too_many_values",
+      "type": "decode_error",
+      "input_bytes": "b96661b6ba000102b6",
+      "expected_error": "invalid_data"
+    },
+    {
+      "//": "Non-string key in record definition (integer 1 where string expected)",
+      "name": "record_non_string_key",
+      "type": "decode_error",
+      "input_bytes": "b901b6",
+      "expected_error": "invalid_object_key"
+    },
+    {
+      "//": "Duplicate keys in record definition",
+      "name": "record_duplicate_keys",
+      "type": "decode_error",
+      "input_bytes": "b966616661b6ba000101b6",
+      "expected_error": "duplicate_key"
+    },
+    {
+      "//": "Truncated record definition (no end marker)",
+      "name": "truncated_record_definition",
+      "type": "decode_error",
+      "input_bytes": "b96661",
+      "expected_error": "truncated"
+    },
+    {
+      "//": "Truncated record instance (no index or end marker after def)",
+      "name": "truncated_record_instance",
+      "type": "decode_error",
+      "input_bytes": "b96661b6ba00",
+      "expected_error": "truncated"
+    },
+    {
+      "//": "=== BigNumber limit errors ==="
+    },
+    {
+      "//": "Exponent 200 exceeds max_bignumber_exponent of 100. zigzag(200)=400, LEB128=9003",
+      "name": "max_bignumber_exponent_exceeded",
+      "type": "decode_error",
+      "input_bytes": "b290030201",
+      "expected_error": "max_bignumber_exponent_exceeded",
+      "options": {
+        "max_bignumber_exponent": 100
+      }
+    },
+    {
+      "//": "5-byte magnitude exceeds max_bignumber_magnitude of 4",
+      "name": "max_bignumber_magnitude_exceeded",
+      "type": "decode_error",
+      "input_bytes": "b2000a0100000001",
+      "expected_error": "max_bignumber_magnitude_exceeded",
+      "options": {
+        "max_bignumber_magnitude": 4
+      }
+    },
+    {
+      "//": "BigNumber 1e309 exceeds float64 range (max ~1.8e308). zigzag(309)=618, LEB128=ea04",
+      "name": "value_out_of_range_bignumber",
+      "type": "decode_error",
+      "input_bytes": "b2ea040201",
+      "expected_error": "value_out_of_range"
     }
   ]
 }
