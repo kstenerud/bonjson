@@ -29,7 +29,7 @@
       "expected_error": "invalid_data"
     },
     {
-      "//": "0xa9 is TYPE_SINT8 which expects 1 byte of data, but none provided",
+      "//": "0xa9 is uint16 which expects 2 bytes of data, but none provided",
       "name": "decode_error_test",
       "type": "decode_error",
       "input_bytes": "a9",

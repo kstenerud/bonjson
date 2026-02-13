@@ -4,7 +4,7 @@
   "//": "Container (array and object) encoding tests",
   "tests": [
     {
-      "//": "Array with different value types (3 elements: count=3, cont=0 → 0x0c)",
+      "//": "Array with different value types",
       "name": "array_with_string_int_null",
       "type": "encode",
       "input": [
@@ -15,7 +15,7 @@
       "expected_bytes": "b7666101b3b6"
     },
     {
-      "//": "Nested empty arrays (outer: 1 element → 0x04, inner: 0 elements → 0x00)",
+      "//": "Nested empty arrays",
       "name": "array_nested_empty",
       "type": "encode",
       "input": [
@@ -24,7 +24,7 @@
       "expected_bytes": "b7b7b6b6"
     },
     {
-      "//": "Array with nested object (array: 1 element → 0x04, object: 1 pair → 0x04)",
+      "//": "Array with nested object",
       "name": "array_with_object",
       "type": "encode",
       "input": [
@@ -35,7 +35,7 @@
       "expected_bytes": "b7b8666101b6b6"
     },
     {
-      "//": "Object with integer value (1 pair → 0x04)",
+      "//": "Object with integer value",
       "name": "object_with_int",
       "type": "encode",
       "input": {
@@ -44,7 +44,7 @@
       "expected_bytes": "b8666101b6"
     },
     {
-      "//": "Object with negative small int value (1 pair → 0x04)",
+      "//": "Object with negative small int value",
       "name": "object_with_neg_int",
       "type": "encode",
       "input": {
@@ -53,7 +53,7 @@
       "expected_bytes": "b86661acffb6"
     },
     {
-      "//": "Object with larger int value (requires int16) (1 pair → 0x04)",
+      "//": "Object with larger int value",
       "name": "object_with_int16",
       "type": "encode",
       "input": {
@@ -62,7 +62,7 @@
       "expected_bytes": "b86661ade803b6"
     },
     {
-      "//": "Object with int64 value (1 pair → 0x04)",
+      "//": "Object with int64 value",
       "name": "object_with_int64",
       "type": "encode",
       "input": {
@@ -71,7 +71,7 @@
       "expected_bytes": "b86661af0000000000000010b6"
     },
     {
-      "//": "Object with negative int64 value (1 pair → 0x04)",
+      "//": "Object with negative int64 value",
       "name": "object_with_neg_int64",
       "type": "encode",
       "input": {
@@ -80,7 +80,7 @@
       "expected_bytes": "b86661af00000000000000f0b6"
     },
     {
-      "//": "Object with float16 value (1 pair → 0x04)",
+      "//": "Object with float16 value",
       "name": "object_with_float16",
       "type": "encode",
       "input": {
@@ -89,16 +89,16 @@
       "expected_bytes": "b86661b00000a03fb6"
     },
     {
-      "//": "Object with float64 value (1 pair → 0x04)",
+      "//": "Object with float64 value",
       "name": "object_with_float64",
       "type": "encode",
       "input": {
-        "a": -5.923441E-50
+        "a": -5.923441e-50
       },
       "expected_bytes": "b86661b1353cce818729b6b5b6"
     },
     {
-      "//": "Object with string value (1 pair → 0x04)",
+      "//": "Object with string value",
       "name": "object_with_string",
       "type": "encode",
       "input": {
@@ -107,7 +107,7 @@
       "expected_bytes": "b866616662b6"
     },
     {
-      "//": "Object with boolean false value (1 pair → 0x04)",
+      "//": "Object with boolean false value",
       "name": "object_with_false",
       "type": "encode",
       "input": {
@@ -116,7 +116,7 @@
       "expected_bytes": "b86661b4b6"
     },
     {
-      "//": "Object with null value (1 pair → 0x04)",
+      "//": "Object with null value",
       "name": "object_with_null",
       "type": "encode",
       "input": {
@@ -125,7 +125,7 @@
       "expected_bytes": "b86661b3b6"
     },
     {
-      "//": "Object with nested empty object value (outer: 1 pair → 0x04, inner: 0 pairs → 0x00)",
+      "//": "Object with nested empty object value",
       "name": "object_with_nested_object",
       "type": "encode",
       "input": {
@@ -134,7 +134,7 @@
       "expected_bytes": "b86661b8b6b6"
     },
     {
-      "//": "Object with nested empty array value (object: 1 pair → 0x04, array: 0 elements → 0x00)",
+      "//": "Object with nested empty array value",
       "name": "object_with_nested_array",
       "type": "encode",
       "input": {
@@ -143,7 +143,7 @@
       "expected_bytes": "b86661b7b6b6"
     },
     {
-      "//": "Array with multiple element types (3 elements → 0x0c)",
+      "//": "Array with multiple element types",
       "name": "array_varied_elements",
       "type": "encode",
       "input": [
@@ -154,7 +154,7 @@
       "expected_bytes": "b76661acff667ab6"
     },
     {
-      "//": "Array with larger integers (3 elements → 0x0c)",
+      "//": "Array with larger integers",
       "name": "array_with_int16",
       "type": "encode",
       "input": [
@@ -276,7 +276,7 @@
       "name": "object_unicode_key_japanese",
       "type": "roundtrip",
       "input": {
-        "日本語": "Japanese"
+        "\u65e5\u672c\u8a9e": "Japanese"
       }
     },
     {
@@ -284,7 +284,7 @@
       "name": "object_unicode_key_emoji",
       "type": "roundtrip",
       "input": {
-        "😀": "smiley"
+        "\ud83d\ude00": "smiley"
       }
     },
     {
@@ -292,7 +292,7 @@
       "name": "object_unicode_key_mixed",
       "type": "roundtrip",
       "input": {
-        "Hello 世界 🌍": "mixed"
+        "Hello \u4e16\u754c \ud83c\udf0d": "mixed"
       }
     },
     {
@@ -303,7 +303,7 @@
         "": 0,
         "a": 1,
         "this is a long key name": 2,
-        "日本": 3
+        "\u65e5\u672c": 3
       }
     },
     {
@@ -327,8 +327,8 @@
       "name": "object_nested_unicode_keys",
       "type": "roundtrip",
       "input": {
-        "日本": {
-          "語": {
+        "\u65e5\u672c": {
+          "\u8a9e": {
             "value": 42
           }
         }
@@ -435,21 +435,21 @@
       ]
     },
     {
-      "//": "Empty array encode verification (0 elements → 0x00)",
+      "//": "Empty array encode verification",
       "name": "encode_empty_array",
       "type": "encode",
       "input": [],
       "expected_bytes": "b7b6"
     },
     {
-      "//": "Empty object encode verification (0 pairs → 0x00)",
+      "//": "Empty object encode verification",
       "name": "encode_empty_object",
       "type": "encode",
       "input": {},
       "expected_bytes": "b8b6"
     },
     {
-      "//": "Nested empty array encode verification (outer: 1 element → 0x04, inner: 0 elements → 0x00)",
+      "//": "Nested empty array encode verification",
       "name": "encode_nested_empty_array",
       "type": "encode",
       "input": [
@@ -458,7 +458,7 @@
       "expected_bytes": "b7b7b6b6"
     },
     {
-      "//": "Empty object in array encode verification (array: 1 element → 0x04, object: 0 pairs → 0x00)",
+      "//": "Empty object in array encode verification",
       "name": "encode_empty_object_in_array",
       "type": "encode",
       "input": [
@@ -467,19 +467,18 @@
       "expected_bytes": "b7b8b6b6"
     },
     {
-      "//": "=== Non-canonical length encoding tests ===",
-      "//note": "Decoders MUST accept non-canonical (oversized) length encodings"
+      "//": "=== Basic container decode tests ==="
     },
     {
-      "//": "Empty array with non-canonical 2-byte length (payload 0 encoded as 01 00 instead of 00)",
-      "name": "noncanonical_length_empty_array_2byte",
+      "//": "Decode empty array",
+      "name": "decode_empty_array",
       "type": "decode",
       "input_bytes": "b7b6",
       "expected_value": []
     },
     {
-      "//": "Array [0] with non-canonical 2-byte length (payload 2 encoded as 09 00 instead of 04)",
-      "name": "noncanonical_length_array_1elem_2byte",
+      "//": "Decode array with single element",
+      "name": "decode_array_single_element",
       "type": "decode",
       "input_bytes": "b700b6",
       "expected_value": [
@@ -487,22 +486,15 @@
       ]
     },
     {
-      "//": "Empty array with non-canonical 3-byte length (payload 0 encoded as 03 00 00)",
-      "name": "noncanonical_length_empty_array_3byte",
-      "type": "decode",
-      "input_bytes": "b7b6",
-      "expected_value": []
-    },
-    {
-      "//": "Empty object with non-canonical 2-byte length (payload 0 encoded as 01 00 instead of 00)",
-      "name": "noncanonical_length_empty_object_2byte",
+      "//": "Decode empty object",
+      "name": "decode_empty_object",
       "type": "decode",
       "input_bytes": "b8b6",
       "expected_value": {}
     },
     {
-      "//": "Object {\"a\": 0} with non-canonical 2-byte length (payload 2 encoded as 09 00 instead of 04)",
-      "name": "noncanonical_length_object_1pair_2byte",
+      "//": "Decode object with single key-value pair",
+      "name": "decode_object_single_pair",
       "type": "decode",
       "input_bytes": "b8666100b6",
       "expected_value": {
@@ -510,18 +502,11 @@
       }
     },
     {
-      "//": "Empty object with non-canonical 3-byte length (payload 0 encoded as 03 00 00)",
-      "name": "noncanonical_length_empty_object_3byte",
-      "type": "decode",
-      "input_bytes": "b8b6",
-      "expected_value": {}
-    },
-    {
       "//": "=== Null values in containers ===",
       "//note": "Tests for proper handling of null values inside arrays and objects. Decoders must correctly track container element counts when processing nulls."
     },
     {
-      "//": "Array containing multiple null values (2 elements → 0x08)",
+      "//": "Array containing multiple null values",
       "name": "array_of_nulls",
       "type": "encode",
       "input": [
@@ -531,7 +516,7 @@
       "expected_bytes": "b7b3b3b6"
     },
     {
-      "//": "Array with null values interspersed with other types (4 elements → 0x10)",
+      "//": "Array with null values interspersed with other types",
       "name": "array_with_nulls_mixed",
       "type": "encode",
       "input": [

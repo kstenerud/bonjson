@@ -4,7 +4,7 @@
   "//": "String encoding tests covering short strings and long strings",
   "tests": [
     {
-      "//": "Short string encoding: 0-31 byte strings use type codes 0x65-0x84",
+      "//": "Short string encoding: 0-66 byte strings use type codes 0x65-0xa7",
       "name": "short_string_empty",
       "type": "encode",
       "input": "",
@@ -42,7 +42,7 @@
       "expected_bytes": "6a68656c6c6f"
     },
     {
-      "//": "Short strings up to 15 bytes use inline length encoding",
+      "//": "Short strings up to 66 bytes encode the length in the type code",
       "name": "short_string_15bytes",
       "type": "encode",
       "input": "15 byte string!",
@@ -56,29 +56,29 @@
       "expected_bytes": "71e3818ae381afe38288e38186"
     },
     {
-      "//": "Long string encoding: 16+ byte strings use type code 0xFF with length field",
-      "name": "long_string_16bytes",
+      "//": "16-byte string uses short string encoding (type code 0x75 = 0x65 + 16)",
+      "name": "short_string_16bytes",
       "type": "encode",
       "input": "this is 16 bytes",
       "expected_bytes": "7574686973206973203136206279746573"
     },
     {
-      "//": "31 byte string (length field = 0x7c)",
-      "name": "long_string_31bytes",
+      "//": "31-byte string uses short string encoding (type code 0x84 = 0x65 + 31)",
+      "name": "short_string_31bytes",
       "type": "encode",
       "input": "1234567890123456789012345678901",
       "expected_bytes": "8431323334353637383930313233343536373839303132333435363738393031"
     },
     {
-      "//": "32 byte string uses long string encoding (short strings are now 0-31 bytes)",
-      "name": "long_string_32bytes",
+      "//": "32-byte string uses short string encoding (type code 0x85 = 0x65 + 32)",
+      "name": "short_string_32bytes",
       "type": "encode",
       "input": "12345678901234567890123456789012",
       "expected_bytes": "853132333435363738393031323334353637383930313233343536373839303132"
     },
     {
-      "//": "64 byte string (2-byte length field: 0x01 0x02)",
-      "name": "long_string_64bytes",
+      "//": "64-byte string uses short string encoding (type code 0xa5 = 0x65 + 64)",
+      "name": "short_string_64bytes",
       "type": "encode",
       "input": "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ",
       "expected_bytes": "a55a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"

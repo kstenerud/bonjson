@@ -4,7 +4,7 @@
   "//": "Integer encoding tests covering all size variants",
   "tests": [
     {
-      "//": "Small integers (-100 to 100) encode as byte = value",
+      "//": "Small integers (0 to 100) encode as byte = value",
       "name": "smallint_0",
       "type": "encode",
       "input": 0,
@@ -35,7 +35,7 @@
       "expected_bytes": "64"
     },
     {
-      "//": "Small negative integers (-100 to -1) encode as value",
+      "//": "Small negative integers (-100 to -1) use sint8",
       "name": "smallint_neg1",
       "type": "encode",
       "input": -1,
@@ -54,7 +54,7 @@
       "expected_bytes": "ac9c"
     },
     {
-      "//": "Signed int8 (101-127, -101 to -128) uses type code 0x89",
+      "//": "Values outside small integer range (101-127, -1 to -128) use sint8 type code 0xac",
       "name": "sint8_101",
       "type": "encode",
       "input": 101,
@@ -103,7 +103,7 @@
       "expected_bytes": "ac80"
     },
     {
-      "//": "Values 128-255 can be encoded as uint8 (0xd0) or sint16 (0xd9)",
+      "//": "Values 128-255 can be encoded as uint8 (0xa8) or sint16 (0xad)",
       "//note": "Roundtrip tests verify correctness; decode tests verify specific encodings",
       "name": "roundtrip_128",
       "type": "roundtrip",
@@ -125,7 +125,7 @@
       "input": 255
     },
     {
-      "//": "Signed int16 uses type code 0x8a (little-endian)",
+      "//": "Signed int16 uses type code 0xad (little-endian)",
       "name": "sint16_1000",
       "type": "encode",
       "input": 1000,
@@ -156,7 +156,7 @@
       "expected_bytes": "ad0080"
     },
     {
-      "//": "Values 32768-65535 can be encoded as uint16 (0x86) or sint32 (0x8b)",
+      "//": "Values 32768-65535 can be encoded as uint16 (0xa9) or sint32 (0xae)",
       "name": "roundtrip_32768",
       "type": "roundtrip",
       "input": 32768
@@ -167,7 +167,7 @@
       "input": 65535
     },
     {
-      "//": "Signed int24 uses type code 0x8b",
+      "//": "Values in sint24 range use sint32 type code 0xae",
       "name": "sint24_65536",
       "type": "encode",
       "input": 65536,
@@ -180,7 +180,7 @@
       "expected_bytes": "aeffff7f00"
     },
     {
-      "//": "Values 8388608-16777215 can be encoded as uint32 (0x87) or sint32 (0x8b)",
+      "//": "Values 8388608-16777215 can be encoded as uint32 (0xaa) or sint32 (0xae)",
       "name": "roundtrip_8388608",
       "type": "roundtrip",
       "input": 8388608
@@ -191,7 +191,7 @@
       "input": 16777215
     },
     {
-      "//": "Signed int32 uses type code 0x8b",
+      "//": "Signed int32 uses type code 0xae",
       "name": "sint32_16777216",
       "type": "encode",
       "input": 16777216,
@@ -204,7 +204,7 @@
       "expected_bytes": "aeffffff7f"
     },
     {
-      "//": "Values 2147483648-4294967295 can be encoded as uint32 (0x87) or sint64 (0x8c)",
+      "//": "Values 2147483648-4294967295 can be encoded as uint32 (0xaa) or sint64 (0xaf)",
       "name": "roundtrip_2147483648",
       "type": "roundtrip",
       "input": 2147483648
@@ -215,7 +215,7 @@
       "input": 4294967295
     },
     {
-      "//": "Signed int40 uses type code 0x8c",
+      "//": "Values in sint40 range use sint64 type code 0xaf",
       "name": "sint40_4294967296",
       "type": "encode",
       "input": 4294967296,
@@ -228,7 +228,7 @@
       "expected_bytes": "afffffffff7f000000"
     },
     {
-      "//": "Values 549755813888-1099511627775 can be encoded as uint64 (0x88) or sint64 (0x8c)",
+      "//": "Values 549755813888-1099511627775 can be encoded as uint64 (0xab) or sint64 (0xaf)",
       "name": "roundtrip_549755813888",
       "type": "roundtrip",
       "input": 549755813888
@@ -239,7 +239,7 @@
       "input": 1099511627775
     },
     {
-      "//": "Signed int48 uses type code 0x8c",
+      "//": "Values in sint48 range use sint64 type code 0xaf",
       "name": "sint48_1099511627776",
       "type": "encode",
       "input": 1099511627776,
@@ -253,26 +253,26 @@
       "expected_bytes": "afbc9a785634120000"
     },
     {
-      "//": "Value 140737488355328 can be encoded as uint64 (0x88) or sint64 (0x8c)",
+      "//": "Value 140737488355328 can be encoded as uint64 (0xab) or sint64 (0xaf)",
       "name": "roundtrip_140737488355328",
       "type": "roundtrip",
       "input": 140737488355328
     },
     {
-      "//": "Signed int56 uses type code 0x8c",
+      "//": "Values in sint56 range use sint64 type code 0xaf",
       "name": "sint56_281474976710656",
       "type": "encode",
       "input": 281474976710656,
       "expected_bytes": "af0000000000000100"
     },
     {
-      "//": "Value 36028797018963968 can be encoded as uint64 (0x88) or sint64 (0x8c)",
+      "//": "Value 36028797018963968 can be encoded as uint64 (0xab) or sint64 (0xaf)",
       "name": "roundtrip_36028797018963968",
       "type": "roundtrip",
       "input": 36028797018963968
     },
     {
-      "//": "Signed int64 uses type code 0x8c",
+      "//": "Signed int64 uses type code 0xaf",
       "name": "sint64_72057594037927936",
       "type": "encode",
       "input": 72057594037927936,
@@ -291,7 +291,7 @@
       "expected_bytes": "af0000000000000080"
     },
     {
-      "//": "Unsigned int64 (values > INT64_MAX) must use type code 0x88",
+      "//": "Unsigned int64 (values > INT64_MAX) must use type code 0xab",
       "name": "uint64_9223372036854775808",
       "type": "encode",
       "input": {

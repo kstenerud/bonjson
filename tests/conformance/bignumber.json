@@ -2,7 +2,7 @@
   "type": "bonjson-test",
   "version": "1.0.0",
   "//": "BigNumber encoding tests for values that cannot be represented as IEEE 754 floats",
-  "//note": "BigNumber uses zigzag LEB128 metadata and little-endian magnitude bytes. Wire format: 0x8F + zigzag_leb128(exponent) + zigzag_leb128(signed_length) + magnitude_bytes. signed_length encodes both the sign and byte count of the magnitude. Negative zero is not representable as bignum (use IEEE754 float).",
+  "//note": "BigNumber uses zigzag LEB128 metadata and little-endian magnitude bytes. Wire format: 0xB2 + zigzag_leb128(exponent) + zigzag_leb128(signed_length) + magnitude_bytes. signed_length encodes both the sign and byte count of the magnitude. Negative zero is not representable as bignum (use IEEE754 float).",
   "tests": [
     {
       "//": "=== BigNumber zero encoding ===",
@@ -215,7 +215,7 @@
     },
     {
       "//": "=== BigNumber wire format tests ===",
-      "//note": "Wire format: type_code(0x8F) + zigzag_leb128(exponent) + zigzag_leb128(signed_length) + magnitude_bytes"
+      "//note": "Wire format: type_code(0xB2) + zigzag_leb128(exponent) + zigzag_leb128(signed_length) + magnitude_bytes"
     },
     {
       "//": "Zero exponent, significand=1: exponent=0, signed_length=+1→zigzag(1)=0x02, magnitude=0x01",

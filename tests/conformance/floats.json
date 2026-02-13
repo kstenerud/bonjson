@@ -1,32 +1,32 @@
 {
   "type": "bonjson-test",
   "version": "1.0.0",
-  "//": "Float encoding tests covering float16, float32, and float64",
+  "//": "Float encoding tests covering float32 and float64",
   "tests": [
     {
-      "//": "Float16 (bfloat16) uses type code 0x8d - 1.125 can be exactly represented",
-      "name": "float16_1_125",
+      "//": "1.125 can be exactly represented in float32",
+      "name": "float32_1_125",
       "type": "encode",
       "input": 1.125,
       "expected_bytes": "b00000903f"
     },
     {
-      "//": "Float32 uses type code 0x8d",
+      "//": "Float32 uses type code 0xb0",
       "name": "float32_39_875",
       "type": "encode",
       "input": 39.875,
       "expected_bytes": "b000801f42"
     },
     {
-      "//": "Float64 uses type code 0x8e - 1.234 requires full precision",
+      "//": "Float64 uses type code 0xb1 - 1.234 requires full precision",
       "name": "float64_1_234",
       "type": "encode",
       "input": 1.234,
       "expected_bytes": "b15839b4c876bef33f"
     },
     {
-      "//": "Negative float16: -1.25",
-      "name": "float16_neg1_25",
+      "//": "Negative float32: -1.25",
+      "name": "float32_neg1_25",
       "type": "encode",
       "input": -1.25,
       "expected_bytes": "b00000a0bf"
@@ -114,20 +114,13 @@
     },
     {
       "//": "=== Negative zero tests ===",
-      "name": "decode_float16_negative_zero",
-      "type": "decode",
-      "input_bytes": "b000000080",
-      "expected_value": {
-        "$number": "-0.0"
-      }
-    },
-    {
       "name": "decode_float32_negative_zero",
       "type": "decode",
       "input_bytes": "b000000080",
       "expected_value": {
         "$number": "-0.0"
-      }
+      },
+      "requires": ["negative_zero"]
     },
     {
       "name": "decode_float64_negative_zero",
@@ -135,7 +128,8 @@
       "input_bytes": "b10000000000000080",
       "expected_value": {
         "$number": "-0.0"
-      }
+      },
+      "requires": ["negative_zero"]
     },
     {
       "//": "=== Float precision boundary tests ===",
@@ -208,7 +202,8 @@
       "type": "roundtrip",
       "input": {
         "$number": "-0.0"
-      }
+      },
+      "requires": ["negative_zero"]
     },
     {
       "//": "Negative zero should encode to a float type (not integer 0)",
@@ -217,7 +212,8 @@
       "input": {
         "$number": "-0.0"
       },
-      "expected_bytes": "b000000080"
+      "expected_bytes": "b000000080",
+      "requires": ["negative_zero"]
     },
     {
       "//": "=== Additional precision boundary tests ===",

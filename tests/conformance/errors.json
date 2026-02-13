@@ -37,7 +37,7 @@
     {
       "name": "truncated_sint16",
       "type": "decode_error",
-      "input_bytes": "af02",
+      "input_bytes": "ad02",
       "expected_error": "truncated"
     },
     {
@@ -133,7 +133,7 @@
       "expected_error": "truncated"
     },
     {
-      "//": "Invalid (reserved) type codes — codes in the 0xb8-0xf4 range are reserved",
+      "//": "Invalid (reserved) type codes — codes in the 0xbb-0xf4 range are reserved",
       "name": "invalid_type_code_c9",
       "type": "decode_error",
       "input_bytes": "c9",
@@ -184,7 +184,7 @@
     },
     {
       "//": "=== Truncated/unclosed container errors ===",
-      "//note": "Containers use delimiter-terminated encoding: b4/b5 + children + b3"
+      "//note": "Containers use delimiter-terminated encoding: b7/b8 + children + b6"
     },
     {
       "//": "Array with no end marker and no content",
@@ -255,64 +255,52 @@
       "expected_error": "nul_character"
     },
     {
-      "//": "Float64 NaN rejected by default",
+      "//": "Float64 NaN rejected",
       "name": "float64_nan_rejected",
       "type": "decode_error",
       "input_bytes": "b1000000000000fa7f",
       "expected_error": "invalid_data",
-      "requires": [
-        "nan_infinity_reject"
-      ]
+      "options": {"nan_infinity_behavior": "reject"}
     },
     {
-      "//": "Float64 positive infinity rejected by default",
+      "//": "Float64 positive infinity rejected",
       "name": "float64_infinity_positive_rejected",
       "type": "decode_error",
       "input_bytes": "b1000000000000f07f",
       "expected_error": "invalid_data",
-      "requires": [
-        "nan_infinity_reject"
-      ]
+      "options": {"nan_infinity_behavior": "reject"}
     },
     {
-      "//": "Float64 negative infinity rejected by default",
+      "//": "Float64 negative infinity rejected",
       "name": "float64_infinity_negative_rejected",
       "type": "decode_error",
       "input_bytes": "b1000000000000f0ff",
       "expected_error": "invalid_data",
-      "requires": [
-        "nan_infinity_reject"
-      ]
+      "options": {"nan_infinity_behavior": "reject"}
     },
     {
-      "//": "Float32 NaN rejected by default",
+      "//": "Float32 NaN rejected",
       "name": "float32_nan_rejected",
       "type": "decode_error",
       "input_bytes": "b00000c07f",
       "expected_error": "invalid_data",
-      "requires": [
-        "nan_infinity_reject"
-      ]
+      "options": {"nan_infinity_behavior": "reject"}
     },
     {
-      "//": "Float32 positive infinity rejected by default",
+      "//": "Float32 positive infinity rejected",
       "name": "float32_infinity_positive_rejected",
       "type": "decode_error",
       "input_bytes": "b00000807f",
       "expected_error": "invalid_data",
-      "requires": [
-        "nan_infinity_reject"
-      ]
+      "options": {"nan_infinity_behavior": "reject"}
     },
     {
-      "//": "Float32 negative infinity rejected by default",
+      "//": "Float32 negative infinity rejected",
       "name": "float32_infinity_negative_rejected",
       "type": "decode_error",
       "input_bytes": "b0000080ff",
       "expected_error": "invalid_data",
-      "requires": [
-        "nan_infinity_reject"
-      ]
+      "options": {"nan_infinity_behavior": "reject"}
     },
     {
       "//": "Encoding errors - NaN and Infinity rejected by default",
@@ -321,7 +309,8 @@
       "input": {
         "$number": "NaN"
       },
-      "expected_error": "invalid_data"
+      "expected_error": "invalid_data",
+      "options": {"nan_infinity_behavior": "reject"}
     },
     {
       "name": "encode_infinity",
@@ -329,7 +318,8 @@
       "input": {
         "$number": "Infinity"
       },
-      "expected_error": "invalid_data"
+      "expected_error": "invalid_data",
+      "options": {"nan_infinity_behavior": "reject"}
     },
     {
       "name": "encode_neg_infinity",
@@ -337,11 +327,12 @@
       "input": {
         "$number": "-Infinity"
       },
-      "expected_error": "invalid_data"
+      "expected_error": "invalid_data",
+      "options": {"nan_infinity_behavior": "reject"}
     },
     {
       "//": "=== Non-string object keys (must be rejected) ===",
-      "//note": "Object format: b5 + key-value pairs + b3. Keys must be strings."
+      "//note": "Object format: b8 + key-value pairs + b6. Keys must be strings."
     },
     {
       "name": "object_key_integer",
@@ -352,19 +343,19 @@
     {
       "name": "object_key_null",
       "type": "decode_error",
-      "input_bytes": "b8b500b6",
+      "input_bytes": "b8b300b6",
       "expected_error": "invalid_object_key"
     },
     {
       "name": "object_key_true",
       "type": "decode_error",
-      "input_bytes": "b8b400b6",
+      "input_bytes": "b8b500b6",
       "expected_error": "invalid_object_key"
     },
     {
       "name": "object_key_false",
       "type": "decode_error",
-      "input_bytes": "b8b300b6",
+      "input_bytes": "b8b400b6",
       "expected_error": "invalid_object_key"
     },
     {
@@ -448,7 +439,7 @@
     },
     {
       "//": "=== Malformed object structures ===",
-      "//note": "Object format: 94 + string-key value-pairs + 95"
+      "//note": "Object format: b8 + string-key value-pairs + b6"
     },
     {
       "//": "Object with key but missing value (truncated before value)",

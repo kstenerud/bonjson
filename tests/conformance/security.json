@@ -4,14 +4,14 @@
   "//": "Security-related tests for handling malicious or malformed input",
   "tests": [
     {
-      "//": "Duplicate key detection - exact duplicate (2 pairs → 0x08)",
+      "//": "Duplicate key detection - exact duplicate",
       "name": "duplicate_key_simple",
       "type": "decode_error",
       "input_bytes": "b8666101666102b6",
       "expected_error": "duplicate_key"
     },
     {
-      "//": "Duplicate key with longer key name (2 pairs → 0x08)",
+      "//": "Duplicate key with longer key name",
       "name": "duplicate_key_longer",
       "type": "decode_error",
       "input_bytes": "b868414243016841424302b6",
@@ -102,15 +102,15 @@
       "expected_bytes": "ac65"
     },
     {
-      "//": "Short string boundary tests. Short strings are 0-63 bytes.",
+      "//": "Short string boundary tests. Short strings are 0-66 bytes (type codes 0x65-0xa7).",
       "name": "boundary_string_63_uses_short_encoding",
       "type": "encode",
       "input": "123456789012345678901234567890123456789012345678901234567890123",
       "expected_bytes": "a4313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930313233"
     },
     {
-      "//": "64-byte string uses long encoding",
-      "name": "boundary_string_64_uses_long_encoding",
+      "//": "64-byte string still uses short encoding (type code 0xa5 = 0x65 + 64)",
+      "name": "boundary_string_64_uses_short_encoding",
       "type": "encode",
       "input": "1234567890123456789012345678901234567890123456789012345678901234",
       "expected_bytes": "a531323334353637383930313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334"
@@ -315,7 +315,7 @@
       }
     },
     {
-      "//": "Maximum container size exceeded - array (6 elements, count=6 → 0x18)",
+      "//": "Maximum container size exceeded - array",
       "name": "max_container_size_exceeded_array",
       "type": "decode_error",
       "input_bytes": "b7 00 01 02 03 04 05 b6",
@@ -325,7 +325,7 @@
       }
     },
     {
-      "//": "Maximum container size exceeded - object (6 pairs, count=6 → 0x18)",
+      "//": "Maximum container size exceeded - object",
       "name": "max_container_size_exceeded_object",
       "type": "decode_error",
       "input_bytes": "b8666100666201666302666403666504666605b6",
@@ -335,7 +335,7 @@
       }
     },
     {
-      "//": "At the limit is OK - array (5 elements, count=5 → 0x14)",
+      "//": "At the limit is OK - array",
       "name": "container_size_at_limit_array",
       "type": "decode",
       "input_bytes": "b70001020304b6",
@@ -351,7 +351,7 @@
       }
     },
     {
-      "//": "At the limit is OK - object (5 pairs, count=5 → 0x14)",
+      "//": "At the limit is OK - object",
       "name": "container_size_at_limit_object",
       "type": "decode",
       "input_bytes": "b8666100666201666302666403666504b6",
@@ -367,7 +367,7 @@
       }
     },
     {
-      "//": "Maximum document size exceeded (10 elements, count=10 → 0x28, total 12 bytes)",
+      "//": "Maximum document size exceeded (10 elements, total 12 bytes)",
       "name": "max_document_size_exceeded",
       "type": "decode_error",
       "input_bytes": "b700010203040506070809b6",
@@ -377,7 +377,7 @@
       }
     },
     {
-      "//": "At the limit is OK (4 elements, count=4 → 0x10, total 6 bytes)",
+      "//": "At the limit is OK (4 elements, total 6 bytes)",
       "name": "document_size_at_limit",
       "type": "decode",
       "input_bytes": "b700010203b6",
@@ -397,7 +397,7 @@
       "name": "nul_in_string_rejected",
       "type": "decode_error",
       "input_bytes": "676100",
-      "expected_error": "nul_in_string"
+      "expected_error": "nul_character"
     },
     {
       "//": "NUL allowed with option",
@@ -425,21 +425,24 @@
       "name": "nan_rejected_default",
       "type": "decode_error",
       "input_bytes": "b00000c07f",
-      "expected_error": "nan_not_allowed"
+      "expected_error": "invalid_data",
+      "options": {"nan_infinity_behavior": "reject"}
     },
     {
-      "//": "Positive Infinity rejected by default",
+      "//": "Positive Infinity rejected",
       "name": "infinity_rejected_default",
       "type": "decode_error",
       "input_bytes": "b00000807f",
-      "expected_error": "infinity_not_allowed"
+      "expected_error": "invalid_data",
+      "options": {"nan_infinity_behavior": "reject"}
     },
     {
-      "//": "Negative Infinity rejected by default",
+      "//": "Negative Infinity rejected",
       "name": "neg_infinity_rejected_default",
       "type": "decode_error",
       "input_bytes": "b0000080ff",
-      "expected_error": "infinity_not_allowed"
+      "expected_error": "invalid_data",
+      "options": {"nan_infinity_behavior": "reject"}
     },
     {
       "//": "NaN allowed with option (float32 NaN = 0xB0 + 7FC00000 LE)",
@@ -518,7 +521,7 @@
     },
     {
       "//": "=== Duplicate key handling modes ===",
-      "//note": "keep_first silently ignores subsequent duplicates (2 pairs → 0x08)",
+      "//note": "keep_first silently ignores subsequent duplicates",
       "name": "dup_key_keep_first",
       "type": "decode",
       "input_bytes": "b8666101666102b6",
@@ -530,7 +533,7 @@
       }
     },
     {
-      "//": "keep_last replaces with latest value (2 pairs → 0x08)",
+      "//": "keep_last replaces with latest value",
       "name": "dup_key_keep_last",
       "type": "decode",
       "input_bytes": "b8666101666102b6",
@@ -542,7 +545,7 @@
       }
     },
     {
-      "//": "Multiple duplicates with keep_first (3 pairs → 0x0c)",
+      "//": "Multiple duplicates with keep_first",
       "name": "dup_key_keep_first_multiple",
       "type": "decode",
       "input_bytes": "b8666101666102666103b6",
@@ -554,7 +557,7 @@
       }
     },
     {
-      "//": "Multiple duplicates with keep_last (3 pairs → 0x0c)",
+      "//": "Multiple duplicates with keep_last",
       "name": "dup_key_keep_last_multiple",
       "type": "decode",
       "input_bytes": "b8666101666102666103b6",
