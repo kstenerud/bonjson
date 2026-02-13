@@ -318,6 +318,6 @@
       "expected_value": {
         "$number": "0x1.fffffcp-127"
       }
-    },
+    }
   ]
 }
