@@ -248,16 +248,17 @@
       "expected_error": "trailing_bytes"
     },
     {
+      "//": "Short string 'a' (0x66 = 0x65+1) followed by trailing byte 0x64",
       "name": "trailing_bytes_after_string",
       "type": "decode_error",
-      "input_bytes": "866164",
+      "input_bytes": "666164",
       "expected_error": "trailing_bytes"
     },
     {
-      "//": "Empty object (0 pairs → 0x00) followed by trailing byte",
+      "//": "Object with key 'a' value true, followed by trailing byte 0x00",
       "name": "trailing_bytes_after_object",
       "type": "decode_error",
-      "input_bytes": "f9899cff",
+      "input_bytes": "b86661b5b600",
       "expected_error": "trailing_bytes"
     },
     {
@@ -460,106 +461,100 @@
     },
     {
       "//": "=== NaN/Infinity handling ===",
-      "//note": "BigNumber special values: sigLen=0, then expLen=1 for Infinity (neg=sign), expLen=3 for NaN",
+      "//note": "Float32 NaN = 0xB0 + 7FC00000 LE, Inf = 0xB0 + 7F800000 LE, -Inf = 0xB0 + FF800000 LE",
       "name": "nan_rejected_default",
       "type": "decode_error",
-      "input_bytes": "f189a2",
+      "input_bytes": "b00000c07f",
       "expected_error": "nan_not_allowed"
     },
     {
       "//": "Positive Infinity rejected by default",
       "name": "infinity_rejected_default",
       "type": "decode_error",
-      "input_bytes": "f1899e",
+      "input_bytes": "b00000807f",
       "expected_error": "infinity_not_allowed"
     },
     {
-      "//": "Negative Infinity rejected by default (expLen=1, neg=1)",
+      "//": "Negative Infinity rejected by default",
       "name": "neg_infinity_rejected_default",
       "type": "decode_error",
-      "input_bytes": "f1899f",
+      "input_bytes": "b0000080ff",
       "expected_error": "infinity_not_allowed"
     },
     {
-      "//": "NaN allowed with option",
+      "//": "NaN allowed with option (float32 NaN = 0xB0 + 7FC00000 LE)",
       "name": "nan_allowed",
       "type": "decode",
-      "input_bytes": "f189a2",
+      "input_bytes": "b00000c07f",
       "expected_value": {
         "$number": "NaN"
       },
       "options": {
         "nan_infinity_behavior": "allow"
-      },
-      "_convert_error": "convert failed: Trailing bytes: consumed 5/2"
+      }
     },
     {
-      "//": "Positive Infinity allowed with option",
+      "//": "Positive Infinity allowed with option (float32 +Inf = 0xB0 + 7F800000 LE)",
       "name": "infinity_allowed",
       "type": "decode",
-      "input_bytes": "f1899e",
+      "input_bytes": "b00000807f",
       "expected_value": {
         "$number": "Infinity"
       },
       "options": {
         "nan_infinity_behavior": "allow"
-      },
-      "_convert_error": "convert failed: Trailing bytes: consumed 3/2"
+      }
     },
     {
-      "//": "Negative Infinity allowed with option (expLen=1, neg=1)",
+      "//": "Negative Infinity allowed with option (float32 -Inf = 0xB0 + FF800000 LE)",
       "name": "neg_infinity_allowed",
       "type": "decode",
-      "input_bytes": "f1899f",
+      "input_bytes": "b0000080ff",
       "expected_value": {
         "$number": "-Infinity"
       },
       "options": {
         "nan_infinity_behavior": "allow"
-      },
-      "_convert_error": "convert failed: Trailing bytes: consumed 3/2"
+      }
     },
     {
       "//": "NaN converted to string with stringify option",
       "name": "nan_stringify",
       "type": "decode",
-      "input_bytes": "f189a2",
+      "input_bytes": "b00000c07f",
       "expected_value": "NaN",
       "options": {
         "nan_infinity_behavior": "stringify"
       },
       "requires": [
         "nan_infinity_stringify"
-      ],
-      "_convert_error": "convert failed: Trailing bytes: consumed 5/2"
+      ]
     },
     {
       "//": "Positive Infinity converted to string with stringify option",
       "name": "infinity_stringify",
       "type": "decode",
-      "input_bytes": "f1899e",
+      "input_bytes": "b00000807f",
       "expected_value": "Infinity",
       "options": {
         "nan_infinity_behavior": "stringify"
       },
       "requires": [
         "nan_infinity_stringify"
-      ],
-      "_convert_error": "convert failed: Trailing bytes: consumed 3/2"
+      ]
     },
     {
-      "//": "Negative Infinity converted to string with stringify option (expLen=1, neg=1)",
+      "//": "Negative Infinity converted to string with stringify option",
       "name": "neg_infinity_stringify",
       "type": "decode",
-      "input_bytes": "f1899f",
+      "input_bytes": "b0000080ff",
       "expected_value": "-Infinity",
       "options": {
         "nan_infinity_behavior": "stringify"
       },
       "requires": [
         "nan_infinity_stringify"
-      ],
-      "_convert_error": "convert failed: Trailing bytes: consumed 3/2"
+      ]
     },
     {
       "//": "=== Duplicate key handling modes ===",

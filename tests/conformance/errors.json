@@ -158,21 +158,21 @@
       "expected_error": "invalid_type_code"
     },
     {
-      "name": "invalid_type_code_f5",
+      "name": "invalid_type_code_bb",
       "type": "decode_error",
-      "input_bytes": "f5",
+      "input_bytes": "bb",
       "expected_error": "invalid_type_code"
     },
     {
-      "name": "invalid_type_code_fa",
+      "name": "invalid_type_code_be",
       "type": "decode_error",
-      "input_bytes": "fa",
+      "input_bytes": "be",
       "expected_error": "invalid_type_code"
     },
     {
-      "name": "invalid_type_code_fb",
+      "name": "invalid_type_code_bf",
       "type": "decode_error",
-      "input_bytes": "fb",
+      "input_bytes": "bf",
       "expected_error": "invalid_type_code"
     },
     {
@@ -426,10 +426,10 @@
       "expected_error": "invalid_utf8"
     },
     {
-      "//": "Valid UTF-8 followed by invalid in same string",
+      "//": "Valid UTF-8 followed by invalid in same string (short string length 3: 0x68 = 0x65+3)",
       "name": "invalid_utf8_valid_then_invalid",
       "type": "decode_error",
-      "input_bytes": "6a616280",
+      "input_bytes": "68616280",
       "expected_error": "invalid_utf8"
     },
     {
@@ -505,9 +505,9 @@
     },
     {
       "//": "Reserved type code at top level",
-      "name": "reserved_type_code_fa_toplevel",
+      "name": "reserved_type_code_c0_toplevel",
       "type": "decode_error",
-      "input_bytes": "fa",
+      "input_bytes": "c0",
       "expected_error": "invalid_type_code"
     }
   ]

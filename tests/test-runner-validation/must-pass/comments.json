@@ -11,7 +11,7 @@
       "name": "test_with_comments",
       "type": "encode",
       "input": null,
-      "expected_bytes": "cd"
+      "expected_bytes": "b3"
     }
   ]
 }

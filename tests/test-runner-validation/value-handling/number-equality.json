@@ -5,26 +5,26 @@
   "tests": [
     {
       "//": "1.0 (float) equals 1 (integer) mathematically",
-      "//note": "Small int 1: type_code = 1 + 100 = 0x65",
+      "//note": "Small int 1: type_code = 1 directly = 0x01",
       "name": "float_int_equality",
       "type": "decode",
-      "input_bytes": "65",
+      "input_bytes": "01",
       "expected_value": {"$number": "1.0"}
     },
     {
       "//": "100 encoded as smallint, compared to float",
-      "//note": "Small int 100: type_code = 100 + 100 = 0xc8",
+      "//note": "Small int 100: type_code = 100 directly = 0x64",
       "name": "smallint_float_equality",
       "type": "decode",
-      "input_bytes": "c8",
+      "input_bytes": "64",
       "expected_value": {"$number": "100.0"}
     },
     {
       "//": "Scientific notation equals plain number",
-      "//note": "Small int 100: type_code = 100 + 100 = 0xc8",
+      "//note": "Small int 100: type_code = 100 directly = 0x64",
       "name": "scientific_plain_equality",
       "type": "decode",
-      "input_bytes": "c8",
+      "input_bytes": "64",
       "expected_value": {"$number": "1e2"}
     }
   ]
