@@ -150,6 +150,35 @@
       "name": "roundtrip_string_unicode_mixed",
       "type": "roundtrip",
       "input": "Hello 世界 🌍"
+    },
+    {
+      "//": "=== String length boundary tests ===",
+      "//note": "Verify correct encoding at short string boundaries"
+    },
+    {
+      "//": "63-byte string uses short encoding (type code 0xa4 = 0x65 + 63)",
+      "name": "boundary_string_63_uses_short_encoding",
+      "type": "encode",
+      "input": "123456789012345678901234567890123456789012345678901234567890123",
+      "expected_bytes": "a4313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930313233"
+    },
+    {
+      "//": "64-byte string still uses short encoding (type code 0xa5 = 0x65 + 64)",
+      "name": "boundary_string_64_uses_short_encoding",
+      "type": "encode",
+      "input": "1234567890123456789012345678901234567890123456789012345678901234",
+      "expected_bytes": "a531323334353637383930313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334"
+    },
+    {
+      "//": "CJK string round-trip",
+      "name": "roundtrip_unicode_cjk",
+      "type": "roundtrip",
+      "input": "日本語テスト"
+    },
+    {
+      "name": "roundtrip_unicode_emoji_varied",
+      "type": "roundtrip",
+      "input": "😀🎉🌍"
     }
   ]
 }

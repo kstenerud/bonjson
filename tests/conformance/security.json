@@ -74,153 +74,6 @@
       "expected_error": "invalid_utf8"
     },
     {
-      "//": "Small integer boundary tests - verify encoding size. Small ints are 0-100 (1 byte).",
-      "name": "boundary_neg1_uses_2_bytes",
-      "type": "encode",
-      "input": -1,
-      "expected_bytes": "acff"
-    },
-    {
-      "//": "-128 is the minimum sint8 value (2 bytes)",
-      "name": "boundary_neg128_uses_2_bytes",
-      "type": "encode",
-      "input": -128,
-      "expected_bytes": "ac80"
-    },
-    {
-      "//": "100 uses single byte (small integer)",
-      "name": "boundary_100_uses_1_byte",
-      "type": "encode",
-      "input": 100,
-      "expected_bytes": "64"
-    },
-    {
-      "//": "101 uses 2 bytes (sint8)",
-      "name": "boundary_101_uses_2_bytes",
-      "type": "encode",
-      "input": 101,
-      "expected_bytes": "ac65"
-    },
-    {
-      "//": "Short string boundary tests. Short strings are 0-66 bytes (type codes 0x65-0xa7).",
-      "name": "boundary_string_63_uses_short_encoding",
-      "type": "encode",
-      "input": "123456789012345678901234567890123456789012345678901234567890123",
-      "expected_bytes": "a4313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930313233"
-    },
-    {
-      "//": "64-byte string still uses short encoding (type code 0xa5 = 0x65 + 64)",
-      "name": "boundary_string_64_uses_short_encoding",
-      "type": "encode",
-      "input": "1234567890123456789012345678901234567890123456789012345678901234",
-      "expected_bytes": "a531323334353637383930313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334"
-    },
-    {
-      "//": "Unicode strings should round-trip correctly",
-      "name": "roundtrip_unicode_cjk",
-      "type": "roundtrip",
-      "input": "日本語テスト"
-    },
-    {
-      "name": "roundtrip_unicode_emoji",
-      "type": "roundtrip",
-      "input": "😀🎉🌍"
-    },
-    {
-      "//": "Deep nesting round-trip (within reasonable limits)",
-      "name": "roundtrip_deep_array_nesting",
-      "type": "roundtrip",
-      "input": [
-        [
-          [
-            [
-              [
-                [
-                  [
-                    [
-                      [
-                        [
-                          1
-                        ]
-                      ]
-                    ]
-                  ]
-                ]
-              ]
-            ]
-          ]
-        ]
-      ]
-    },
-    {
-      "name": "roundtrip_deep_object_nesting",
-      "type": "roundtrip",
-      "input": {
-        "a": {
-          "b": {
-            "c": {
-              "d": {
-                "e": {
-                  "f": {
-                    "g": {
-                      "h": {
-                        "i": {
-                          "j": 1
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "//": "Large but valid structures",
-      "name": "roundtrip_array_many_elements",
-      "type": "roundtrip",
-      "input": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        14,
-        15,
-        16,
-        17,
-        18,
-        19,
-        20
-      ]
-    },
-    {
-      "name": "roundtrip_object_many_keys",
-      "type": "roundtrip",
-      "input": {
-        "a": 1,
-        "b": 2,
-        "c": 3,
-        "d": 4,
-        "e": 5,
-        "f": 6,
-        "g": 7,
-        "h": 8,
-        "i": 9,
-        "j": 10
-      }
-    },
-    {
       "//": "Trailing bytes - rejected by default",
       "name": "trailing_bytes_after_integer",
       "type": "decode_error",
@@ -254,7 +107,7 @@
     },
     {
       "//": "Maximum nesting depth exceeded (6 nested arrays, limit 5)",
-      "//note": "Each array: f8 + count. Inner arrays have 1 element (→0x04), innermost is empty (→0x00)",
+      "//note": "Each array: f8 + count. Inner arrays have 1 element (\u21920x04), innermost is empty (\u21920x00)",
       "name": "max_depth_exceeded_arrays",
       "type": "decode_error",
       "input_bytes": "b7b7b7b7b7b7b6b6b6b6b6b6",
@@ -392,14 +245,6 @@
       }
     },
     {
-      "//": "=== NUL character handling ===",
-      "//note": "NUL (0x00) in strings is rejected by default",
-      "name": "nul_in_string_rejected",
-      "type": "decode_error",
-      "input_bytes": "676100",
-      "expected_error": "nul_character"
-    },
-    {
       "//": "NUL allowed with option",
       "name": "nul_in_string_allowed",
       "type": "decode",
@@ -418,31 +263,6 @@
       "options": {
         "allow_nul": true
       }
-    },
-    {
-      "//": "=== NaN/Infinity handling ===",
-      "//note": "Float32 NaN = 0xB0 + 7FC00000 LE, Inf = 0xB0 + 7F800000 LE, -Inf = 0xB0 + FF800000 LE",
-      "name": "nan_rejected_default",
-      "type": "decode_error",
-      "input_bytes": "b00000c07f",
-      "expected_error": "invalid_data",
-      "options": {"nan_infinity_behavior": "reject"}
-    },
-    {
-      "//": "Positive Infinity rejected",
-      "name": "infinity_rejected_default",
-      "type": "decode_error",
-      "input_bytes": "b00000807f",
-      "expected_error": "invalid_data",
-      "options": {"nan_infinity_behavior": "reject"}
-    },
-    {
-      "//": "Negative Infinity rejected",
-      "name": "neg_infinity_rejected_default",
-      "type": "decode_error",
-      "input_bytes": "b0000080ff",
-      "expected_error": "invalid_data",
-      "options": {"nan_infinity_behavior": "reject"}
     },
     {
       "//": "NaN allowed with option (float32 NaN = 0xB0 + 7FC00000 LE)",
@@ -574,7 +394,7 @@
       "name": "invalid_utf8_replace",
       "type": "decode",
       "input_bytes": "6961806263",
-      "expected_value": "a�bc",
+      "expected_value": "a\ufffdbc",
       "options": {
         "invalid_utf8": "replace"
       }
@@ -594,7 +414,7 @@
       "name": "invalid_utf8_replace_multiple",
       "type": "decode",
       "input_bytes": "6a8061ff62fe",
-      "expected_value": "�a�b�",
+      "expected_value": "\ufffda\ufffdb\ufffd",
       "options": {
         "invalid_utf8": "replace"
       }

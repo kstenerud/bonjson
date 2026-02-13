@@ -92,16 +92,6 @@
       "input": 2.718281828459045
     },
     {
-      "name": "roundtrip_float_large",
-      "type": "roundtrip",
-      "input": 1.7976931348623157e+308
-    },
-    {
-      "name": "roundtrip_float_small_positive",
-      "type": "roundtrip",
-      "input": 2.2250738585072014e-308
-    },
-    {
       "name": "roundtrip_float_zero",
       "type": "roundtrip",
       "input": 0.0
@@ -120,7 +110,9 @@
       "expected_value": {
         "$number": "-0.0"
       },
-      "requires": ["negative_zero"]
+      "requires": [
+        "negative_zero"
+      ]
     },
     {
       "name": "decode_float64_negative_zero",
@@ -129,7 +121,9 @@
       "expected_value": {
         "$number": "-0.0"
       },
-      "requires": ["negative_zero"]
+      "requires": [
+        "negative_zero"
+      ]
     },
     {
       "//": "=== Float precision boundary tests ===",
@@ -149,30 +143,6 @@
       "name": "roundtrip_float_needs_float64",
       "type": "roundtrip",
       "input": 1.0000001192092896
-    },
-    {
-      "//": "=== Subnormal float tests ===",
-      "name": "roundtrip_float64_subnormal",
-      "type": "roundtrip",
-      "input": {
-        "$number": "5e-324"
-      }
-    },
-    {
-      "//": "Smallest positive normal float64",
-      "name": "roundtrip_float64_min_normal",
-      "type": "roundtrip",
-      "input": {
-        "$number": "2.2250738585072014e-308"
-      }
-    },
-    {
-      "//": "=== Float special encoding tests ===",
-      "//note": "Verify decoder accepts float values encoded in larger formats",
-      "name": "decode_1_125_as_float64",
-      "type": "decode",
-      "input_bytes": "b1000000000000f23f",
-      "expected_value": 1.125
     },
     {
       "name": "decode_1_25_as_float32",
@@ -203,7 +173,9 @@
       "input": {
         "$number": "-0.0"
       },
-      "requires": ["negative_zero"]
+      "requires": [
+        "negative_zero"
+      ]
     },
     {
       "//": "Negative zero should encode to a float type (not integer 0)",
@@ -213,7 +185,9 @@
         "$number": "-0.0"
       },
       "expected_bytes": "b000000080",
-      "requires": ["negative_zero"]
+      "requires": [
+        "negative_zero"
+      ]
     },
     {
       "//": "=== Additional precision boundary tests ===",

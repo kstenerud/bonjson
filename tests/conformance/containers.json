@@ -69,7 +69,9 @@
         "a": 1152921504606846976
       },
       "expected_bytes": "b86661af0000000000000010b6",
-      "requires": ["int64"]
+      "requires": [
+        "int64"
+      ]
     },
     {
       "//": "Object with negative int64 value",
@@ -79,7 +81,9 @@
         "a": -1152921504606846976
       },
       "expected_bytes": "b86661af00000000000000f0b6",
-      "requires": ["int64"]
+      "requires": [
+        "int64"
+      ]
     },
     {
       "//": "Object with float16 value",
@@ -278,7 +282,7 @@
       "name": "object_unicode_key_japanese",
       "type": "roundtrip",
       "input": {
-        "\u65e5\u672c\u8a9e": "Japanese"
+        "日本語": "Japanese"
       }
     },
     {
@@ -286,7 +290,7 @@
       "name": "object_unicode_key_emoji",
       "type": "roundtrip",
       "input": {
-        "\ud83d\ude00": "smiley"
+        "😀": "smiley"
       }
     },
     {
@@ -294,7 +298,7 @@
       "name": "object_unicode_key_mixed",
       "type": "roundtrip",
       "input": {
-        "Hello \u4e16\u754c \ud83c\udf0d": "mixed"
+        "Hello 世界 🌍": "mixed"
       }
     },
     {
@@ -305,7 +309,7 @@
         "": 0,
         "a": 1,
         "this is a long key name": 2,
-        "\u65e5\u672c": 3
+        "日本": 3
       }
     },
     {
@@ -329,8 +333,8 @@
       "name": "object_nested_unicode_keys",
       "type": "roundtrip",
       "input": {
-        "\u65e5\u672c": {
-          "\u8a9e": {
+        "日本": {
+          "語": {
             "value": 42
           }
         }
@@ -607,6 +611,105 @@
           }
         ],
         "val": null
+      }
+    },
+    {
+      "//": "=== Deep nesting and large container tests ==="
+    },
+    {
+      "//": "10-level deep array nesting",
+      "name": "roundtrip_deep_array_nesting_10",
+      "type": "roundtrip",
+      "input": [
+        [
+          [
+            [
+              [
+                [
+                  [
+                    [
+                      [
+                        [
+                          1
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ]
+      ]
+    },
+    {
+      "//": "10-level deep object nesting",
+      "name": "roundtrip_deep_object_nesting_10",
+      "type": "roundtrip",
+      "input": {
+        "a": {
+          "b": {
+            "c": {
+              "d": {
+                "e": {
+                  "f": {
+                    "g": {
+                      "h": {
+                        "i": {
+                          "j": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "//": "Array with 20 elements",
+      "name": "roundtrip_array_many_elements",
+      "type": "roundtrip",
+      "input": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ]
+    },
+    {
+      "//": "Object with 10 keys",
+      "name": "roundtrip_object_many_keys",
+      "type": "roundtrip",
+      "input": {
+        "a": 1,
+        "b": 2,
+        "c": 3,
+        "d": 4,
+        "e": 5,
+        "f": 6,
+        "g": 7,
+        "h": 8,
+        "i": 9,
+        "j": 10
       }
     }
   ]

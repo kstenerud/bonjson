@@ -133,7 +133,7 @@
       "expected_error": "truncated"
     },
     {
-      "//": "Invalid (reserved) type codes — codes in the 0xbb-0xf4 range are reserved",
+      "//": "Invalid (reserved) type codes \u2014 codes in the 0xbb-0xf4 range are reserved",
       "name": "invalid_type_code_c9",
       "type": "decode_error",
       "input_bytes": "c9",
@@ -260,7 +260,9 @@
       "type": "decode_error",
       "input_bytes": "b1000000000000fa7f",
       "expected_error": "invalid_data",
-      "options": {"nan_infinity_behavior": "reject"}
+      "options": {
+        "nan_infinity_behavior": "reject"
+      }
     },
     {
       "//": "Float64 positive infinity rejected",
@@ -268,7 +270,9 @@
       "type": "decode_error",
       "input_bytes": "b1000000000000f07f",
       "expected_error": "invalid_data",
-      "options": {"nan_infinity_behavior": "reject"}
+      "options": {
+        "nan_infinity_behavior": "reject"
+      }
     },
     {
       "//": "Float64 negative infinity rejected",
@@ -276,7 +280,9 @@
       "type": "decode_error",
       "input_bytes": "b1000000000000f0ff",
       "expected_error": "invalid_data",
-      "options": {"nan_infinity_behavior": "reject"}
+      "options": {
+        "nan_infinity_behavior": "reject"
+      }
     },
     {
       "//": "Float32 NaN rejected",
@@ -284,7 +290,9 @@
       "type": "decode_error",
       "input_bytes": "b00000c07f",
       "expected_error": "invalid_data",
-      "options": {"nan_infinity_behavior": "reject"}
+      "options": {
+        "nan_infinity_behavior": "reject"
+      }
     },
     {
       "//": "Float32 positive infinity rejected",
@@ -292,7 +300,9 @@
       "type": "decode_error",
       "input_bytes": "b00000807f",
       "expected_error": "invalid_data",
-      "options": {"nan_infinity_behavior": "reject"}
+      "options": {
+        "nan_infinity_behavior": "reject"
+      }
     },
     {
       "//": "Float32 negative infinity rejected",
@@ -300,7 +310,9 @@
       "type": "decode_error",
       "input_bytes": "b0000080ff",
       "expected_error": "invalid_data",
-      "options": {"nan_infinity_behavior": "reject"}
+      "options": {
+        "nan_infinity_behavior": "reject"
+      }
     },
     {
       "//": "Encoding errors - NaN and Infinity rejected by default",
@@ -310,7 +322,9 @@
         "$number": "NaN"
       },
       "expected_error": "invalid_data",
-      "options": {"nan_infinity_behavior": "reject"}
+      "options": {
+        "nan_infinity_behavior": "reject"
+      }
     },
     {
       "name": "encode_infinity",
@@ -319,7 +333,9 @@
         "$number": "Infinity"
       },
       "expected_error": "invalid_data",
-      "options": {"nan_infinity_behavior": "reject"}
+      "options": {
+        "nan_infinity_behavior": "reject"
+      }
     },
     {
       "name": "encode_neg_infinity",
@@ -328,7 +344,9 @@
         "$number": "-Infinity"
       },
       "expected_error": "invalid_data",
-      "options": {"nan_infinity_behavior": "reject"}
+      "options": {
+        "nan_infinity_behavior": "reject"
+      }
     },
     {
       "//": "=== Non-string object keys (must be rejected) ===",
@@ -381,19 +399,6 @@
       "type": "decode_error",
       "input_bytes": "b8b1000000000000000000b6",
       "expected_error": "invalid_object_key"
-    },
-    {
-      "//": "=== Additional invalid UTF-8 patterns ===",
-      "name": "invalid_utf8_fe_byte",
-      "type": "decode_error",
-      "input_bytes": "66fe",
-      "expected_error": "invalid_utf8"
-    },
-    {
-      "name": "invalid_utf8_ff_byte",
-      "type": "decode_error",
-      "input_bytes": "66ff",
-      "expected_error": "invalid_utf8"
     },
     {
       "//": "Two-byte sequence followed by invalid continuation (0x00 instead of 0x80-0xbf)",
